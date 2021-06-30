@@ -1,2 +1,0 @@
-SolastaMultiClass/&FancySkeletonTitle	Fancy Skeleton
-SolastaMultiClass/&FancySkeletonDescription	I'm a fancy skeleton
