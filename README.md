@@ -1,6 +1,6 @@
 # SolastaMultiClass
 
-My Mod Description
+
 
 # How to Compile
 

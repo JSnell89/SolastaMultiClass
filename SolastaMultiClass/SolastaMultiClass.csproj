@@ -2,19 +2,19 @@
 
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
-		<AssemblyVersion>0.0.2.0</AssemblyVersion>
-		<FileVersion>0.0.2.0</FileVersion>
+		<AssemblyVersion>0.0.3.0</AssemblyVersion>
+		<FileVersion>0.0.3.0</FileVersion>
 		<Description></Description>
-		<PackageProjectUrl>https://github.com/ThyWoof/SolastaMultiClass</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/ThyWoof/SolastaMultiClass</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/SolastaMods/SolastaMultiClass</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/SolastaMods/SolastaMultiClass</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<Configurations>Debug;Release;Debug Install;Release Install</Configurations>
-		<Authors>Zappastuff</Authors>
+		<Authors>ThyWoof;ImpPhil</Authors>
 		<Company />
 		<Product />
-		<Copyright>Copyright © 2020</Copyright>
+		<Copyright>Copyright 2021</Copyright>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<Version>0.0.2</Version>
+		<Version>0.0.3</Version>
 	</PropertyGroup>
 
 	<Target Name="CheckEnvironmentVars">
@@ -45,7 +45,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Reference Include="Unity.Addressables">
+	  <Compile Remove="Models\Spells\**" />
+	  <EmbeddedResource Remove="Models\Spells\**" />
+	  <None Remove="Models\Spells\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="SolastaModApi">
+			<HintPath>$([System.IO.Path]::Combine($(SolastaInstallDir), 'Mods\SolastaModApi\SolastaModApi.dll'))</HintPath>
+			<Private>false</Private>
+		</Reference>
+    	<Reference Include="Unity.Addressables">
 			<HintPath>$([System.IO.Path]::Combine($(SolastaInstallDir), 'Solasta_Data\Managed\Unity.Addressables.dll'))</HintPath>
 			<Private>false</Private>
 		</Reference>
@@ -393,10 +403,6 @@
 			<HintPath>$([System.IO.Path]::Combine($(SolastaInstallDir), 'Solasta_Data\Managed\I2.dll'))</HintPath>
 			<Private>False</Private>
 		</Reference>
-		<Reference Include="SolastaModApi">
-			<HintPath>$([System.IO.Path]::Combine($(SolastaInstallDir), 'Mods\SolastaModApi\SolastaModApi.dll'))</HintPath>
-			<Private>False</Private>
-		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -404,6 +410,9 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Info.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Repository.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Translations-en.txt">
