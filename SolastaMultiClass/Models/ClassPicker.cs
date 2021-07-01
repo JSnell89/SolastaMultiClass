@@ -48,7 +48,7 @@ namespace SolastaMultiClass.Models
                 }
                 foreach (var className in classesLevelCount.Keys)
                 {
-                    allClassesLabel += $"lvl {classesLevelCount[className]} {className}\n";
+                    allClassesLabel += $"lvl" + classesLevelCount[className] + className + "\n";
                 }
             }
             return allClassesLabel;
@@ -72,7 +72,7 @@ namespace SolastaMultiClass.Models
                 }
                 foreach (var dieType in dieTypesCount.Keys)
                 {
-                    hitDiceLabel += $"{dieTypesCount[dieType]}{dieType}{separator}";
+                    hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
                     separator = separator == " " ? "\n" : " ";
                 }
             }
