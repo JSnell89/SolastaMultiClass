@@ -20,10 +20,10 @@ namespace SolastaMultiClass.Viewers
                 Main.Settings.maxAllowedClasses = maxAllowedClasses;
             }
 
-            var toggle = Main.Settings.MinInOutPreReqs;
-            if (UI.Toggle("Enable ability scores min. in/out pre-requisites", ref toggle, 0, UI.AutoWidth())) 
+            var toggle = Main.Settings.ForceMinInOutPreReqs;
+            if (UI.Toggle("Enable ability scores minimum in/out pre-requisites", ref toggle, 0, UI.AutoWidth())) 
             {
-                Main.Settings.MinInOutPreReqs = toggle;
+                Main.Settings.ForceMinInOutPreReqs = toggle;
             }
         }
 

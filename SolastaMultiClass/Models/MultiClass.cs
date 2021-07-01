@@ -3,7 +3,7 @@ using SolastaModApi.Extensions;
 
 namespace SolastaMultiClass.Models
 {
-    class MultiClass
+    static class MultiClass
     {
         private static int selectedClass = 0;
         private static readonly List<CharacterClassDefinition> heroClasses = new List<CharacterClassDefinition>() { };
@@ -56,7 +56,7 @@ namespace SolastaMultiClass.Models
             }
             foreach (var className in classesLevelCount.Keys)
             {
-                allClassesLabel += $"lvl" + classesLevelCount[className] + className + "\n";
+                allClassesLabel += $"lvl " + classesLevelCount[className] + " " + className + "\n";
             }
             
             return allClassesLabel;
@@ -108,8 +108,6 @@ namespace SolastaMultiClass.Models
 
         private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, CharacterClassDefinition classDefinition)
         {
-            if (!Main.Settings.MinInOutPreReqs) return true;
-
             var strength = hero.GetAttribute("Strength").CurrentValue;
             var dexterity = hero.GetAttribute("Dexterity").CurrentValue;
             var intelligence = hero.GetAttribute("Intelligence").CurrentValue;

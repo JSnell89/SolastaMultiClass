@@ -2,6 +2,7 @@
 using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
+using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Patches
 {
@@ -42,6 +43,21 @@ namespace SolastaMultiClass.Patches
                 foreach (var stagePanelName in stagePanelsByName)
                 {
                     ___stagePanelsByName.Add(stagePanelName.Key, stagePanelName.Value);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(CharacterLevelUpScreen), "OnBeginShow")]
+        internal static class CharacterLevelUpScreen_OnBeginShow_Patch
+        {
+            internal static void Postfix(CharacterLevelUpScreen __instance, Dictionary<string, CharacterStagePanel> ___stagePanelsByName)
+            {
+                if (Main.Settings.ForceMinInOutPreReqs)
+                {
+                    var classSelectionPanel = (CharacterStageClassSelectionPanel)___stagePanelsByName["ClassSelection"];
+                    var compatibleClasses = (List<CharacterClassDefinition>)AccessTools.Field(classSelectionPanel.GetType(), "compatibleClasses").GetValue(classSelectionPanel);
+                    compatibleClasses.Clear();
+                    compatibleClasses.AddRange(GetHeroAllowedClassDefinitions(__instance.CharacterBuildingService.HeroCharacter));
                 }
             }
         }
@@ -116,7 +132,7 @@ namespace SolastaMultiClass.Patches
 
                 */
 
-                foreach (var instruction in instructions)
+                        foreach (var instruction in instructions)
                 {
                     if (instructionsToBypass > 0)
                     {
