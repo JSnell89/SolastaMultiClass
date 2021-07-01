@@ -25,11 +25,41 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterCreationScreen), "LoadStagePanels")]
         internal static class CharacterCreationScreen_LoadStagePanels_Patch
         {
+            internal static bool Prefix(CharacterCreationScreen __instance,
+                            Transform ___stagesPanelContainer,
+                            GameObject[] ___stagePanelPrefabs,
+                            Dictionary<string, CharacterStagePanel> ___stagePanelsByName,
+                            Dictionary<string, StageDisk> ___stageDisksByName,
+                            List<CharacterStagePanel> ___relevantStagePanels,
+                            List<StageDisk> ___relevantStageDisks)
+            {
+                var raceSelectionPanel = ___stagePanelPrefabs[1];
+
+                if (___stagesPanelContainer.transform.childCount > 0)
+                {
+                    Gui.ReleaseChildrenToPool(___stagesPanelContainer);
+                    ___stageDisksByName.Clear();
+                    ___stagePanelsByName.Clear();
+                    ___relevantStageDisks.Clear();
+                    ___relevantStagePanels.Clear();
+                }
+
+                foreach (GameObject stagePanelPrefab in ___stagePanelPrefabs)
+                {
+                    CharacterStagePanel component = Gui.GetPrefabFromPool(stagePanelPrefab, __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
+                        ___stagePanelsByName.Add(component.Name, component);
+                }
+                CharacterStagePanel raceComponent = Gui.GetPrefabFromPool(raceSelectionPanel, __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
+                ___stagePanelsByName.Add("MyClassSelection", raceComponent);
+
+                return false;
+            }
+
             internal static void Postfix(CharacterCreationScreen __instance)
             {
-                Main.Log("CharacterCreationScreen");
-                classSelectionPanel = __instance.StagePanelsByName["ClassSelection"];
-                classSelectionPanelTransform = __instance.StagesPanelContainer.GetChild(1);
+                classSelectionPanel = __instance.StagePanelsByName["MyClassSelection"];
+                classSelectionPanelTransform = __instance.StagesPanelContainer.GetChild(__instance.StagesPanelContainer.childCount - 1);
+                __instance.StagePanelsByName.Remove("MyClassSelection");
             }
         }
 
@@ -38,10 +68,6 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterLevelUpScreen __instance, Dictionary<string, CharacterStagePanel> ___stagePanelsByName)
             {
-                var screen = Gui.GuiService.GetScreen<CharacterCreationScreen>();
-
-
-
                 Dictionary<string, CharacterStagePanel> stagePanelsByName = new Dictionary<string, CharacterStagePanel>// { };
                 {
                     { "ClassSelection", classSelectionPanel }
@@ -60,23 +86,5 @@ namespace SolastaMultiClass.Patches
                 classSelectionPanelTransform.SetParent(__instance.StagesPanelContainer);
             }
         }
-
-        [HarmonyPatch(typeof(CharacterCreationScreen), "OnBeginShow")]
-        internal static class CharacterCreationScreen_OnBeginShow_Patch
-        {
-            internal static void Prefix(CharacterCreationScreen __instance)
-            {
-                //classSelectionPanelTransform.SetParent(__instance.StagesPanelContainer);
-            }
-        }
-
-        //[HarmonyPatch(typeof(CharacterLevelUpScreen), "OnBeginShow")]
-        //internal static class CharacterLevelUpScreen_OnBeginShow_Patch
-        //{
-        //    internal static void Prefix(CharacterLevelUpScreen __instance)
-        //    {
-        //        classSelectionPanelTransform.SetParent(__instance.StagesPanelContainer);
-        //    }
-        //}
     }
 }
