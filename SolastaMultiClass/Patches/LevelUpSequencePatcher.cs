@@ -1,43 +1,52 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection.Emit;
+using UnityEngine;
+using HarmonyLib;
 
 namespace SolastaMultiClass.Patches
 {
     internal static class LevelUpSequencePatcher
     {
-        /*
-
-        Methods Call Sequence on the Level Up Screen
-
-        [SolastaMultiClass] CharacterCreationScreen
-        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
-        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
-        [SolastaMultiClass] CharacterStageClassSelectionPanel.EnterStage
-        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
-        [SolastaMultiClass] CharacterStageLevelGainsPanel.EnterStage
-        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
-        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnBeginShow
-        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
-        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
-        [SolastaMultiClass] CharacterStageLevelGainsPanel.EnterStage
-        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
-        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnBeginShow
-        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
-        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
-
-        */
-
         internal static bool blockUnassign = false;
         internal static int classesAndLevelsCount = 0;
         internal static CharacterClassDefinition selectedClass = null;
 
+        // called by CharacterStageLevelGainsPanel.EnterStage with the transpiler injection
         public static void GetHeroSelectedClassAndLevel(out CharacterClassDefinition lastClassDefinition, out int level)
         {
             lastClassDefinition = selectedClass;
             level = classesAndLevelsCount;
+            selectedClass = null;
         }
 
+        // add the class selection stage panel to the Level Up process
+        [HarmonyPatch(typeof(CharacterLevelUpScreen), "LoadStagePanels")]
+        internal static class CharacterLevelUpScreen_LoadStagePanels_Patch
+        {
+            internal static void Postfix(CharacterLevelUpScreen __instance, Dictionary<string, CharacterStagePanel> ___stagePanelsByName)
+            {
+                var screen = Gui.GuiService.GetScreen<CharacterCreationScreen>();
+                var stagePanelPrefabs = (GameObject[])AccessTools.Field(screen.GetType(), "stagePanelPrefabs").GetValue(screen);
+                var classSelectionStagePanelPrefab = stagePanelPrefabs[1];
+                var classSelectionPanel = Gui.GetPrefabFromPool(classSelectionStagePanelPrefab, __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
+
+                Dictionary<string, CharacterStagePanel> stagePanelsByName = new Dictionary<string, CharacterStagePanel>
+                {
+                    { "ClassSelection", classSelectionPanel }
+                };
+                foreach (var stagePanelName in ___stagePanelsByName)
+                {
+                    stagePanelsByName.Add(stagePanelName.Key, stagePanelName.Value);
+                }
+                ___stagePanelsByName.Clear();
+                foreach (var stagePanelName in stagePanelsByName)
+                {
+                    ___stagePanelsByName.Add(stagePanelName.Key, stagePanelName.Value);
+                }
+            }
+        }
+
+        // this avoids the last character level from being overwritten on a level up
         [HarmonyPatch(typeof(CharacterBuildingManager), "UnassignLastClassLevel")]
         internal static class CharacterBuildingManager_OnBeginShow_Patch
         {
@@ -47,32 +56,32 @@ namespace SolastaMultiClass.Patches
             }
         }
 
+        // this method only executes once, whenever the screen is displayed. perfect point for initialization
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "EnterStage")]
         internal static class CharacterStageClassSelectionPanel_Bind_Patch
         {
             internal static void Prefix(CharacterStageClassSelectionPanel __instance)
             {
-                Main.Log("CharacterStageClassSelectionPanel.EnterStage");
                 classesAndLevelsCount = __instance.CharacterBuildingService.HeroCharacter.ClassesHistory.Count;
             }
         }
 
+        // enables the trap on CharacterBuildingManager.UnassignLastClassLevel
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "OnBeginShow")]
         internal static class CharacterStageClassSelectionPanel_EnterStage_Patch
         {
             internal static void Prefix(CharacterStageClassSelectionPanel __instance)
             {
-                Main.Log("CharacterStageClassSelectionPanel.OnBeginShow");
                 blockUnassign = true;
             }
         }
 
+        // disables the trap on CharacterBuildingManager.UnassignLastClassLevel
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "OnEndHide")]
         internal static class CharacterStageClassSelectionPanel_BeginHide_Patch
         {
             internal static void Prefix(CharacterStageClassSelectionPanel __instance)
             {
-                Main.Log("CharacterStageClassSelectionPanel.OnEndHide");
                 blockUnassign = false;
             }
         }
@@ -82,11 +91,11 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Prefix(CharacterStageLevelGainsPanel __instance)
             {
-                Main.Log("CharacterStageLevelGainsPanel.EnterStage");
                 selectedClass = __instance.CharacterBuildingService.HeroCharacter.ClassesHistory[classesAndLevelsCount];
                 __instance.CharacterBuildingService.UnassignLastClassLevel();
             }
 
+            // replaces ICharacterBuildingService.GetLastAssignedClassAndLevel call with SolastaMultiClass.Patches.LevelUpSequencePatcher.GetHeroSelectedClassAndLevel
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var getLastAssignedClassAndLevelMethod = typeof(ICharacterBuildingService).GetMethod("GetLastAssignedClassAndLevel");

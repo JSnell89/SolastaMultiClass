@@ -1,6 +1,5 @@
 ﻿//using UnityModManagerNet;
 //using ModKit;
-//using static SolastaMultiClass.Models.MultiClass;
 
 //namespace SolastaMultiClass.Viewers
 //{
@@ -12,11 +11,11 @@
 
 //        private static void DisplaySettings()
 //        {
-//            UI.Label("Multi Class (ALPHA VERSION):".yellow().bold());
+//            UI.Label("Multi Class (BETA VERSION):".yellow().bold());
 //            UI.Div();
 
 //            var maxAllowedClasses = Main.Settings.maxAllowedClasses;
-//            if (UI.Slider("Max Allowed Classes", ref maxAllowedClasses, 1, 4, 2, "", UI.AutoWidth()))
+//            if (UI.Slider("Max Allowed Classes", ref maxAllowedClasses, 1, 3, 2, "", UI.AutoWidth()))
 //            {
 //                Main.Settings.maxAllowedClasses = maxAllowedClasses;
 //            }
