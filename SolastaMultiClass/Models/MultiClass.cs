@@ -6,8 +6,6 @@ namespace SolastaMultiClass.Models
     class MultiClass
     {
         private static int selectedClass = 0;
-        private static string hitDiceLabel = "";
-        private static string allClassesLabel = "";
         private static readonly List<CharacterClassDefinition> heroClasses = new List<CharacterClassDefinition>() { };
 
         public static int GetClassesCount => heroClasses.Count;
@@ -27,70 +25,64 @@ namespace SolastaMultiClass.Models
         public static void CollectHeroClasses(RulesetCharacterHero hero)
         {
             selectedClass = 0;
-            hitDiceLabel = "";
-            allClassesLabel = "";
             heroClasses.Clear();
             heroClasses.AddRange(hero.ClassesAndLevels.Keys);
         }
 
         public static string GetAllClassesLabel(GuiCharacter character)
         {
-            if (true) // (allClassesLabel == "")
-            {
-                var classesLevelCount = new Dictionary<string, int>() { };
-                var hero = character.RulesetCharacterHero;
-                var snapshot = character.Snapshot;
+            var allClassesLabel = "";
+            var classesLevelCount = new Dictionary<string, int>() { };
+            var hero = character.RulesetCharacterHero;
+            var snapshot = character.Snapshot;
 
-                allClassesLabel = "";
-                if (snapshot != null)
+            if (snapshot != null)
+            {
+                foreach (var className in snapshot.Classes)
                 {
-                    foreach (var className in snapshot.Classes)
+                    if (!classesLevelCount.ContainsKey(className))
                     {
-                        if (!classesLevelCount.ContainsKey(className))
-                        {
-                            classesLevelCount.Add(className, 0);
-                        }
-                        classesLevelCount[className] += 1;
+                        classesLevelCount.Add(className, 0);
                     }
-                }
-                else
-                {
-                    foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
-                    {
-                        classesLevelCount.Add(characterClassDefinition.FormatTitle(), hero.ClassesAndLevels[characterClassDefinition]);
-                    }
-                }
-                foreach (var className in classesLevelCount.Keys)
-                {
-                    allClassesLabel += $"lvl" + classesLevelCount[className] + className + "\n";
+                    classesLevelCount[className] += 1;
                 }
             }
+            else
+            {
+                foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+                {
+                    classesLevelCount.Add(characterClassDefinition.FormatTitle(), hero.ClassesAndLevels[characterClassDefinition]);
+                }
+            }
+            foreach (var className in classesLevelCount.Keys)
+            {
+                allClassesLabel += $"lvl" + classesLevelCount[className] + className + "\n";
+            }
+            
             return allClassesLabel;
         }
 
         public static string GetAllClassesHitDiceLabel(GuiCharacter character)
         {
-            if (true) // (hitDiceLabel == "")
-            {
-                var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
-                var hero = character.RulesetCharacterHero;
-                var separator = " ";
+            var hitDiceLabel = "";
+            var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
+            var hero = character.RulesetCharacterHero;
+            var separator = " ";
 
-                hitDiceLabel = "";
-                foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+            foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+            {
+                if (!dieTypesCount.ContainsKey(characterClassDefinition.HitDice))
                 {
-                    if (!dieTypesCount.ContainsKey(characterClassDefinition.HitDice))
-                    {
-                        dieTypesCount.Add(characterClassDefinition.HitDice, 0);
-                    }
-                    dieTypesCount[characterClassDefinition.HitDice] += hero.ClassesAndLevels[characterClassDefinition];
+                    dieTypesCount.Add(characterClassDefinition.HitDice, 0);
                 }
-                foreach (var dieType in dieTypesCount.Keys)
-                {
-                    hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
-                    separator = separator == " " ? "\n" : " ";
-                }
+                dieTypesCount[characterClassDefinition.HitDice] += hero.ClassesAndLevels[characterClassDefinition];
             }
+            foreach (var dieType in dieTypesCount.Keys)
+            {
+                hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
+                separator = separator == " " ? "\n" : " ";
+            }
+
             return hitDiceLabel;
         }
 
@@ -114,47 +106,87 @@ namespace SolastaMultiClass.Models
             selectedClass = selectedClass < heroClasses.Count - 1 ? selectedClass + 1 : 0;
         }
 
-        //private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, string classTitle)
-        //{
-        //    var strength = hero.GetAttribute("Strength").CurrentValue;
-        //    var dexterity = hero.GetAttribute("Dexterity").CurrentValue;
-        //    var constitution = hero.GetAttribute("Constitution").CurrentValue;
-        //    var intelligence = hero.GetAttribute("Intelligence").CurrentValue;
-        //    var wisdom = hero.GetAttribute("Wisdom").CurrentValue;
-        //    var charisma = hero.GetAttribute("Charisma").CurrentValue;
+        private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, CharacterClassDefinition classDefinition)
+        {
+            if (!Main.Settings.MinInOutPreReqs) return true;
 
-        //    switch (classTitle)
-        //    {
-        //        case "Barbarian":
-        //            return strength >= 13;
+            var strength = hero.GetAttribute("Strength").CurrentValue;
+            var dexterity = hero.GetAttribute("Dexterity").CurrentValue;
+            var intelligence = hero.GetAttribute("Intelligence").CurrentValue;
+            var wisdom = hero.GetAttribute("Wisdom").CurrentValue;
+            var charisma = hero.GetAttribute("Charisma").CurrentValue;
 
-        //        case "Bard":
-        //            return charisma >= 13;
+            switch (classDefinition.Name)
+            {
+                case "BarbarianClass": // Holic92's Barbarian
+                    return strength >= 13;
 
-        //        case "Cleric":
-        //            return wisdom >= 13;
+                case "BardClass": // Holic92's Bard
+                case "Sorcerer":
+                case "Warlock":
+                    return charisma >= 13;
 
-        //        case "Fighter":
-        //            return strength >= 13 || dexterity >= 13;
+                case "Cleric":
+                    return wisdom >= 13;
 
-        //        case "Paladin":
-        //            return strength >= 13 && charisma >= 13;
+                case "Fighter":
+                    return strength >= 13 || dexterity >= 13;
 
-        //        case "Ranger":
-        //            return dexterity >= 13 && wisdom >= 13;
+                case "MonkClass": // Holic92's Monk
+                    return strength >= 13 && charisma >= 13;
 
-        //        case "Tinkerer":
-        //            return intelligence >= 13 && wisdom >= 13;
+                case "Paladin":
+                    return strength >= 13 && charisma >= 13;
 
-        //        case "Rogue":
-        //            return dexterity >= 13;
+                case "Ranger":
+                    return dexterity >= 13 && wisdom >= 13;
 
-        //        case "Wizard":
-        //            return intelligence >= 13;
+                case "ClassTinkerer": // CJD's Tinkerer
+                    return intelligence >= 13 && wisdom >= 13;
 
-        //        default:
-        //            return false;
-        //    }
-        //}
+                case "Rogue":
+                    return dexterity >= 13;
+
+                case "Wizard":
+                    return intelligence >= 13;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static List<CharacterClassDefinition> GetHeroAllowedClassDefinitions(RulesetCharacterHero hero)
+        {
+            var allowedClasses = new List<CharacterClassDefinition>() { };
+            var currentClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1];
+
+            CollectHeroClasses(hero);
+
+            if (!ApproveMultiClassInOut(hero, currentClass))
+            {
+                allowedClasses.Add(currentClass);
+            }
+            else if (heroClasses.Count >= Main.Settings.maxAllowedClasses)
+            {
+                foreach (var characterClassDefinition in heroClasses)
+                {
+                    if (ApproveMultiClassInOut(hero, characterClassDefinition))
+                    {
+                        allowedClasses.Add(characterClassDefinition);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var classDefinition in DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetAllElements())
+                {
+                    if (ApproveMultiClassInOut(hero, classDefinition))
+                    {
+                        allowedClasses.Add(classDefinition);
+                    }
+                }
+            }
+            return allowedClasses;
+        }
     }
 }
