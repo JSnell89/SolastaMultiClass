@@ -5,118 +5,12 @@ namespace SolastaMultiClass.Models
 {
     class MultiClass
     {
-        //private static readonly List<string> classNames = new List<string>();
-        //private static readonly List<string> classTitles = new List<string>();
-        //private static readonly List<RulesetCharacterHero.Snapshot> heroesPool = new List<RulesetCharacterHero.Snapshot>();
-        //private static readonly Dictionary<string, string> heroesSelectedClass = new Dictionary<string, string> { };
+        private static int selectedClass = 0;
+        private static string hitDiceLabel = "";
+        private static string allClassesLabel = "";
+        private static readonly List<CharacterClassDefinition> heroClasses = new List<CharacterClassDefinition>() { };
 
-        //public static List<string> GetClassTitles()
-        //{
-        //    if (classTitles.Count == 0)
-        //    {
-        //        var characterClassDefinitionDatabase = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
-
-        //        if (characterClassDefinitionDatabase != null)
-        //        {
-        //            foreach (var characterClassDefinition in characterClassDefinitionDatabase.GetAllElements())
-        //            {
-        //                classTitles.Add(characterClassDefinition.FormatTitle());
-        //                classNames.Add(characterClassDefinition.Name);
-        //            }
-        //        }
-        //    }
-        //    return classTitles;
-        //}
-
-        //private static string GetHeroFullName(RulesetCharacterHero hero)
-        //{
-        //    return hero.Name + hero.SurName;
-        //}
-
-        //private static string GetHeroFullName(RulesetCharacterHero.Snapshot snapshot)
-        //{
-        //    return snapshot.Name + snapshot.SurName;
-        //}
-
-        //private static void SetHeroSelectedClassFromName(RulesetCharacterHero.Snapshot snapshot, string className)
-        //{
-        //    heroesSelectedClass.AddOrReplace(GetHeroFullName(snapshot), className);
-        //}
-
-        //public static void SetHeroSelectedClassFromTitle(RulesetCharacterHero.Snapshot snapshot, string classTitle)
-        //{
-        //    var selected = classTitles.FindIndex(x => x == classTitle);
-        //    var className = classNames[selected];
-        //    SetHeroSelectedClassFromName(snapshot, className);
-        //}
-
-        //private static string GetHeroSelectedClassName(RulesetCharacterHero.Snapshot snapshot)
-        //{
-        //    var heroFullName = GetHeroFullName(snapshot);
-
-        //    if (!heroesSelectedClass.ContainsKey(heroFullName))
-        //    {
-        //        heroesSelectedClass.Add(heroFullName, snapshot.Classes[snapshot.Classes.Length - 1]);
-        //    }
-
-        //    return heroesSelectedClass[heroFullName];
-        //}
-
-        //public static string GetHeroSelectedClassTitle(RulesetCharacterHero.Snapshot snapshot)
-        //{
-        //    var className = GetHeroSelectedClassName(snapshot);
-        //    var index = classNames.FindIndex(x => x == className);
-
-        //    return classTitles[index];
-        //}
-
-        //public static void GetHeroSelectedClassAndLevel(out CharacterClassDefinition lastClassDefinition, out int level)
-        //{
-        //    var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
-        //    var hero = characterBuildingService.HeroCharacter;
-        //    var snapshot = new RulesetCharacterHero.Snapshot();
-
-        //    hero.FillSnapshot(snapshot, true);
-        //    lastClassDefinition = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetElement(GetHeroSelectedClassName(snapshot));
-        //    level = hero.ClassesHistory.Count;
-        //}
-
-        //public static List<RulesetCharacterHero.Snapshot> GetHeroesPool(bool isDirty = false)
-        //{
-        //    if (isDirty)
-        //    {
-        //        heroesPool.Clear();
-        //    }
-        //    if (heroesPool.Count == 0)    
-        //    {
-        //        var characterPoolService = ServiceRepository.GetService<ICharacterPoolService>();
-
-        //        if (characterPoolService?.Pool != null)
-        //        {
-        //            heroesPool.AddRange(characterPoolService.Pool.Values);
-        //        }
-        //    }
-        //    return heroesPool;
-        //}
-
-        //public static List<RulesetCharacterHero.Snapshot> GetHeroesParty()
-        //{
-        //    var gameService = ServiceRepository.GetService<IGameService>();
-        //    var heroesPool = new List<RulesetCharacterHero.Snapshot>();
-
-        //    if (gameService?.Game != null)
-        //    {
-        //        foreach(var gameCampaignCharacter in gameService.Game.GameCampaign.Party.CharactersList)
-        //        {
-        //            var hero = (RulesetCharacterHero)gameCampaignCharacter.RulesetCharacter;
-        //            var snapshot = new RulesetCharacterHero.Snapshot();
-                    
-        //            hero.FillSnapshot(snapshot, true);
-        //            heroesPool.Add(snapshot);
-        //        }
-        //    }
-        //    return heroesPool;
-        //}
+        public static int GetClassesCount => heroClasses.Count;
 
         public static void ForceDeityOnAllClasses()
         {
@@ -128,6 +22,96 @@ namespace SolastaMultiClass.Models
                     characterClassDefinition.SetRequiresDeity(true);
                 }
             }
+        }
+
+        public static void CollectHeroClasses(RulesetCharacterHero hero)
+        {
+            selectedClass = 0;
+            hitDiceLabel = "";
+            allClassesLabel = "";
+            heroClasses.Clear();
+            heroClasses.AddRange(hero.ClassesAndLevels.Keys);
+        }
+
+        public static string GetAllClassesLabel(GuiCharacter character)
+        {
+            if (true) // (allClassesLabel == "")
+            {
+                var classesLevelCount = new Dictionary<string, int>() { };
+                var hero = character.RulesetCharacterHero;
+                var snapshot = character.Snapshot;
+
+                allClassesLabel = "";
+                if (snapshot != null)
+                {
+                    foreach (var className in snapshot.Classes)
+                    {
+                        if (!classesLevelCount.ContainsKey(className))
+                        {
+                            classesLevelCount.Add(className, 0);
+                        }
+                        classesLevelCount[className] += 1;
+                    }
+                }
+                else
+                {
+                    foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+                    {
+                        classesLevelCount.Add(characterClassDefinition.FormatTitle(), hero.ClassesAndLevels[characterClassDefinition]);
+                    }
+                }
+                foreach (var className in classesLevelCount.Keys)
+                {
+                    allClassesLabel += $"lvl" + classesLevelCount[className] + className + "\n";
+                }
+            }
+            return allClassesLabel;
+        }
+
+        public static string GetAllClassesHitDiceLabel(GuiCharacter character)
+        {
+            if (true) // (hitDiceLabel == "")
+            {
+                var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
+                var hero = character.RulesetCharacterHero;
+                var separator = " ";
+
+                hitDiceLabel = "";
+                foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+                {
+                    if (!dieTypesCount.ContainsKey(characterClassDefinition.HitDice))
+                    {
+                        dieTypesCount.Add(characterClassDefinition.HitDice, 0);
+                    }
+                    dieTypesCount[characterClassDefinition.HitDice] += hero.ClassesAndLevels[characterClassDefinition];
+                }
+                foreach (var dieType in dieTypesCount.Keys)
+                {
+                    hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
+                    separator = separator == " " ? "\n" : " ";
+                }
+            }
+            return hitDiceLabel;
+        }
+
+        public static CharacterClassDefinition GetSelectedClass(CharacterClassDefinition defaultClass = null)
+        {
+            return heroClasses.Count == 0 ? defaultClass : heroClasses[selectedClass];
+        }
+
+        public static string GetSelectedClassSearchTerm(string contains)
+        {
+            return contains + heroClasses[selectedClass].Name;
+        }
+
+        public static void PickPreviousClass()
+        {
+            selectedClass = selectedClass > 0 ? selectedClass - 1 : heroClasses.Count - 1;
+        }
+
+        public static void PickNextClass()
+        {
+            selectedClass = selectedClass < heroClasses.Count - 1 ? selectedClass + 1 : 0;
         }
 
         //private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, string classTitle)

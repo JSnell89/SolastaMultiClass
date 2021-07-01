@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using static SolastaMultiClass.Settings;
-using static SolastaMultiClass.Models.ClassPicker;
+using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Patches
 {
