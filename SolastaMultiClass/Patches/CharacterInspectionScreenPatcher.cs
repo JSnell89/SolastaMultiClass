@@ -4,7 +4,7 @@ using static SolastaMultiClass.Models.ClassPicker;
 
 namespace SolastaMultiClass.Patches
 {
-    class CharacterInspectionScreenPatcher
+    internal static class CharacterInspectionScreenPatcher
     {
         [HarmonyPatch(typeof(CharacterInspectionScreen), "Bind")]
         internal static class CharacterInspectionScreen_Show_Patch

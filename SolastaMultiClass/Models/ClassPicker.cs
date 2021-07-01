@@ -22,12 +22,13 @@ namespace SolastaMultiClass.Models
 
         public static string GetAllClassesLabel(GuiCharacter character)
         {
-            if (allClassesLabel == "")
+            if (true) // (allClassesLabel == "")
             {
                 var classesLevelCount = new Dictionary<string, int>() { };
                 var hero = character.RulesetCharacterHero;
                 var snapshot = character.Snapshot;
 
+                allClassesLabel = "";
                 if (snapshot != null)
                 {
                     foreach (var className in snapshot.Classes)
@@ -56,12 +57,13 @@ namespace SolastaMultiClass.Models
 
         public static string GetAllClassesHitDiceLabel(GuiCharacter character)
         {
-            if (hitDiceLabel == "")
+            if (true) // (hitDiceLabel == "")
             {
                 var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
                 var hero = character.RulesetCharacterHero;
                 var separator = " ";
 
+                hitDiceLabel = "";
                 foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
                     if (!dieTypesCount.ContainsKey(characterClassDefinition.HitDice))

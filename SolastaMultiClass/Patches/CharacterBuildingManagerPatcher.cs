@@ -2,30 +2,11 @@
 using System.Linq;
 using HarmonyLib;
 using SolastaModApi;
-using static SolastaMultiClass.Models.ClassPicker;
 
 namespace SolastaMultiClass.Patches
 {
     class CharacterBuildingManagerPatcher
     {
-        [HarmonyPatch(typeof(CharacterBuildingManager), "LevelUpCharacter")]
-        internal static class CharacterBuildingManager_LevelUpCharacter_Patch
-        {
-            internal static void Prefix(CharacterBuildingManager __instance, RulesetCharacterHero hero, bool force)
-            {
-                CollectHeroClasses(hero);
-            }
-        }
-
-        [HarmonyPatch(typeof(CharacterBuildingManager), "CreateNewCharacter")]
-        internal static class CharacterBuildingManager_CreateNewCharacter_Patch
-        {
-            internal static void Postfix(RulesetCharacterHero ___heroCharacter)
-            {
-                CollectHeroClasses(___heroCharacter);
-            }
-        }
-
         [HarmonyPatch(typeof(CharacterBuildingManager), "GrantFeatures")]
         internal static class CharacterBuildingManager_GrantFeatures_Patch
         {

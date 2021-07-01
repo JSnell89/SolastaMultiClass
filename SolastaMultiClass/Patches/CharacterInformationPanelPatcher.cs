@@ -6,12 +6,12 @@ using static SolastaMultiClass.Models.ClassPicker;
 
 namespace SolastaMultiClass.Patches
 {
-    class CharacterInformationPanelPatcher
+    internal static class CharacterInformationPanelPatcher
     {
         [HarmonyPatch(typeof(CharacterInformationPanel), "EnumerateClassBadges")]
         internal static class CharacterInformationPanel_EnumerateClassBadges_Patch
         {
-            private static bool Prefix(CharacterInformationPanel __instance,
+            internal static bool Prefix(CharacterInformationPanel __instance,
                                        RectTransform ___classBadgesTable,
                                        GameObject ___classBadgePrefab,
                                        List<BaseDefinition> ___badgeDefinitions)
@@ -72,12 +72,10 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterInformationPanel), "Refresh")]
         internal static class CharacterInformationPanel_Refresh_Patch
         {
-            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var containsMethod = typeof(string).GetMethod("Contains");
                 var getSelectedClassSearchTermMethod = typeof(SolastaMultiClass.Models.ClassPicker).GetMethod("GetSelectedClassSearchTerm");
-                //var getSingleClassLabel = typeof(SolastaMultiClass.Models.ClassPicker).GetMethod("GetSingleClassLabel");
-                //var getSingleClassDescription = typeof(SolastaMultiClass.Models.ClassPicker).GetMethod("GetSingleClassDescription");
                 var found = 0;
                 var instructionsToBypass = 0;
 
@@ -87,18 +85,6 @@ namespace SolastaMultiClass.Patches
                     {
                         instructionsToBypass -= 1;
                     }
-                    //else if (instruction.LoadsField(AccessTools.Field(AccessTools.TypeByName("CharacterInformationPanel"), "classLabel")))
-                    //{
-                    //    yield return instruction;
-                    //    yield return new CodeInstruction(OpCodes.Call, getSingleClassLabel);
-                    //    instructionsToBypass = 3;
-                    //}
-                    //else if (instruction.LoadsField(AccessTools.Field(AccessTools.TypeByName("CharacterInformationPanel"), "classDescription")))
-                    //{
-                    //    yield return instruction;
-                    //    yield return new CodeInstruction(OpCodes.Call, getSingleClassDescription);
-                    //    instructionsToBypass = 3;
-                    //}
                     else if (instruction.Calls(containsMethod))
                     {
                         found++;
@@ -117,28 +103,3 @@ namespace SolastaMultiClass.Patches
         }
     }
 }
-
-//private static void Prefix(CharacterInformationPanel __instance,
-//                   GuiLabel ___raceLabel,
-//                   Image ___raceImage,
-//                   ScrollRect ___raceFeaturesScrollRect,
-//                   GuiLabel ___raceDescription,
-//                   RectTransform ___raceFeaturesTable,
-//                   GuiLabel ___classLabel,
-//                   Image ___classImage,
-//                   RectTransform ___classBadgesTable,
-//                   GameObject ___classBadgePrefab,
-//                   GuiLabel ___classDescription,
-//                   ScrollRect ___classFeaturesScrollRect,
-//                   RectTransform ___classFeaturesTable,
-//                   GuiLabel ___backgroundLabel,
-//                   Image ___backgroundImage,
-//                   GuiLabel ___backgroundDescription,
-//                   ScrollRect ___backgroundFeaturesScrollRect,
-//                   RectTransform ___backgroundFeaturesTable,
-//                   GameObject ___featurePrefab,
-//                   List<FeatureUnlockByLevel> ___filteredFeatures,
-//                   List<FeatureUnlockByLevel> ___raceFeatures,
-//                   List<FeatureUnlockByLevel> ___classFeatures,
-//                   List<FeatureUnlockByLevel> ___backgroundFeatures,
-//                   List<BaseDefinition> ___badgeDefinitions)

@@ -3,7 +3,7 @@ using static SolastaMultiClass.Models.ClassPicker;
 
 namespace SolastaMultiClass.Patches
 {
-    class GuiCharacterPatcher
+    internal static class GuiCharacterPatcher
     {
         [HarmonyPatch(typeof(GuiCharacter), "MainClassDefinition", MethodType.Getter)]
         internal static class GuiCharacter_MainClassDefinition_Patch
