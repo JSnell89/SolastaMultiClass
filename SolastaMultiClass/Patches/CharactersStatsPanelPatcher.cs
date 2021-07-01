@@ -27,7 +27,7 @@ namespace SolastaMultiClass.Patches
                             ___hitDiceBox.ValueLabel.RectTransform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
                             break;
                     }
-                    ___hitDiceBox.ValueLabel.Text = GetAllClassesHitDiceLabel();
+                    ___hitDiceBox.ValueLabel.Text = GetAllClassesHitDiceLabel(___guiCharacter);
                 }
             }
         }

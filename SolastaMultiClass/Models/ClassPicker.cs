@@ -4,100 +4,89 @@ namespace SolastaMultiClass.Models
 {
     class ClassPicker
     {
-        private class HeroClass
-        {
-            public CharacterClassDefinition characterClassDefinition;
-            public string title;
-            public int levels;
-        }
-
         private static int selectedClass = 0;
-        private static RulesetCharacterHero hero = null;
-        private static readonly List<HeroClass> heroClasses = new List<HeroClass>() { };
+        private static string hitDiceLabel = "";
+        private static string allClassesLabel = "";
+        private static readonly List<CharacterClassDefinition> heroClasses = new List<CharacterClassDefinition>() { };
 
         public static int GetClassesCount => heroClasses.Count;
 
-        public static void CollectHeroClasses(RulesetCharacterHero __hero)
+        public static void CollectHeroClasses(RulesetCharacterHero hero)
         {
             selectedClass = 0;
-            hero = __hero;
+            hitDiceLabel = "";
+            allClassesLabel = "";
             heroClasses.Clear();
-            foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
-            {
-                heroClasses.Add(new HeroClass()
-                    {
-                        characterClassDefinition = characterClassDefinition,
-                        title = Gui.Localize(characterClassDefinition.GuiPresentation.Title),
-                        levels = hero.ClassesAndLevels[characterClassDefinition]
-                    }
-                );
-            }
+            heroClasses.AddRange(hero.ClassesAndLevels.Keys);
         }
 
         public static string GetAllClassesLabel(GuiCharacter character)
         {
-            var classLabel = "";
-            var classesLevelCount = new Dictionary<string, int>() { };
-            var hero = character.RulesetCharacterHero;
-            var snapshot = character.Snapshot;
+            if (allClassesLabel == "")
+            {
+                var classesLevelCount = new Dictionary<string, int>() { };
+                var hero = character.RulesetCharacterHero;
+                var snapshot = character.Snapshot;
 
-            if (snapshot != null)
-            {
-                foreach (var className in snapshot.Classes)
+                if (snapshot != null)
                 {
-                    if (!classesLevelCount.ContainsKey(className))
+                    foreach (var className in snapshot.Classes)
                     {
-                        classesLevelCount.Add(className, 0);
+                        if (!classesLevelCount.ContainsKey(className))
+                        {
+                            classesLevelCount.Add(className, 0);
+                        }
+                        classesLevelCount[className] += 1;
                     }
-                    classesLevelCount[className] += 1;
                 }
-            }
-            else
-            {
-                foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+                else
                 {
-                    classesLevelCount.Add(characterClassDefinition.FormatTitle(), hero.ClassesAndLevels[characterClassDefinition]);
+                    foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+                    {
+                        classesLevelCount.Add(characterClassDefinition.FormatTitle(), hero.ClassesAndLevels[characterClassDefinition]);
+                    }
+                }
+                foreach (var className in classesLevelCount.Keys)
+                {
+                    allClassesLabel += $"lvl {classesLevelCount[className]} {className}\n";
                 }
             }
-            foreach (var className in classesLevelCount.Keys)
-            {
-                classLabel += $"{className} / {classesLevelCount[className]:0#}\n";
-            }
-            return classLabel;
+            return allClassesLabel;
         }
 
-        public static string GetAllClassesHitDiceLabel()
+        public static string GetAllClassesHitDiceLabel(GuiCharacter character)
         {
-            var hitDiceLabel = "";
-            var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
-            var separator = " ";
-
-            foreach (var HeroClass in heroClasses)
+            if (hitDiceLabel == "")
             {
-                var hitDice = HeroClass.characterClassDefinition.HitDice;
+                var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
+                var hero = character.RulesetCharacterHero;
+                var separator = " ";
 
-                if (!dieTypesCount.ContainsKey(hitDice))
+                foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
-                    dieTypesCount.Add(hitDice, 0);
+                    if (!dieTypesCount.ContainsKey(characterClassDefinition.HitDice))
+                    {
+                        dieTypesCount.Add(characterClassDefinition.HitDice, 0);
+                    }
+                    dieTypesCount[characterClassDefinition.HitDice] += hero.ClassesAndLevels[characterClassDefinition];
                 }
-                dieTypesCount[hitDice] += HeroClass.levels;
-            }
-            foreach(var dieType in dieTypesCount.Keys)
-            {
-                hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
-                separator = separator == "  " ? "\n" : " ";
+                foreach (var dieType in dieTypesCount.Keys)
+                {
+                    hitDiceLabel += $"{dieTypesCount[dieType]}{dieType}{separator}";
+                    separator = separator == " " ? "\n" : " ";
+                }
             }
             return hitDiceLabel;
         }
 
         public static CharacterClassDefinition GetSelectedClass(CharacterClassDefinition defaultClass = null)
         {
-            return heroClasses.Count == 0 ? defaultClass : heroClasses[selectedClass].characterClassDefinition;
+            return heroClasses.Count == 0 ? defaultClass : heroClasses[selectedClass];
         }
 
         public static string GetSelectedClassSearchTerm(string contains)
         {
-            return contains + heroClasses[selectedClass].characterClassDefinition.Name;
+            return contains + heroClasses[selectedClass].Name;
         }
 
         public static void PickPreviousClass()
