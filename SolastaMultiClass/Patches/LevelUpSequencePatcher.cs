@@ -4,30 +4,30 @@ using System.Reflection.Emit;
 
 namespace SolastaMultiClass.Patches
 {
-    /*
-    
-    Methods Call Sequence on the Level Up Screen
-
-    [SolastaMultiClass] CharacterCreationScreen
-    [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
-    [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
-    [SolastaMultiClass] CharacterStageClassSelectionPanel.EnterStage
-    [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
-    [SolastaMultiClass] CharacterStageLevelGainsPanel.EnterStage
-    [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
-    [SolastaMultiClass] CharacterStageLevelGainsPanel.OnBeginShow
-    [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
-    [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
-    [SolastaMultiClass] CharacterStageLevelGainsPanel.EnterStage
-    [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
-    [SolastaMultiClass] CharacterStageLevelGainsPanel.OnBeginShow
-    [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
-    [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
-
-    */
-
     internal static class LevelUpSequencePatcher
     {
+        /*
+
+        Methods Call Sequence on the Level Up Screen
+
+        [SolastaMultiClass] CharacterCreationScreen
+        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
+        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
+        [SolastaMultiClass] CharacterStageClassSelectionPanel.EnterStage
+        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
+        [SolastaMultiClass] CharacterStageLevelGainsPanel.EnterStage
+        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
+        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnBeginShow
+        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
+        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
+        [SolastaMultiClass] CharacterStageLevelGainsPanel.EnterStage
+        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnEndHide
+        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnBeginShow
+        [SolastaMultiClass] CharacterStageLevelGainsPanel.OnEndHide
+        [SolastaMultiClass] CharacterStageClassSelectionPanel.OnBeginShow
+
+        */
+
         internal static bool blockUnassign = false;
         internal static int classesAndLevelsCount = 0;
         internal static CharacterClassDefinition selectedClass = null;
@@ -41,9 +41,9 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterBuildingManager), "UnassignLastClassLevel")]
         internal static class CharacterBuildingManager_OnBeginShow_Patch
         {
-            internal static bool Prefix(CharacterBuildingManager __instance, bool ___levelingUp)
+            internal static bool Prefix(CharacterBuildingManager __instance)
             {
-                return !___levelingUp || !blockUnassign || __instance.HeroCharacter.ClassesHistory.Count > classesAndLevelsCount;
+                return !blockUnassign || __instance.HeroCharacter.ClassesHistory.Count > classesAndLevelsCount;
             }
         }
 
