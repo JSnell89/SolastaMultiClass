@@ -11,10 +11,8 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterStatBox ___hitDiceBox, GuiCharacter ___guiCharacter)
             {
-                if (___hitDiceBox.Activated)
+                if (___hitDiceBox.Activated && ___guiCharacter.RulesetCharacterHero?.ClassesHistory.Count > 1)
                 {
-                    var currentResolution = Screen.currentResolution;
-                    
                     switch (GetClassesCount)
                     {
                         case 1:

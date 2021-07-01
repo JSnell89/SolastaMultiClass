@@ -1,18 +1,18 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using SolastaModApi.Extensions;
 
 namespace SolastaMultiClass.Models
 {
     class MultiClass
     {
-        private static readonly List<string> classesName = new List<string>();
-        private static readonly List<RulesetCharacterHero> heroesPool = new List<RulesetCharacterHero>();
+        private static readonly List<string> classNames = new List<string>();
+        private static readonly List<string> classTitles = new List<string>();
+        private static readonly List<RulesetCharacterHero.Snapshot> heroesPool = new List<RulesetCharacterHero.Snapshot>();
         private static readonly Dictionary<string, string> heroesSelectedClass = new Dictionary<string, string> { };
 
-        private static List<string> GetClassNames()
+        public static List<string> GetClassTitles()
         {
-            if (classesName.Count == 0)
+            if (classTitles.Count == 0)
             {
                 var characterClassDefinitionDatabase = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
 
@@ -20,55 +20,12 @@ namespace SolastaMultiClass.Models
                 {
                     foreach (var characterClassDefinition in characterClassDefinitionDatabase.GetAllElements())
                     {
-                        classesName.Add(characterClassDefinition.FormatTitle());
+                        classTitles.Add(characterClassDefinition.FormatTitle());
+                        classNames.Add(characterClassDefinition.Name);
                     }
-                    classesName.Sort((a, b) => a.CompareTo(b));
                 }
             }
-            return classesName;
-        }
-
-        private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, string name)
-        {
-            var strength = hero.GetAttribute("Strength").CurrentValue;
-            var dexterity = hero.GetAttribute("Dexterity").CurrentValue;
-            var constitution = hero.GetAttribute("Constitution").CurrentValue;
-            var intelligence = hero.GetAttribute("Intelligence").CurrentValue;
-            var wisdom = hero.GetAttribute("Wisdom").CurrentValue;
-            var charisma = hero.GetAttribute("Charisma").CurrentValue;
-
-            switch (name)
-            {
-                case "Barbarian":
-                    return strength >= 13;
-
-                case "Bard":
-                    return charisma >= 13;
-
-                case "Cleric":
-                    return wisdom >= 13;
-
-                case "Fighter":
-                    return strength >= 13 || dexterity >= 13;
-
-                case "Paladin":
-                    return strength >= 13 && charisma >= 13;
-
-                case "Ranger":
-                    return dexterity >= 13 && wisdom >= 13;
-
-                case "Tinkerer":
-                    return intelligence >= 13 && wisdom >= 13;
-
-                case "Rogue":
-                    return dexterity >= 13;
-
-                case "Wizard":
-                    return intelligence >= 13;
-
-                default:
-                    return false;
-            }
+            return classTitles;
         }
 
         public static string GetHeroFullName(RulesetCharacterHero hero)
@@ -76,72 +33,95 @@ namespace SolastaMultiClass.Models
             return hero.Name + hero.SurName;
         }
 
-        public static List<string> GetHeroAllowedClassNames(RulesetCharacterHero hero)
+        public static string GetHeroFullName(RulesetCharacterHero.Snapshot snapshot)
         {
-            var allowedClasses = new List<string>() { };
-            var classesHistory = hero.ClassesHistory.Distinct();
-            var currentClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1].FormatTitle();
-
-            if (!ApproveMultiClassInOut(hero, currentClass))
-            {
-                allowedClasses.Add(currentClass);
-            }
-            else if (classesHistory.Count() >= Main.Settings.maxAllowedClasses)
-            {
-                foreach (var characterClassDefinition in classesHistory)
-                {
-                    var className = characterClassDefinition.FormatTitle();
-
-                    if (ApproveMultiClassInOut(hero, className))
-                    {
-                        allowedClasses.Add(className);
-                    }
-                }
-            } 
-            else
-            {
-                foreach (var className in GetClassNames())
-                {
-                    if (ApproveMultiClassInOut(hero, className))
-                    {
-                        allowedClasses.Add(className);
-                    }
-                }
-            }
-            return allowedClasses;
+            return snapshot.Name + snapshot.SurName;
         }
 
-        public static void SetHeroSelectedClassName(RulesetCharacterHero hero, string className)
+        public static void SetHeroSelectedClassFromName(RulesetCharacterHero.Snapshot snapshot, string className)
         {
-            heroesSelectedClass.AddOrReplace(GetHeroFullName(hero), className);
+            heroesSelectedClass.AddOrReplace(GetHeroFullName(snapshot), className);
         }
 
-        public static string GetHeroSelectedClassName(RulesetCharacterHero hero)
+        public static void SetHeroSelectedClassFromTitle(RulesetCharacterHero.Snapshot snapshot, string classTitle)
         {
-            var heroFullName = GetHeroFullName(hero);
+            var selected = classTitles.FindIndex(x => x == classTitle);
+            var className = classNames[selected];
+            SetHeroSelectedClassFromName(snapshot, className);
+        }
+
+        public static string GetHeroSelectedClassName(RulesetCharacterHero.Snapshot snapshot)
+        {
+            var heroFullName = GetHeroFullName(snapshot);
 
             if (!heroesSelectedClass.ContainsKey(heroFullName))
             {
-                heroesSelectedClass.Add(heroFullName, hero.ClassesHistory[hero.ClassesHistory.Count - 1].FormatTitle());
+                heroesSelectedClass.Add(heroFullName, snapshot.Classes[snapshot.Classes.Length - 1]);
             }
+
             return heroesSelectedClass[heroFullName];
         }
 
-        public static CharacterClassDefinition GetHeroSelectedClass(RulesetCharacterHero hero)
+        public static string GetHeroSelectedClassTitle(RulesetCharacterHero.Snapshot snapshot)
         {
-            var characterClassDefinitionDatabase = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
+            var className = GetHeroSelectedClassName(snapshot);
+            var index = classNames.FindIndex(x => x == className);
 
-            if (characterClassDefinitionDatabase != null)
+            return classTitles[index];
+        }
+
+        public static void GetHeroSelectedClassAndLevel(out CharacterClassDefinition lastClassDefinition, out int level)
+        {
+            var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
+            var hero = characterBuildingService.HeroCharacter;
+            var snapshot = new RulesetCharacterHero.Snapshot();
+
+            hero.FillSnapshot(snapshot, true);
+            lastClassDefinition = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetElement(GetHeroSelectedClassName(snapshot));
+            level = hero.ClassesHistory.Count;
+        }
+
+        public static List<RulesetCharacterHero.Snapshot> GetHeroesPool(bool isDirty = false)
+        {
+            if (isDirty)
             {
-                var selectedClassName = GetHeroSelectedClassName(hero);
+                heroesPool.Clear();
+            }
+            if (heroesPool.Count == 0)    
+            {
+                var characterPoolService = ServiceRepository.GetService<ICharacterPoolService>();
 
-                foreach (var characterClassDefinition in characterClassDefinitionDatabase.GetAllElements())
+                if (characterPoolService != null)
                 {
-                    if (characterClassDefinition.FormatTitle() == selectedClassName)
-                        return characterClassDefinition;
+                    heroesPool.AddRange(characterPoolService.Pool.Values);
                 }
             }
-            return null;
+            return heroesPool;
+        }
+
+        public static List<RulesetCharacterHero.Snapshot> GetHeroesParty()
+        {
+            var gameLocationCharacterService = ServiceRepository.GetService<IGameLocationCharacterService>();
+            var heroesPool = new List<RulesetCharacterHero.Snapshot>();
+
+            if (gameLocationCharacterService != null)
+            {
+                foreach(var gameLocationCharacter in gameLocationCharacterService.PartyCharacters)
+                {
+                    var hero = (RulesetCharacterHero)gameLocationCharacter.RulesetCharacter;
+                    var snapshot = new RulesetCharacterHero.Snapshot();
+                    
+                    hero.FillSnapshot(snapshot, true);
+                    heroesPool.Add(snapshot);
+                }
+            }
+            return heroesPool;
+        }
+
+        public static bool InGame()
+        {
+            var gameLocationCharacterService = ServiceRepository.GetService<IGameLocationCharacterService>();
+            return gameLocationCharacterService != null && gameLocationCharacterService.PartyCharacters.Count > 0;
         }
 
         public static void ForceDeityOnAllClasses()
@@ -156,53 +136,47 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static List<RulesetCharacterHero> GetHeroesPool(bool isDirty = false)
-        {
-            if (isDirty)
-            {
-                heroesPool.Clear();
-            }
-            if (heroesPool.Count == 0)    
-            {
-                var characterPoolService = ServiceRepository.GetService<ICharacterPoolService>();
+        //private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, string classTitle)
+        //{
+        //    var strength = hero.GetAttribute("Strength").CurrentValue;
+        //    var dexterity = hero.GetAttribute("Dexterity").CurrentValue;
+        //    var constitution = hero.GetAttribute("Constitution").CurrentValue;
+        //    var intelligence = hero.GetAttribute("Intelligence").CurrentValue;
+        //    var wisdom = hero.GetAttribute("Wisdom").CurrentValue;
+        //    var charisma = hero.GetAttribute("Charisma").CurrentValue;
 
-                if (characterPoolService != null)
-                {
-                    heroesPool.Clear();
-                    foreach (var name in characterPoolService.Pool.Keys)
-                    {
-                        characterPoolService.LoadCharacter(
-                            characterPoolService.BuildCharacterFilename(name.Substring(0, name.Length - 4)),
-                            out RulesetCharacterHero hero,
-                            out RulesetCharacterHero.Snapshot snapshot);
-                        heroesPool.Add(hero);
-                    }
-                    heroesPool.Sort((a, b) => GetHeroFullName(a).CompareTo(GetHeroFullName(b)));
-                }
-            }
-            return heroesPool;
-        }
+        //    switch (classTitle)
+        //    {
+        //        case "Barbarian":
+        //            return strength >= 13;
 
-        public static List<RulesetCharacterHero> GetHeroesInGame()
-        {
-            var gameLocationCharacterService = ServiceRepository.GetService<IGameLocationCharacterService>();
-            var heroes = new List<RulesetCharacterHero>();
+        //        case "Bard":
+        //            return charisma >= 13;
 
-            if (gameLocationCharacterService != null)
-            {
-                foreach(var gameLocationCharacter in gameLocationCharacterService.PartyCharacters)
-                {
-                    var hero = (RulesetCharacterHero)gameLocationCharacter.RulesetCharacter;
-                    heroes.Add(hero);
-                }
-            }
-            return heroes;
-        }
+        //        case "Cleric":
+        //            return wisdom >= 13;
 
-        public static bool InGame()
-        {
-            var gameLocationCharacterService = ServiceRepository.GetService<IGameLocationCharacterService>();
-            return gameLocationCharacterService != null && gameLocationCharacterService.PartyCharacters.Count > 0;
-        }
+        //        case "Fighter":
+        //            return strength >= 13 || dexterity >= 13;
+
+        //        case "Paladin":
+        //            return strength >= 13 && charisma >= 13;
+
+        //        case "Ranger":
+        //            return dexterity >= 13 && wisdom >= 13;
+
+        //        case "Tinkerer":
+        //            return intelligence >= 13 && wisdom >= 13;
+
+        //        case "Rogue":
+        //            return dexterity >= 13;
+
+        //        case "Wizard":
+        //            return intelligence >= 13;
+
+        //        default:
+        //            return false;
+        //    }
+        //}
     }
 }

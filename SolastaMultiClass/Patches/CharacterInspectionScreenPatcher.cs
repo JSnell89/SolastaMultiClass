@@ -34,5 +34,6 @@ namespace SolastaMultiClass.Patches
                 }
             }
         }
+
     }
 }

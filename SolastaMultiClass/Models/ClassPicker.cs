@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SolastaMultiClass.Models
 {
     class ClassPicker
     {
-        class ClassCount
+        private class HeroClass
         {
             public CharacterClassDefinition characterClassDefinition;
             public string title;
@@ -14,20 +13,9 @@ namespace SolastaMultiClass.Models
 
         private static int selectedClass = 0;
         private static RulesetCharacterHero hero = null;
-        private static readonly List<ClassCount> heroClasses = new List<ClassCount>() { };
+        private static readonly List<HeroClass> heroClasses = new List<HeroClass>() { };
 
         public static int GetClassesCount => heroClasses.Count;
-
-        //public static void CollectHeroClasses(string name)
-        //{
-        //    var characterPoolService = ServiceRepository.GetService<ICharacterPoolService>();
-
-        //    characterPoolService.LoadCharacter(
-        //            characterPoolService.BuildCharacterFilename(name.Substring(0, name.Length - 4)),
-        //            out RulesetCharacterHero hero,
-        //            out RulesetCharacterHero.Snapshot snapshot);
-        //    CollectHeroClasses(hero);
-        //}
 
         public static void CollectHeroClasses(RulesetCharacterHero __hero)
         {
@@ -36,11 +24,10 @@ namespace SolastaMultiClass.Models
             heroClasses.Clear();
             foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
             {
-                var title = Gui.Localize(characterClassDefinition.GuiPresentation.Title);
-                heroClasses.Add(new ClassCount()
+                heroClasses.Add(new HeroClass()
                     {
                         characterClassDefinition = characterClassDefinition,
-                        title = title,
+                        title = Gui.Localize(characterClassDefinition.GuiPresentation.Title),
                         levels = hero.ClassesAndLevels[characterClassDefinition]
                     }
                 );
@@ -69,8 +56,7 @@ namespace SolastaMultiClass.Models
             {
                 foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
-                    var title = Gui.Localize(characterClassDefinition.GuiPresentation.Title);
-                    classesLevelCount.Add(title, hero.ClassesAndLevels[characterClassDefinition]);
+                    classesLevelCount.Add(characterClassDefinition.FormatTitle(), hero.ClassesAndLevels[characterClassDefinition]);
                 }
             }
             foreach (var className in classesLevelCount.Keys)
@@ -83,18 +69,18 @@ namespace SolastaMultiClass.Models
         public static string GetAllClassesHitDiceLabel()
         {
             var hitDiceLabel = "";
-            var separator = " ";
             var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
+            var separator = " ";
 
-            foreach (var classCount in heroClasses)
+            foreach (var HeroClass in heroClasses)
             {
-                var hitDice = classCount.characterClassDefinition.HitDice;
+                var hitDice = HeroClass.characterClassDefinition.HitDice;
 
                 if (!dieTypesCount.ContainsKey(hitDice))
                 {
                     dieTypesCount.Add(hitDice, 0);
                 }
-                dieTypesCount[hitDice] += classCount.levels;
+                dieTypesCount[hitDice] += HeroClass.levels;
             }
             foreach(var dieType in dieTypesCount.Keys)
             {
@@ -104,19 +90,9 @@ namespace SolastaMultiClass.Models
             return hitDiceLabel;
         }
 
-        public static string GetSingleClassLabel()
+        public static CharacterClassDefinition GetSelectedClass(CharacterClassDefinition defaultClass = null)
         {
-            return heroClasses[selectedClass].title;
-        }
-
-        //public static string GetSingleClassDescription()
-        //{
-        //    return heroClasses[selectedClass].characterClassDefinition.FormatDescription();
-        //}
-
-        public static CharacterClassDefinition GetSelectedClass()
-        {
-            return heroClasses[selectedClass].characterClassDefinition;
+            return heroClasses.Count == 0 ? defaultClass : heroClasses[selectedClass].characterClassDefinition;
         }
 
         public static string GetSelectedClassSearchTerm(string contains)

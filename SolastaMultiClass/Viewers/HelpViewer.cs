@@ -11,15 +11,12 @@ namespace SolastaMultiClass.Viewers
 
         private static void DisplayHelp()
         {
-            UI.Label("Welcome to Multi Class".yellow().bold());
-            UI.Div();
-
             using (UI.HorizontalScope())
             {
                 using (UI.VerticalScope())
                 {
-                    UI.Label("Multi Class (ALPHA VERSION):".bold());
-                    UI.Label("");
+                    UI.Label("Multi Class (ALPHA VERSION):".yellow().bold());
+                    UI.Div();
                     UI.Label("Current limitations:".yellow());
                     UI.Label(". don't multiclass into a cleric or paladin without a deity...");
                     UI.Label(". so, for now, deity selection is forced on all new characters");
@@ -29,7 +26,7 @@ namespace SolastaMultiClass.Viewers
                     UI.Label("Accomplished:".yellow());
                     UI.Label(". press LEFT / RIGHT arrows in character inspection pane to browse other classes");
                     UI.Label(". use the Mod Multiclass Settings panel to select next hero class before level up");
-                    UI.Label(". In/Out class rules. The Mod UI won't offer a class if it doesn't comply to these rules");
+                    //UI.Label(". In/Out class rules. The Mod UI won't offer a class if it doesn't comply to these rules");
                 }
             }
         }

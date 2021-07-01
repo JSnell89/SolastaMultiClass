@@ -10,7 +10,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterPlateDetailed __instance, GuiLabel ___classLabel)
             {
-                if (__instance?.GuiCharacter.RulesetCharacterHero != null && GetClassesCount > 1)
+                if (__instance?.GuiCharacter.RulesetCharacterHero?.ClassesHistory.Count > 1)
                 {
                     ___classLabel.Text = GetAllClassesLabel(__instance.GuiCharacter);
                 }

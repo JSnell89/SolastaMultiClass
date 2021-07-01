@@ -16,51 +16,56 @@ namespace SolastaMultiClass.Patches
                                        GameObject ___classBadgePrefab,
                                        List<BaseDefinition> ___badgeDefinitions)
             {
-                var selectedClass = GetSelectedClass();
-                var rulesetCharacterHero = __instance.InspectedCharacter.RulesetCharacterHero;
-
-                ___badgeDefinitions.Clear();
-
-                foreach (KeyValuePair<CharacterClassDefinition, CharacterSubclassDefinition> classesAndSubclass in rulesetCharacterHero.ClassesAndSubclasses)
+                if (__instance.InspectedCharacter.RulesetCharacterHero.ClassesHistory.Count > 1)
                 {
-                    if (classesAndSubclass.Key == selectedClass)
+                    var selectedClass = GetSelectedClass();
+                    var rulesetCharacterHero = __instance.InspectedCharacter.RulesetCharacterHero;
+
+                    ___badgeDefinitions.Clear();
+
+                    foreach (KeyValuePair<CharacterClassDefinition, CharacterSubclassDefinition> classesAndSubclass in rulesetCharacterHero.ClassesAndSubclasses)
                     {
-                        ___badgeDefinitions.Add(classesAndSubclass.Value);
+                        if (classesAndSubclass.Key == selectedClass)
+                        {
+                            ___badgeDefinitions.Add(classesAndSubclass.Value);
+                        }
                     }
-                }
-                
-                if (rulesetCharacterHero.DeityDefinition != null && selectedClass.RequiresDeity)
-                {
-                    ___badgeDefinitions.Add(rulesetCharacterHero.DeityDefinition);
-                }
 
-                // TODO: Is there any simple way to determine which class gave the Fighting Style?
+                    if (rulesetCharacterHero.DeityDefinition != null && selectedClass.RequiresDeity)
+                    {
+                        ___badgeDefinitions.Add(rulesetCharacterHero.DeityDefinition);
+                    }
 
-                foreach (BaseDefinition trainedFightingStyle in rulesetCharacterHero.TrainedFightingStyles)
-                {
-                    ___badgeDefinitions.Add(trainedFightingStyle);
-                }
+                    // TODO: Is there any simple way to determine which class gave the Fighting Style?
 
-                while (___classBadgesTable.childCount < ___badgeDefinitions.Count)
-                {
-                    Gui.GetPrefabFromPool(___classBadgePrefab, ___classBadgesTable);
-                }
+                    foreach (BaseDefinition trainedFightingStyle in rulesetCharacterHero.TrainedFightingStyles)
+                    {
+                        ___badgeDefinitions.Add(trainedFightingStyle);
+                    }
 
-                int index1 = 0;
-                foreach (BaseDefinition badgeDefinition in ___badgeDefinitions)
-                {
-                    Transform child = ___classBadgesTable.GetChild(index1);
-                    child.gameObject.SetActive(true);
-                    child.GetComponent<CharacterInformationBadge>().Bind(badgeDefinition, ___classBadgesTable);
-                    ++index1;
+                    while (___classBadgesTable.childCount < ___badgeDefinitions.Count)
+                    {
+                        Gui.GetPrefabFromPool(___classBadgePrefab, ___classBadgesTable);
+                    }
+
+                    int index = 0;
+                    foreach (BaseDefinition badgeDefinition in ___badgeDefinitions)
+                    {
+                        Transform child = ___classBadgesTable.GetChild(index);
+                        child.gameObject.SetActive(true);
+                        child.GetComponent<CharacterInformationBadge>().Bind(badgeDefinition, ___classBadgesTable);
+                        ++index;
+                    }
+                    for (; index < ___classBadgesTable.childCount; ++index)
+                    {
+                        Transform child = ___classBadgesTable.GetChild(index);
+                        child.GetComponent<CharacterInformationBadge>().Unbind();
+                        child.gameObject.SetActive(false);
+                    }
+
+                    return false;
                 }
-                for (int index2 = index1; index2 < ___classBadgesTable.childCount; ++index2)
-                {
-                    Transform child = ___classBadgesTable.GetChild(index2);
-                    child.GetComponent<CharacterInformationBadge>().Unbind();
-                    child.gameObject.SetActive(false);
-                }
-                return false;
+                return true;
             }
         }
 
