@@ -38,9 +38,11 @@ namespace SolastaMultiClass.Viewers
         {
             using (UI.VerticalScope(UI.AutoWidth(), UI.AutoHeight()))
             {
-                if (InGame())
+                var heroesParty = GetHeroesParty();
+
+                if (heroesParty.Count > 0)
                 {
-                    foreach (var snapshot in GetHeroesParty())
+                    foreach (var snapshot in heroesParty)
                     {
                         DisplayHeroStats(snapshot);
                     }

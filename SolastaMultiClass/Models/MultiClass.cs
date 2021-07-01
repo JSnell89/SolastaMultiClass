@@ -28,17 +28,17 @@ namespace SolastaMultiClass.Models
             return classTitles;
         }
 
-        public static string GetHeroFullName(RulesetCharacterHero hero)
+        private static string GetHeroFullName(RulesetCharacterHero hero)
         {
             return hero.Name + hero.SurName;
         }
 
-        public static string GetHeroFullName(RulesetCharacterHero.Snapshot snapshot)
+        private static string GetHeroFullName(RulesetCharacterHero.Snapshot snapshot)
         {
             return snapshot.Name + snapshot.SurName;
         }
 
-        public static void SetHeroSelectedClassFromName(RulesetCharacterHero.Snapshot snapshot, string className)
+        private static void SetHeroSelectedClassFromName(RulesetCharacterHero.Snapshot snapshot, string className)
         {
             heroesSelectedClass.AddOrReplace(GetHeroFullName(snapshot), className);
         }
@@ -50,7 +50,7 @@ namespace SolastaMultiClass.Models
             SetHeroSelectedClassFromName(snapshot, className);
         }
 
-        public static string GetHeroSelectedClassName(RulesetCharacterHero.Snapshot snapshot)
+        private static string GetHeroSelectedClassName(RulesetCharacterHero.Snapshot snapshot)
         {
             var heroFullName = GetHeroFullName(snapshot);
 
@@ -91,7 +91,7 @@ namespace SolastaMultiClass.Models
             {
                 var characterPoolService = ServiceRepository.GetService<ICharacterPoolService>();
 
-                if (characterPoolService != null)
+                if (characterPoolService?.Pool != null)
                 {
                     heroesPool.AddRange(characterPoolService.Pool.Values);
                 }
@@ -101,14 +101,14 @@ namespace SolastaMultiClass.Models
 
         public static List<RulesetCharacterHero.Snapshot> GetHeroesParty()
         {
-            var gameLocationCharacterService = ServiceRepository.GetService<IGameLocationCharacterService>();
+            var gameService = ServiceRepository.GetService<IGameService>();
             var heroesPool = new List<RulesetCharacterHero.Snapshot>();
 
-            if (gameLocationCharacterService != null)
+            if (gameService?.Game != null)
             {
-                foreach(var gameLocationCharacter in gameLocationCharacterService.PartyCharacters)
+                foreach(var gameCampaignCharacter in gameService.Game.GameCampaign.Party.CharactersList)
                 {
-                    var hero = (RulesetCharacterHero)gameLocationCharacter.RulesetCharacter;
+                    var hero = (RulesetCharacterHero)gameCampaignCharacter.RulesetCharacter;
                     var snapshot = new RulesetCharacterHero.Snapshot();
                     
                     hero.FillSnapshot(snapshot, true);
@@ -116,12 +116,6 @@ namespace SolastaMultiClass.Models
                 }
             }
             return heroesPool;
-        }
-
-        public static bool InGame()
-        {
-            var gameLocationCharacterService = ServiceRepository.GetService<IGameLocationCharacterService>();
-            return gameLocationCharacterService != null && gameLocationCharacterService.PartyCharacters.Count > 0;
         }
 
         public static void ForceDeityOnAllClasses()
