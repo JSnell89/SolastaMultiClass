@@ -15,6 +15,15 @@ namespace SolastaMultiClass.Patches
             }
         }
 
+        [HarmonyPatch(typeof(CharacterInspectionScreen), "DoClose")]
+        internal static class CharacterInspectionScreen_OnCloseCb_Patch
+        {
+            internal static void Postfix()
+            {
+              CollectHeroClasses();
+            }
+        }
+
         [HarmonyPatch(typeof(CharacterInspectionScreen), "HandleInput")]
         internal static class CharacterInspectionScreen_HandleInput_Patch
         {
