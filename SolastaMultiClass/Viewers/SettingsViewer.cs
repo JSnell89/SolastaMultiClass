@@ -36,6 +36,12 @@ namespace SolastaMultiClass.Viewers
                 Main.Settings.EnableSharedSpellCasting = toggle;
             }
 
+            toggle = Main.Settings.TurnOffSpellPreparationRestrictions;
+            if (UI.Toggle("Turn off multiclass spell preparing restrictions", ref toggle, 0, UI.AutoWidth()))
+            {
+                Main.Settings.TurnOffSpellPreparationRestrictions = toggle;
+            }
+
             UI.Label("Deity when multi classing into a Cleric or Paladin");
 
             var deityTitles = GetDeityList().ToArray();
