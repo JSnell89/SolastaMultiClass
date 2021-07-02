@@ -47,6 +47,7 @@ namespace SolastaMultiClass.Patches
             }
         }
 
+        // filter the available classes per multi class in/out rules
         [HarmonyPatch(typeof(CharacterLevelUpScreen), "OnBeginShow")]
         internal static class CharacterLevelUpScreen_OnBeginShow_Patch
         {
@@ -102,6 +103,7 @@ namespace SolastaMultiClass.Patches
             }
         }
 
+        // all the magic happens here
         [HarmonyPatch(typeof(CharacterStageLevelGainsPanel), "EnterStage")]
         internal static class CharacterStageLevelGainsPanel_EnterStage_Patch
         {
