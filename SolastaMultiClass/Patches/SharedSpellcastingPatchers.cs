@@ -441,11 +441,15 @@ namespace SolastaMultiClass.Patches
             foreach (var classAndLevel in classesAndLevels)
             {
                 int numLevelsToUseFromNextClass = classAndLevel.Value;
-                for (int i = numLevelsToUseFromNextClass; i > 0; i--)
+                CharacterSubclassDefinition subclass = null;
+                classesAndSubclasses.TryGetValue(classAndLevel.Key, out subclass);
+                eAHCasterType casterType = GetCasterTypeForSingleLevelOfClass(classAndLevel.Key, subclass);
+
+                //Only increment caster level when the class in question has actually gottent their spellcasting feature.
+                if (casterType == eAHCasterType.Full || (numLevelsToUseFromNextClass >= 2 && casterType == eAHCasterType.Half) || (numLevelsToUseFromNextClass >= 3 && casterType == eAHCasterType.OneThird))
                 {
-                    CharacterSubclassDefinition subclass = null;
-                    classesAndSubclasses.TryGetValue(classAndLevel.Key, out subclass);
-                    context.IncrementCasterLevel(GetCasterTypeForSingleLevelOfClass(classAndLevel.Key, subclass));
+                    for (int i = numLevelsToUseFromNextClass; i > 0; i--)
+                        context.IncrementCasterLevel(casterType);
                 }
             }
 
