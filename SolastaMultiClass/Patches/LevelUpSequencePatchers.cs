@@ -3,14 +3,13 @@ using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
 using static SolastaMultiClass.Models.MultiClass;
-using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Patches
 {
     internal static class LevelUpSequencePatchers
     {
         internal static bool blockUnassign = false;
-        internal static int classesAndLevelsCount = 0;
+        internal static int levelsCount = 0;
         internal static int selectedClassIndex = -1;
         internal static CharacterClassDefinition selectedClass = null;
 
@@ -18,7 +17,7 @@ namespace SolastaMultiClass.Patches
         public static void GetHeroSelectedClassAndLevel(out CharacterClassDefinition lastClassDefinition, out int level)
         {
             lastClassDefinition = selectedClass;
-            level = classesAndLevelsCount;
+            level = levelsCount;
             selectedClass = null;
         }
 
@@ -65,10 +64,8 @@ namespace SolastaMultiClass.Patches
                 {
                     var classSelectionPanel = (CharacterStageClassSelectionPanel)___stagePanelsByName["ClassSelection"];
                     var compatibleClasses = (List<CharacterClassDefinition>)AccessTools.Field(classSelectionPanel.GetType(), "compatibleClasses").GetValue(classSelectionPanel);
+                    var allowedClasses = GetHeroAllowedClassDefinitions(hero);
 
-                    var allowedClasses = new List<CharacterClassDefinition>() { };
-
-                    allowedClasses = GetHeroAllowedClassDefinitions(hero);
                     compatibleClasses.Clear();
                     compatibleClasses.AddRange(allowedClasses);
                     selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
@@ -82,17 +79,17 @@ namespace SolastaMultiClass.Patches
         {
             internal static bool Prefix(CharacterBuildingManager __instance)
             {
-                return !blockUnassign || __instance.HeroCharacter.ClassesHistory.Count > classesAndLevelsCount;
+                return !blockUnassign || __instance.HeroCharacter.ClassesHistory.Count > levelsCount;
             }
         }
 
-        // this method only executes once, whenever the screen is displayed. perfect point for initialization
+        // this method only executes once, whenever the screen is displayed. perfect place for initialization
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "EnterStage")]
         internal static class CharacterStageClassSelectionPanel_Bind_Patch
         {
             internal static void Prefix(CharacterStageClassSelectionPanel __instance)
             {
-                classesAndLevelsCount = __instance.CharacterBuildingService.HeroCharacter.ClassesHistory.Count;
+                levelsCount = __instance.CharacterBuildingService.HeroCharacter.ClassesHistory.Count;
             }
         }
 
@@ -132,13 +129,10 @@ namespace SolastaMultiClass.Patches
             {
                 var hero = __instance.CharacterBuildingService.HeroCharacter;
 
-                selectedClass = hero.ClassesHistory[classesAndLevelsCount];
+                selectedClass = hero.ClassesHistory[levelsCount];
                 __instance.CharacterBuildingService.UnassignLastClassLevel();
 
-                if (selectedClass == Paladin || selectedClass == Cleric)
-                {
-                    __instance.CharacterBuildingService.AssignDeity(GetDeityFromIndex(Main.Settings.SelectedDeity));
-                }
+                AssignDeityIfRequired(__instance.CharacterBuildingService);
             }
 
             // replaces ICharacterBuildingService.GetLastAssignedClassAndLevel call with SolastaMultiClass.Patches.LevelUpSequencePatcher.GetHeroSelectedClassAndLevel
