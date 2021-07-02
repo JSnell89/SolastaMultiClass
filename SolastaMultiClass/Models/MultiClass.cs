@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using SolastaModApi.Extensions;
 
 namespace SolastaMultiClass.Models
 {
@@ -35,13 +34,13 @@ namespace SolastaMultiClass.Models
             return DatabaseRepository.GetDatabase<DeityDefinition>().GetAllElements()[index];
         }
 
-        public static void ForceDeityOnAllClasses()
-        {
-            foreach (var characterClassDefinition in DatabaseRepository.GetDatabase<CharacterClassDefinition>()?.GetAllElements())
-            {
-                characterClassDefinition.SetRequiresDeity(true);
-            }
-        }
+        //public static void ForceDeityOnAllClasses()
+        //{
+        //    foreach (var characterClassDefinition in DatabaseRepository.GetDatabase<CharacterClassDefinition>()?.GetAllElements())
+        //    {
+        //        characterClassDefinition.SetRequiresDeity(true);
+        //    }
+        //}
 
         public static void InspectionPanelBindHero(RulesetCharacterHero hero)
         {
@@ -71,8 +70,6 @@ namespace SolastaMultiClass.Models
                     allClassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + "\n";
                 }
             }
-
-
             return allClassesLabel;
         }
 
@@ -96,7 +93,6 @@ namespace SolastaMultiClass.Models
                 hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
                 separator = separator == " " ? "\n" : " ";
             }
-
             return hitDiceLabel;
         }
 
@@ -174,7 +170,7 @@ namespace SolastaMultiClass.Models
             var allowedClasses = new List<CharacterClassDefinition>() { };
             var currentClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1];
 
-            if (!ApproveMultiClassInOut(hero, currentClass))
+            if (!ApproveMultiClassInOut(hero, currentClass) && Main.Settings.ForceMinInOutPreReqs)
             {
                 allowedClasses.Add(currentClass);
             }
@@ -182,7 +178,7 @@ namespace SolastaMultiClass.Models
             {
                 foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
-                    if (ApproveMultiClassInOut(hero, characterClassDefinition))
+                    if (ApproveMultiClassInOut(hero, characterClassDefinition) || !Main.Settings.ForceMinInOutPreReqs)
                     {
                         allowedClasses.Add(characterClassDefinition);
                     }
@@ -192,7 +188,7 @@ namespace SolastaMultiClass.Models
             {
                 foreach (var classDefinition in DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetAllElements())
                 {
-                    if (ApproveMultiClassInOut(hero, classDefinition))
+                    if (ApproveMultiClassInOut(hero, classDefinition) || !Main.Settings.ForceMinInOutPreReqs)
                     {
                         allowedClasses.Add(classDefinition);
                     }
