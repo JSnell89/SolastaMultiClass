@@ -381,7 +381,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(SpellRepertoirePanel __instance)
             {
-                if (!Main.Settings.EnableSharedSpellcasting || Main.Settings.TurnOffSpellPreparationRestrictions)
+                if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
                 //It would be nice to short-circuit here but since I'm setting the visibility of the subitems it needs to be redone every time since these subitems seem to be shared across 'tabs'
@@ -424,7 +424,7 @@ namespace SolastaMultiClass.Patches
                         //Don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
                         if (child.TryGetComponent(typeof(SlotStatusTable), out Component unused))
                             continue;
-                        if(i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1)
+                        if(i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1 && !Main.Settings.TurnOffSpellPreparationRestrictions) //The toggle option needs to be here otherwise if you already had it on and opened a spell list it will mess things up potentially for all spellcasters
                             child.gameObject.SetActive(false);
                         else
                             child.gameObject.SetActive(true); //Need to set to true because when switching tabs the false from one spellcasting class is carried over.

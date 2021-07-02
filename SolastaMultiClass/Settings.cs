@@ -12,7 +12,7 @@ namespace SolastaMultiClass
         public int MaxAllowedClasses = 2;
         public bool ForceMinInOutPreReqs = true;
         public bool EnableSharedSpellCasting = true;
-        public bool TurnOffSpellPreparationRestrictions = true;
+        public bool TurnOffSpellPreparationRestrictions = false;
         public int SelectedDeity = 0;
 
         public const InputCommands.Id PLAIN_LEFT = (InputCommands.Id)22220003;
