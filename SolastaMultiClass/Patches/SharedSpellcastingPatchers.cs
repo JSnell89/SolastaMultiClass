@@ -7,7 +7,6 @@ using System.Reflection;
 using UnityEngine.UI;
 using static FeatureDefinitionCastSpell;
 using static SolastaMultiClass.Models.MultiClass;
-using static SolastaMultiClass.Viewers.MultiClassViewer;
 
 namespace SolastaMultiClass.Patches
 {
@@ -18,7 +17,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterActionSpendSpellSlot __instance)
             {   
-                if (!TurnOnSharedSpellcastingFeatures)
+                if (!Main.Settings.EnableSharedSpellcasting)
                     return;
 
                 var allSpellRepetoires = __instance.ActionParams.ActingCharacter.RulesetCharacter.SpellRepertoires;
@@ -37,7 +36,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(RulesetCharacter __instance, RulesetEffectSpell activeSpell)
             {
-                if (!TurnOnSharedSpellcastingFeatures)
+                if (!Main.Settings.EnableSharedSpellcasting)
                     return;
 
                 var allSpellRepetoires = __instance.SpellRepertoires;
@@ -56,7 +55,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(RulesetCharacter __instance, RulesetUsablePower usablePower)
             {
-                if (!TurnOnSharedSpellcastingFeatures)
+                if (!Main.Settings.EnableSharedSpellcasting)
                     return;
 
                 var allSpellRepetoires = __instance.SpellRepertoires;
@@ -69,8 +68,8 @@ namespace SolastaMultiClass.Patches
                     spellRepetoire.SpendSpellSlot(spellRepetoire.GetLowestAvailableSlotLevel()); //Theoretically if we've done this correctly the lowest slot in the other repetoires will be the same as what the power used from the initial repetoire
             }
         }
-        
-        //Probably want this patch either way
+
+        //Probably want this patch either way so not turned off by EnableSharedSpellcasting
         //This fixes the case where if you multiclass a caster that selects spells at level up (e.g. Wizard) the Solasta engine will have you select spells even when you are leveling up another class (they don't get saved properly but seem to break some things)
         //This also fixes selecting spells with these caster types when multiclassing back into them.  Note Wizard may have multiclass issues if it doesn't have a spellbook no matter what, it might be worth giving every char a spell book to prevent this.
         [HarmonyPatch(typeof(CharacterBuildingManager), "UpgradeSpellPointPools")]
@@ -145,11 +144,11 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(RulesetSpellRepertoire __instance, ref int __result)
             {
-                if (!TurnOnSharedSpellcastingFeatures)
+                if (!Main.Settings.EnableSharedSpellcasting)
                     return;
 
                 // This only affects when loaded in game since looping through all created characters is quite slow.  This means that spell slots may be incorrect until the character is used/long rests in game though :(
-                var heroes = GetHeroesInGame();
+                var heroes = GetHeroesParty();
 
                 var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 
@@ -195,12 +194,12 @@ namespace SolastaMultiClass.Patches
             internal static void Postfix(RulesetSpellRepertoire __instance, int spellLevel, out int remaining, out int max)
             {
                 // This only affects when loaded in game since looping through all created characters is quite slow.  This means that spell slots may be incorrect until the character is used/long rests in game though :(
-                var heroes = GetHeroesInGame();
+                var heroes = GetHeroesParty();
                 
                 var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 
                 //Don't bother doing fancy work if there aren't multiple spell repetoires that are shared (multiple long rest spell features).
-                if (TurnOnSharedSpellcastingFeatures && heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
+                if (Main.Settings.EnableSharedSpellcasting && heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
                 {
                     int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
 
@@ -255,7 +254,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(RulesetSpellRepertoire __instance)
             {
-                if (!TurnOnSharedSpellcastingFeatures)
+                if (!Main.Settings.EnableSharedSpellcasting)
                     return;
 
                 //Only do custom slot sharing for long rest (e.g. non-Warlock) slots
@@ -263,8 +262,15 @@ namespace SolastaMultiClass.Patches
                     return;
 
                 //If combined with shared spell slot usage from the other patches we want every spell feature to have the number of spell slots for the total caster level of the character
-                var heroes = GetHeroesPool();
+                var heroes = GetHeroesParty();
                 var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
+
+                ////Attempt to have the slots updated when not in game.  Much more expensive since it goes through the full hero list using IO methods.
+                //if(heroWithSpellRepetoire == null)
+                //{
+                //    var fullHeroList = GetFullHeroesPool();
+                //    heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
+                //}
                 
                 //Don't bother doing extra work if there aren't multiple spell repetoires that are shared (multiple long rest spell features).
                 if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr =>sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
@@ -303,7 +309,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterStageSpellSelectionPanel __instance)
             {
-                if (!TurnOnSharedSpellcastingFeatures)
+                if (!Main.Settings.EnableSharedSpellcasting)
                     return;
 
                 var charBMType = typeof(CharacterStageSpellSelectionPanel);
@@ -361,7 +367,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterStageSpellSelectionPanel __instance, string spellTag)
             {
-                if (!TurnOnSharedSpellcastingFeatures)
+                if (!Main.Settings.EnableSharedSpellcasting)
                     return;
 
                 //TODO remove 
@@ -485,5 +491,45 @@ namespace SolastaMultiClass.Patches
             new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,2,1,1,1,0}, Level = 19 },
             new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,2,2,1,1,0}, Level = 20 },
         };
+
+        public static List<RulesetCharacterHero> GetHeroesParty()
+        {
+            var gameService = ServiceRepository.GetService<IGameService>();
+            var inGameHeroesPool = new List<RulesetCharacterHero>();
+
+            if (gameService?.Game != null)
+            {
+                foreach (var gameCampaignCharacter in gameService.Game.GameCampaign.Party.CharactersList)
+                    inGameHeroesPool.Add((RulesetCharacterHero)gameCampaignCharacter.RulesetCharacter);
+            }
+            return inGameHeroesPool;
+        }
+        //public static List<RulesetCharacterHero> GetFullHeroesPool(bool isDirty = false)
+        //{
+        //    if (isDirty)
+        //    {
+        //        HeroesPool.Clear();
+        //    }
+        //    if (HeroesPool.Count == 0)
+        //    {
+        //        var characterPoolService = ServiceRepository.GetService<ICharacterPoolService>();
+
+        //        if (characterPoolService != null)
+        //        {
+        //            HeroesPool.Clear();
+        //            foreach (var name in characterPoolService.Pool.Keys)
+        //            {
+        //                characterPoolService.LoadCharacter(
+        //                    characterPoolService.BuildCharacterFilename(name.Substring(0, name.Length - 4)),
+        //                    out RulesetCharacterHero hero,
+        //                    out RulesetCharacterHero.Snapshot snapshot);
+        //                HeroesPool.Add(hero);
+        //            }
+        //        }
+        //    }
+        //    return HeroesPool;
+        //}
+
+        internal static List<RulesetCharacterHero> HeroesPool = new List<RulesetCharacterHero>();
     }
 }
