@@ -7,6 +7,7 @@ namespace SolastaMultiClass.Patches
     internal static class CharacterStageFightingStyleSelectionPanelPatcher
     {
         public static int previouslySelectedFightingStyle = -1;
+        public static int newlySelectedFightingStyle = -1;
 
         public static void UntrainPreviouslySelectedFightStyle(ICharacterBuildingService __instance)
         {
@@ -14,12 +15,13 @@ namespace SolastaMultiClass.Patches
             {
                 __instance.UntrainLastFightingStyle();
             }
+            previouslySelectedFightingStyle = newlySelectedFightingStyle;
         }
 
         public static void AssignSelectedFightingStyle(CharacterStageFightingStyleSelectionPanel __instance, int selectedFightingStyle)
         {
-            previouslySelectedFightingStyle = selectedFightingStyle;
-            AccessTools.Field(__instance.GetType(), "").SetValue(__instance, selectedFightingStyle);
+            newlySelectedFightingStyle = selectedFightingStyle;
+            AccessTools.Field(__instance.GetType(), "selectedFightingStyle").SetValue(__instance, selectedFightingStyle);
         }
 
         [HarmonyPatch(typeof(CharacterStageFightingStyleSelectionPanel), "OnBeginShow")]
@@ -43,7 +45,7 @@ namespace SolastaMultiClass.Patches
                 {
                     if (instruction.Calls(untrainLastFightingStyleMethod))
                     {
-                        yield return new CodeInstruction(OpCodes.Call, untrainPreviouslySelectedFightStyleMethod);
+                        yield return new CodeInstruction(OpCodes.Call, untrainPreviouslySelectedFightStyleMethod); // stack will have the game building service instance
                     }
                     else
                     {
@@ -65,7 +67,7 @@ namespace SolastaMultiClass.Patches
                 {
                     if (instruction.StoresField(selectedFightingStyleField))
                     {
-                        yield return new CodeInstruction(OpCodes.Call, AssignSelectedFightingStyleMethod);
+                        yield return new CodeInstruction(OpCodes.Call, AssignSelectedFightingStyleMethod); // stack will have the instance and an int
                     }
                     else
                     {
