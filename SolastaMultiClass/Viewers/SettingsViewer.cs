@@ -42,7 +42,7 @@ namespace SolastaMultiClass.Viewers
                 Main.Settings.TurnOffSpellPreparationRestrictions = toggle;
             }
 
-            UI.Label("Deity when multi classing into a Cleric or Paladin");
+            UI.Label("Default Deity (set when using a divine caster from level 2)".cyan());
 
             var deityTitles = GetDeityList().ToArray();
             selected = Main.Settings.SelectedDeity;
