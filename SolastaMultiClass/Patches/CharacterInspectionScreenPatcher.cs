@@ -11,7 +11,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Prefix(RulesetCharacterHero heroCharacter)
             {
-                SelectedHero = heroCharacter;
+                InspectionPanelBindHero(heroCharacter);
             }
         }
 
@@ -20,7 +20,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix()
             {
-                SelectedHero = null;
+                InspectionPanelUnbindHero();
             }
         }
 
@@ -32,12 +32,12 @@ namespace SolastaMultiClass.Patches
                 switch (command)
                 {
                     case PLAIN_LEFT:
-                        PickPreviousClass();
+                        InspectionPanelPickPreviousHeroClass();
                         ___characterInformationPanel.RefreshNow();
                         break;
 
                     case PLAIN_RIGHT:
-                        PickNextClass();
+                        InspectionPanelPickNextHeroClass();
                         ___characterInformationPanel.RefreshNow();
                         break;
                 }

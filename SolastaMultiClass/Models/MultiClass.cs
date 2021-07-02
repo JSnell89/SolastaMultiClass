@@ -8,7 +8,7 @@ namespace SolastaMultiClass.Models
     {
         private static int selectedClass = 0;
 
-        public static RulesetCharacterHero SelectedHero;
+        private static RulesetCharacterHero selectedHero;
 
         public static void ForceDeityOnAllClasses()
         {
@@ -22,10 +22,19 @@ namespace SolastaMultiClass.Models
             }
         }
 
+        public static void InspectionPanelBindHero(RulesetCharacterHero hero)
+        {
+            selectedHero = hero;
+        }
+
+        public static void InspectionPanelUnbindHero()
+        {
+            selectedHero = null;
+        }
+
         public static string GetAllClassesLabel(GuiCharacter character)
         {
             var allClassesLabel = "";
-            var hero = character.RulesetCharacterHero;
             var snapshot = character.Snapshot;
 
             if (snapshot != null)
@@ -34,12 +43,15 @@ namespace SolastaMultiClass.Models
             }
             else
             {
+                var hero = character.RulesetCharacterHero;
+
                 foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
                     allClassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + "\n";
                 }
             }
-            
+
+
             return allClassesLabel;
         }
 
@@ -69,22 +81,22 @@ namespace SolastaMultiClass.Models
 
         public static string GetSelectedClassSearchTerm(string contains)
         {
-            return contains + SelectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
+            return contains + selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
         }
 
         public static CharacterClassDefinition GetSelectedClass(CharacterClassDefinition defaultClass = null)
         {
-            return SelectedHero == null ? defaultClass : SelectedHero.ClassesAndLevels.Keys.ToList()[selectedClass];
+            return selectedHero == null ? defaultClass : selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass];
         }
 
-        public static void PickPreviousClass()
+        public static void InspectionPanelPickPreviousHeroClass()
         {
-            selectedClass = selectedClass > 0 ? selectedClass - 1 : SelectedHero.ClassesAndLevels.Count - 1;
+            selectedClass = selectedClass > 0 ? selectedClass - 1 : selectedHero.ClassesAndLevels.Count - 1;
         }
 
-        public static void PickNextClass()
+        public static void InspectionPanelPickNextHeroClass()
         {
-            selectedClass = selectedClass < SelectedHero.ClassesAndLevels.Count - 1 ? selectedClass + 1 : 0;
+            selectedClass = selectedClass < selectedHero.ClassesAndLevels.Count - 1 ? selectedClass + 1 : 0;
         }
 
         private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, CharacterClassDefinition classDefinition)
