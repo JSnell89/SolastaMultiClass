@@ -1,10 +1,10 @@
 ﻿using HarmonyLib;
 using static SolastaMultiClass.Settings;
-using static SolastaMultiClass.Models.ClassPicker;
+using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Patches
 {
-    class CharacterInspectionScreenPatcher
+    internal static class CharacterInspectionScreenPatcher
     {
         [HarmonyPatch(typeof(CharacterInspectionScreen), "Bind")]
         internal static class CharacterInspectionScreen_Show_Patch
@@ -12,6 +12,15 @@ namespace SolastaMultiClass.Patches
             internal static void Prefix(RulesetCharacterHero heroCharacter)
             {
                 CollectHeroClasses(heroCharacter);
+            }
+        }
+
+        [HarmonyPatch(typeof(CharacterInspectionScreen), "DoClose")]
+        internal static class CharacterInspectionScreen_OnCloseCb_Patch
+        {
+            internal static void Postfix()
+            {
+                ClearHeroClasses();
             }
         }
 

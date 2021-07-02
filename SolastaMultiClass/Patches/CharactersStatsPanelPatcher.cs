@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using HarmonyLib;
-using static SolastaMultiClass.Models.ClassPicker;
+using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Patches
 {
@@ -11,10 +11,8 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterStatBox ___hitDiceBox, GuiCharacter ___guiCharacter)
             {
-                if (___hitDiceBox.Activated)
+                if (___hitDiceBox.Activated && ___guiCharacter.RulesetCharacterHero?.ClassesHistory.Count > 1)
                 {
-                    var currentResolution = Screen.currentResolution;
-                    
                     switch (GetClassesCount)
                     {
                         case 1:
@@ -29,7 +27,7 @@ namespace SolastaMultiClass.Patches
                             ___hitDiceBox.ValueLabel.RectTransform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
                             break;
                     }
-                    ___hitDiceBox.ValueLabel.Text = GetAllClassesHitDiceLabel();
+                    ___hitDiceBox.ValueLabel.Text = GetAllClassesHitDiceLabel(___guiCharacter);
                 }
             }
         }

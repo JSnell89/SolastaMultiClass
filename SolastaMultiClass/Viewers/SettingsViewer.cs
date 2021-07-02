@@ -1,6 +1,5 @@
 ﻿using UnityModManagerNet;
 using ModKit;
-using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Viewers
 {
@@ -12,14 +11,19 @@ namespace SolastaMultiClass.Viewers
 
         private static void DisplaySettings()
         {
-            UI.Label("Welcome to Level 20 with Multi Class".yellow().bold());
+            UI.Label("House Rules".yellow());
             UI.Div();
 
             var maxAllowedClasses = Main.Settings.maxAllowedClasses;
-            if (UI.Slider("Max Allowed Classes", ref maxAllowedClasses, 1, 4, 2, "", UI.AutoWidth()))
+            if (UI.Slider("Max Allowed Classes", ref maxAllowedClasses, 1, 3, 2, "", UI.AutoWidth()))
             {
                 Main.Settings.maxAllowedClasses = maxAllowedClasses;
-                GetHeroesPool(true);
+            }
+
+            var toggle = Main.Settings.ForceMinInOutPreReqs;
+            if (UI.Toggle("Enable ability scores minimum in/out pre-requisites", ref toggle, 0, UI.AutoWidth())) 
+            {
+                Main.Settings.ForceMinInOutPreReqs = toggle;
             }
         }
 
