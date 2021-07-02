@@ -6,10 +6,11 @@ using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Patches
 {
-    internal static class LevelUpSequencePatcher
+    internal static class LevelUpSequencePatchers
     {
         internal static bool blockUnassign = false;
         internal static int classesAndLevelsCount = 0;
+        internal static int selectedClassIndex = -1;
         internal static CharacterClassDefinition selectedClass = null;
 
         // called by CharacterStageLevelGainsPanel.EnterStage with the transpiler injection
@@ -55,10 +56,23 @@ namespace SolastaMultiClass.Patches
             {
                 if (Main.Settings.ForceMinInOutPreReqs)
                 {
+                    var hero = __instance.CharacterBuildingService.HeroCharacter;
                     var classSelectionPanel = (CharacterStageClassSelectionPanel)___stagePanelsByName["ClassSelection"];
                     var compatibleClasses = (List<CharacterClassDefinition>)AccessTools.Field(classSelectionPanel.GetType(), "compatibleClasses").GetValue(classSelectionPanel);
+                    var allowedClasses = new List<CharacterClassDefinition>() { };
+                    
+                    if (hero.ClassesHistory.Count == 0)
+                    {
+                        selectedClassIndex = -1;
+                    }
+                    else
+                    {
+                        allowedClasses = GetHeroAllowedClassDefinitions(hero);
+                        selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
+                    }
+
                     compatibleClasses.Clear();
-                    compatibleClasses.AddRange(GetHeroAllowedClassDefinitions(__instance.CharacterBuildingService.HeroCharacter));
+                    compatibleClasses.AddRange(allowedClasses);
                 }
             }
         }
@@ -87,9 +101,17 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "OnBeginShow")]
         internal static class CharacterStageClassSelectionPanel_EnterStage_Patch
         {
-            internal static void Prefix(CharacterStageClassSelectionPanel __instance)
+            internal static void Prefix(CharacterStageClassSelectionPanel __instance, ref int ___selectedClass)
             {
                 blockUnassign = true;
+
+                ___selectedClass = selectedClassIndex;
+
+                if (___selectedClass >= 0)
+                {
+                    __instance.CommonData.AttackModesPanel.Hide();
+                    __instance.CommonData.PersonalityMapPanel.Hide();
+                }
             }
         }
 
@@ -117,7 +139,7 @@ namespace SolastaMultiClass.Patches
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var getLastAssignedClassAndLevelMethod = typeof(ICharacterBuildingService).GetMethod("GetLastAssignedClassAndLevel");
-                var getHeroSelectedClassAndLevelMethod = typeof(SolastaMultiClass.Patches.LevelUpSequencePatcher).GetMethod("GetHeroSelectedClassAndLevel");
+                var getHeroSelectedClassAndLevelMethod = typeof(SolastaMultiClass.Patches.LevelUpSequencePatchers).GetMethod("GetHeroSelectedClassAndLevel");
                 var instructionsToBypass = 2;
 
                 /*
