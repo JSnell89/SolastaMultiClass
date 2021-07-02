@@ -11,7 +11,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Prefix(RulesetCharacterHero heroCharacter)
             {
-                CollectHeroClasses(heroCharacter);
+                SelectedHero = heroCharacter;
             }
         }
 
@@ -20,7 +20,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix()
             {
-                ClearHeroClasses();
+                SelectedHero = null;
             }
         }
 

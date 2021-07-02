@@ -10,7 +10,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(GuiCharacter __instance, ref CharacterClassDefinition __result)
             {
-                __result = GetSelectedClass(__result);
+                __result = GetSelectedClass( __result);
             }
         }
     }

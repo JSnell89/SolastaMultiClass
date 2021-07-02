@@ -13,7 +13,7 @@ namespace SolastaMultiClass.Patches
             {
                 if (___hitDiceBox.Activated && ___guiCharacter.RulesetCharacterHero?.ClassesHistory.Count > 1)
                 {
-                    switch (GetClassesCount)
+                    switch (___guiCharacter.RulesetCharacterHero.ClassesHistory.Count)
                     {
                         case 1:
                             ___hitDiceBox.ValueLabel.RectTransform.localScale = new Vector3(1.0f, 1.0f, 1.0f);

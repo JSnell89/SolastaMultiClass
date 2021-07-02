@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using SolastaModApi.Extensions;
 
 namespace SolastaMultiClass.Models
@@ -6,9 +7,8 @@ namespace SolastaMultiClass.Models
     static class MultiClass
     {
         private static int selectedClass = 0;
-        private static readonly List<CharacterClassDefinition> heroClasses = new List<CharacterClassDefinition>() { };
 
-        public static int GetClassesCount => heroClasses.Count;
+        public static RulesetCharacterHero SelectedHero;
 
         public static void ForceDeityOnAllClasses()
         {
@@ -22,46 +22,22 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static void ClearHeroClasses()
-        {
-            selectedClass = 0;
-            heroClasses.Clear();
-        }
-
-        public static void CollectHeroClasses(RulesetCharacterHero hero)
-        {
-            ClearHeroClasses();
-            heroClasses.AddRange(hero.ClassesAndLevels.Keys);
-        }
-
         public static string GetAllClassesLabel(GuiCharacter character)
         {
             var allClassesLabel = "";
-            var classesLevelCount = new Dictionary<string, int>() { };
             var hero = character.RulesetCharacterHero;
             var snapshot = character.Snapshot;
 
             if (snapshot != null)
             {
-                foreach (var className in snapshot.Classes)
-                {
-                    if (!classesLevelCount.ContainsKey(className))
-                    {
-                        classesLevelCount.Add(className, 0);
-                    }
-                    classesLevelCount[className] += 1;
-                }
+                allClassesLabel = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetElement(snapshot.Classes[0]).FormatTitle();
             }
             else
             {
                 foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
-                    classesLevelCount.Add(characterClassDefinition.FormatTitle(), hero.ClassesAndLevels[characterClassDefinition]);
+                    allClassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + "\n";
                 }
-            }
-            foreach (var className in classesLevelCount.Keys)
-            {
-                allClassesLabel += $"lvl " + classesLevelCount[className] + " " + className + "\n";
             }
             
             return allClassesLabel;
@@ -91,24 +67,24 @@ namespace SolastaMultiClass.Models
             return hitDiceLabel;
         }
 
-        public static CharacterClassDefinition GetSelectedClass(CharacterClassDefinition defaultClass = null)
-        {
-            return heroClasses.Count == 0 ? defaultClass : heroClasses[selectedClass];
-        }
-
         public static string GetSelectedClassSearchTerm(string contains)
         {
-            return contains + heroClasses[selectedClass].Name;
+            return contains + SelectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
+        }
+
+        public static CharacterClassDefinition GetSelectedClass(CharacterClassDefinition defaultClass = null)
+        {
+            return SelectedHero == null ? defaultClass : SelectedHero.ClassesAndLevels.Keys.ToList()[selectedClass];
         }
 
         public static void PickPreviousClass()
         {
-            selectedClass = selectedClass > 0 ? selectedClass - 1 : heroClasses.Count - 1;
+            selectedClass = selectedClass > 0 ? selectedClass - 1 : SelectedHero.ClassesAndLevels.Count - 1;
         }
 
         public static void PickNextClass()
         {
-            selectedClass = selectedClass < heroClasses.Count - 1 ? selectedClass + 1 : 0;
+            selectedClass = selectedClass < SelectedHero.ClassesAndLevels.Count - 1 ? selectedClass + 1 : 0;
         }
 
         private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, CharacterClassDefinition classDefinition)
@@ -163,15 +139,13 @@ namespace SolastaMultiClass.Models
             var allowedClasses = new List<CharacterClassDefinition>() { };
             var currentClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1];
 
-            CollectHeroClasses(hero);
-
             if (!ApproveMultiClassInOut(hero, currentClass))
             {
                 allowedClasses.Add(currentClass);
             }
-            else if (heroClasses.Count >= Main.Settings.maxAllowedClasses)
+            else if (hero.ClassesAndLevels.Count >= Main.Settings.maxAllowedClasses)
             {
-                foreach (var characterClassDefinition in heroClasses)
+                foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
                     if (ApproveMultiClassInOut(hero, characterClassDefinition))
                     {
