@@ -17,7 +17,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterActionSpendSpellSlot __instance)
             {   
-                if (!Main.Settings.EnableSharedSpellcasting)
+                if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
                 var allSpellRepetoires = __instance.ActionParams.ActingCharacter.RulesetCharacter.SpellRepertoires;
@@ -36,7 +36,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(RulesetCharacter __instance, RulesetEffectSpell activeSpell)
             {
-                if (!Main.Settings.EnableSharedSpellcasting)
+                if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
                 var allSpellRepetoires = __instance.SpellRepertoires;
@@ -55,7 +55,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(RulesetCharacter __instance, RulesetUsablePower usablePower)
             {
-                if (!Main.Settings.EnableSharedSpellcasting)
+                if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
                 var allSpellRepetoires = __instance.SpellRepertoires;
@@ -69,7 +69,7 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        //Probably want this patch either way so not turned off by EnableSharedSpellcasting
+        //Probably want this patch either way so not turned off by EnableSharedSpellCasting
         //This fixes the case where if you multiclass a caster that selects spells at level up (e.g. Wizard) the Solasta engine will have you select spells even when you are leveling up another class (they don't get saved properly but seem to break some things)
         //This also fixes selecting spells with these caster types when multiclassing back into them.  Note Wizard may have multiclass issues if it doesn't have a spellbook no matter what, it might be worth giving every char a spell book to prevent this.
         [HarmonyPatch(typeof(CharacterBuildingManager), "UpgradeSpellPointPools")]
@@ -144,7 +144,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(RulesetSpellRepertoire __instance, ref int __result)
             {
-                if (!Main.Settings.EnableSharedSpellcasting)
+                if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
                 // This only affects when loaded in game since looping through all created characters is quite slow.  This means that spell slots may be incorrect until the character is used/long rests in game though :(
@@ -199,7 +199,7 @@ namespace SolastaMultiClass.Patches
                 var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 
                 //Don't bother doing fancy work if there aren't multiple spell repetoires that are shared (multiple long rest spell features).
-                if (Main.Settings.EnableSharedSpellcasting && heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
+                if (Main.Settings.EnableSharedSpellCasting && heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
                 {
                     int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
 
@@ -254,7 +254,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(RulesetSpellRepertoire __instance)
             {
-                if (!Main.Settings.EnableSharedSpellcasting)
+                if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
                 //Only do custom slot sharing for long rest (e.g. non-Warlock) slots
@@ -309,7 +309,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterStageSpellSelectionPanel __instance)
             {
-                if (!Main.Settings.EnableSharedSpellcasting)
+                if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
                 var charBMType = typeof(CharacterStageSpellSelectionPanel);
@@ -367,7 +367,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterStageSpellSelectionPanel __instance, string spellTag)
             {
-                if (!Main.Settings.EnableSharedSpellcasting)
+                if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
                 //TODO remove 
