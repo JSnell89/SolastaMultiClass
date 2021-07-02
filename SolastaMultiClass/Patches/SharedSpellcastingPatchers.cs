@@ -7,7 +7,6 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using static FeatureDefinitionCastSpell;
-using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Patches
 {

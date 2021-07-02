@@ -2,7 +2,8 @@
 using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
-using static SolastaMultiClass.Models.MultiClass;
+using static SolastaMultiClass.Models.Deity;
+using static SolastaMultiClass.Models.Rules;
 
 namespace SolastaMultiClass.Patches
 {

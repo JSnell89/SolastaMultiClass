@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using static SolastaMultiClass.Settings;
-using static SolastaMultiClass.Models.MultiClass;
+using static SolastaMultiClass.Models.GameUi;
 
 namespace SolastaMultiClass.Patches
 {

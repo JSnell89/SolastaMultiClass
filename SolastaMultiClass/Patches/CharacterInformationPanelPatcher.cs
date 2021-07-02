@@ -2,7 +2,7 @@
 using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
-using static SolastaMultiClass.Models.MultiClass;
+using static SolastaMultiClass.Models.GameUi;
 
 namespace SolastaMultiClass.Patches
 {
@@ -88,7 +88,7 @@ namespace SolastaMultiClass.Patches
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var containsMethod = typeof(string).GetMethod("Contains");
-                var getSelectedClassSearchTermMethod = typeof(SolastaMultiClass.Models.MultiClass).GetMethod("GetSelectedClassSearchTerm");
+                var getSelectedClassSearchTermMethod = typeof(SolastaMultiClass.Models.GameUi).GetMethod("GetSelectedClassSearchTerm");
                 var found = 0;
                 var instructionsToBypass = 0;
 

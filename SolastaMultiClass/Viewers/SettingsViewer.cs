@@ -1,6 +1,6 @@
 ﻿using UnityModManagerNet;
 using ModKit;
-using static SolastaMultiClass.Models.MultiClass;
+using static SolastaMultiClass.Models.Deity;
 
 namespace SolastaMultiClass.Viewers
 {
