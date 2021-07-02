@@ -11,7 +11,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static bool Prefix(GuiCharacter __instance, ref CharacterClassDefinition __result)
             {
-                if (__instance?.RulesetCharacterHero != null)
+                if (__instance?.RulesetCharacterHero != null && GetClassesCount > 0)
                 {
                     __result = GetSelectedClass();
                     return false;

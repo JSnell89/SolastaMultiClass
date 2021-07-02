@@ -10,6 +10,7 @@ namespace SolastaMultiClass.Viewers
         public string Name => "Multi Class Settings";
 
         public int Priority => 1;
+        public static bool TurnOnSharedSpellcastingFeatures = false;
 
         private static bool showStats = false;
         private static bool showAttributes = false;
@@ -114,6 +115,9 @@ namespace SolastaMultiClass.Viewers
 
             UI.Label("Welcome to Level 20 with Multi Class".yellow().bold());
             UI.Div();
+
+            string turnOnSharedSpellcastingFeaturesLabel = "Use shared spellcasting (Alpha)";
+            UI.Toggle(turnOnSharedSpellcastingFeaturesLabel, ref TurnOnSharedSpellcastingFeatures, turnOnSharedSpellcastingFeaturesLabel.Length * 12);
 
             DisplayHeroes();
         }
