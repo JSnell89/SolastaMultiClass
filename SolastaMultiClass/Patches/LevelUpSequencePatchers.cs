@@ -61,17 +61,17 @@ namespace SolastaMultiClass.Patches
                 {
                     selectedClassIndex = -1;
                 }
-                else if (Main.Settings.ForceMinInOutPreReqs)
+                else
                 {
                     var classSelectionPanel = (CharacterStageClassSelectionPanel)___stagePanelsByName["ClassSelection"];
                     var compatibleClasses = (List<CharacterClassDefinition>)AccessTools.Field(classSelectionPanel.GetType(), "compatibleClasses").GetValue(classSelectionPanel);
-                    var allowedClasses = new List<CharacterClassDefinition>() { };
 
-                    selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
+                    var allowedClasses = new List<CharacterClassDefinition>() { };
 
                     allowedClasses = GetHeroAllowedClassDefinitions(hero);
                     compatibleClasses.Clear();
                     compatibleClasses.AddRange(allowedClasses);
+                    selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
                 }
             }     
         }
