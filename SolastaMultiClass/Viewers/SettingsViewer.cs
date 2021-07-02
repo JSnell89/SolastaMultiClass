@@ -11,6 +11,8 @@ namespace SolastaMultiClass.Viewers
 
         private static void DisplaySettings()
         {
+            bool toggle;
+
             UI.Label("House Rules".yellow());
             UI.Div();
 
@@ -20,16 +22,16 @@ namespace SolastaMultiClass.Viewers
                 Main.Settings.maxAllowedClasses = maxAllowedClasses;
             }
 
-            var toggle = Main.Settings.ForceMinInOutPreReqs;
+            toggle = Main.Settings.ForceMinInOutPreReqs;
             if (UI.Toggle("Enable ability scores minimum in/out pre-requisites", ref toggle, 0, UI.AutoWidth())) 
             {
                 Main.Settings.ForceMinInOutPreReqs = toggle;
             }
 
-            var sharedSpellToggle = Main.Settings.EnableSharedSpellcasting;
-            if (UI.Toggle("Enable shared spellcasting", ref sharedSpellToggle, 0, UI.AutoWidth()))
+            toggle = Main.Settings.EnableSharedSpellCasting;
+            if (UI.Toggle("Enable shared spellcasting", ref toggle, 0, UI.AutoWidth()))
             {
-                Main.Settings.EnableSharedSpellcasting = toggle;
+                Main.Settings.EnableSharedSpellCasting = toggle;
             }
         }
 
