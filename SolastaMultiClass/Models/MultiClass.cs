@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using SolastaModApi.Extensions;
 
 namespace SolastaMultiClass.Models
 {
@@ -8,24 +7,54 @@ namespace SolastaMultiClass.Models
     {
         private static int selectedClass = 0;
 
-        public static RulesetCharacterHero SelectedHero;
+        private static RulesetCharacterHero selectedHero;
 
-        public static void ForceDeityOnAllClasses()
+        private static List<string> deityList = new List<string>() { };
+
+        public static List<string> GetDeityList()
         {
-            var characterClassDefinitionDatabase = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
-            if (characterClassDefinitionDatabase != null)
+            if (deityList.Count == 0)
             {
-                foreach (var characterClassDefinition in characterClassDefinitionDatabase.GetAllElements())
+                var database = DatabaseRepository.GetDatabase<DeityDefinition>();
+
+                if (database != null)
                 {
-                    characterClassDefinition.SetRequiresDeity(true);
+                    foreach (var deityDefinition in database.GetAllElements())
+                    {
+                        deityList.Add(deityDefinition.FormatTitle());
+                    }
                 }
+
             }
+            return deityList;
+        }
+
+        public static DeityDefinition GetDeityFromIndex(int index)
+        {
+            return DatabaseRepository.GetDatabase<DeityDefinition>().GetAllElements()[index];
+        }
+
+        //public static void ForceDeityOnAllClasses()
+        //{
+        //    foreach (var characterClassDefinition in DatabaseRepository.GetDatabase<CharacterClassDefinition>()?.GetAllElements())
+        //    {
+        //        characterClassDefinition.SetRequiresDeity(true);
+        //    }
+        //}
+
+        public static void InspectionPanelBindHero(RulesetCharacterHero hero)
+        {
+            selectedHero = hero;
+        }
+
+        public static void InspectionPanelUnbindHero()
+        {
+            selectedHero = null;
         }
 
         public static string GetAllClassesLabel(GuiCharacter character)
         {
             var allClassesLabel = "";
-            var hero = character.RulesetCharacterHero;
             var snapshot = character.Snapshot;
 
             if (snapshot != null)
@@ -34,12 +63,13 @@ namespace SolastaMultiClass.Models
             }
             else
             {
+                var hero = character.RulesetCharacterHero;
+
                 foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
                     allClassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + "\n";
                 }
             }
-            
             return allClassesLabel;
         }
 
@@ -63,28 +93,27 @@ namespace SolastaMultiClass.Models
                 hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
                 separator = separator == " " ? "\n" : " ";
             }
-
             return hitDiceLabel;
         }
 
         public static string GetSelectedClassSearchTerm(string contains)
         {
-            return contains + SelectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
+            return contains + selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
         }
 
         public static CharacterClassDefinition GetSelectedClass(CharacterClassDefinition defaultClass = null)
         {
-            return SelectedHero == null ? defaultClass : SelectedHero.ClassesAndLevels.Keys.ToList()[selectedClass];
+            return selectedHero == null ? defaultClass : selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass];
         }
 
-        public static void PickPreviousClass()
+        public static void InspectionPanelPickPreviousHeroClass()
         {
-            selectedClass = selectedClass > 0 ? selectedClass - 1 : SelectedHero.ClassesAndLevels.Count - 1;
+            selectedClass = selectedClass > 0 ? selectedClass - 1 : selectedHero.ClassesAndLevels.Count - 1;
         }
 
-        public static void PickNextClass()
+        public static void InspectionPanelPickNextHeroClass()
         {
-            selectedClass = selectedClass < SelectedHero.ClassesAndLevels.Count - 1 ? selectedClass + 1 : 0;
+            selectedClass = selectedClass < selectedHero.ClassesAndLevels.Count - 1 ? selectedClass + 1 : 0;
         }
 
         private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, CharacterClassDefinition classDefinition)
@@ -97,9 +126,11 @@ namespace SolastaMultiClass.Models
 
             switch (classDefinition.Name)
             {
+                case "AHBarbarianClass": // AceHigh's Barbarian
                 case "BarbarianClass": // Holic92's Barbarian
                     return strength >= 13;
 
+                case "AHWarlockClass": // AceHigh's Warlock
                 case "BardClass": // Holic92's Bard
                 case "Sorcerer":
                 case "Warlock":
@@ -139,15 +170,15 @@ namespace SolastaMultiClass.Models
             var allowedClasses = new List<CharacterClassDefinition>() { };
             var currentClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1];
 
-            if (!ApproveMultiClassInOut(hero, currentClass))
+            if (!ApproveMultiClassInOut(hero, currentClass) && Main.Settings.ForceMinInOutPreReqs)
             {
                 allowedClasses.Add(currentClass);
             }
-            else if (hero.ClassesAndLevels.Count >= Main.Settings.maxAllowedClasses)
+            else if (hero.ClassesAndLevels.Count >= Main.Settings.MaxAllowedClasses)
             {
                 foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
-                    if (ApproveMultiClassInOut(hero, characterClassDefinition))
+                    if (ApproveMultiClassInOut(hero, characterClassDefinition) || !Main.Settings.ForceMinInOutPreReqs)
                     {
                         allowedClasses.Add(characterClassDefinition);
                     }
@@ -157,7 +188,7 @@ namespace SolastaMultiClass.Models
             {
                 foreach (var classDefinition in DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetAllElements())
                 {
-                    if (ApproveMultiClassInOut(hero, classDefinition))
+                    if (ApproveMultiClassInOut(hero, classDefinition) || !Main.Settings.ForceMinInOutPreReqs)
                     {
                         allowedClasses.Add(classDefinition);
                     }

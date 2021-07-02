@@ -3,13 +3,15 @@ using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
 using static SolastaMultiClass.Models.MultiClass;
+using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Patches
 {
-    internal static class LevelUpSequencePatcher
+    internal static class LevelUpSequencePatchers
     {
         internal static bool blockUnassign = false;
         internal static int classesAndLevelsCount = 0;
+        internal static int selectedClassIndex = -1;
         internal static CharacterClassDefinition selectedClass = null;
 
         // called by CharacterStageLevelGainsPanel.EnterStage with the transpiler injection
@@ -47,19 +49,31 @@ namespace SolastaMultiClass.Patches
             }
         }
 
+        // filter the available classes per multi class in/out rules
         [HarmonyPatch(typeof(CharacterLevelUpScreen), "OnBeginShow")]
         internal static class CharacterLevelUpScreen_OnBeginShow_Patch
         {
             internal static void Postfix(CharacterLevelUpScreen __instance, Dictionary<string, CharacterStagePanel> ___stagePanelsByName)
             {
-                if (Main.Settings.ForceMinInOutPreReqs)
+                var hero = __instance.CharacterBuildingService.HeroCharacter;
+
+                if (hero.ClassesHistory.Count == 0)
+                {
+                    selectedClassIndex = -1;
+                }
+                else
                 {
                     var classSelectionPanel = (CharacterStageClassSelectionPanel)___stagePanelsByName["ClassSelection"];
                     var compatibleClasses = (List<CharacterClassDefinition>)AccessTools.Field(classSelectionPanel.GetType(), "compatibleClasses").GetValue(classSelectionPanel);
+
+                    var allowedClasses = new List<CharacterClassDefinition>() { };
+
+                    allowedClasses = GetHeroAllowedClassDefinitions(hero);
                     compatibleClasses.Clear();
-                    compatibleClasses.AddRange(GetHeroAllowedClassDefinitions(__instance.CharacterBuildingService.HeroCharacter));
+                    compatibleClasses.AddRange(allowedClasses);
+                    selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
                 }
-            }
+            }     
         }
 
         // this avoids the last character level from being overwritten on a level up
@@ -86,9 +100,17 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "OnBeginShow")]
         internal static class CharacterStageClassSelectionPanel_EnterStage_Patch
         {
-            internal static void Prefix(CharacterStageClassSelectionPanel __instance)
+            internal static void Prefix(CharacterStageClassSelectionPanel __instance, ref int ___selectedClass)
             {
                 blockUnassign = true;
+
+                ___selectedClass = selectedClassIndex;
+
+                if (___selectedClass >= 0)
+                {
+                    __instance.CommonData.AttackModesPanel.Hide();
+                    __instance.CommonData.PersonalityMapPanel.Hide();
+                }
             }
         }
 
@@ -102,20 +124,28 @@ namespace SolastaMultiClass.Patches
             }
         }
 
+        // all the magic happens here
         [HarmonyPatch(typeof(CharacterStageLevelGainsPanel), "EnterStage")]
         internal static class CharacterStageLevelGainsPanel_EnterStage_Patch
         {
             internal static void Prefix(CharacterStageLevelGainsPanel __instance)
             {
-                selectedClass = __instance.CharacterBuildingService.HeroCharacter.ClassesHistory[classesAndLevelsCount];
+                var hero = __instance.CharacterBuildingService.HeroCharacter;
+
+                selectedClass = hero.ClassesHistory[classesAndLevelsCount];
                 __instance.CharacterBuildingService.UnassignLastClassLevel();
+
+                if (selectedClass == Paladin || selectedClass == Cleric)
+                {
+                    __instance.CharacterBuildingService.AssignDeity(GetDeityFromIndex(Main.Settings.SelectedDeity));
+                }
             }
 
             // replaces ICharacterBuildingService.GetLastAssignedClassAndLevel call with SolastaMultiClass.Patches.LevelUpSequencePatcher.GetHeroSelectedClassAndLevel
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var getLastAssignedClassAndLevelMethod = typeof(ICharacterBuildingService).GetMethod("GetLastAssignedClassAndLevel");
-                var getHeroSelectedClassAndLevelMethod = typeof(SolastaMultiClass.Patches.LevelUpSequencePatcher).GetMethod("GetHeroSelectedClassAndLevel");
+                var getHeroSelectedClassAndLevelMethod = typeof(SolastaMultiClass.Patches.LevelUpSequencePatchers).GetMethod("GetHeroSelectedClassAndLevel");
                 var instructionsToBypass = 2;
 
                 /*

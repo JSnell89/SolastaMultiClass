@@ -36,11 +36,24 @@ namespace SolastaMultiClass.Patches
                         ___badgeDefinitions.Add(rulesetCharacterHero.DeityDefinition);
                     }
 
-                    // TODO: Is there any simple way to determine which class gave the Fighting Style?
-
-                    foreach (BaseDefinition trainedFightingStyle in rulesetCharacterHero.TrainedFightingStyles)
+                    foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
                     {
-                        ___badgeDefinitions.Add(trainedFightingStyle);
+                        if (activeFeature.Key.Contains(GetSelectedClassSearchTerm("03Class")))
+                        {
+                            foreach(FeatureDefinition featureDefinition in activeFeature.Value)
+                            {
+                                if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
+                                {
+                                    foreach (BaseDefinition trainedFightingStyle in rulesetCharacterHero.TrainedFightingStyles)
+                                    {
+                                        if (featureDefinitionFightingStyleChoice.FightingStyles.Contains(trainedFightingStyle.Name))
+                                        {
+                                            ___badgeDefinitions.Add(trainedFightingStyle);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     while (___classBadgesTable.childCount < ___badgeDefinitions.Count)
