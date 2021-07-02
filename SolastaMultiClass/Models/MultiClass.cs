@@ -97,9 +97,11 @@ namespace SolastaMultiClass.Models
 
             switch (classDefinition.Name)
             {
+                case "AHBarbarianClass": // AceHigh's Barbarian
                 case "BarbarianClass": // Holic92's Barbarian
                     return strength >= 13;
 
+                case "AHWarlockClass": // AceHigh's Warlock
                 case "BardClass": // Holic92's Bard
                 case "Sorcerer":
                 case "Warlock":
