@@ -132,7 +132,7 @@ namespace SolastaMultiClass.Patches
 
                 */
 
-                        foreach (var instruction in instructions)
+                foreach (var instruction in instructions)
                 {
                     if (instructionsToBypass > 0)
                     {

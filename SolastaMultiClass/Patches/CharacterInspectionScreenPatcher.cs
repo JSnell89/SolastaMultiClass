@@ -20,7 +20,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix()
             {
-              CollectHeroClasses();
+                ClearHeroClasses();
             }
         }
 

@@ -22,14 +22,16 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static void CollectHeroClasses(RulesetCharacterHero hero = null)
+        public static void ClearHeroClasses()
         {
             selectedClass = 0;
             heroClasses.Clear();
-            if (hero != null) 
-            {
-                heroClasses.AddRange(hero.ClassesAndLevels.Keys);
-            }
+        }
+
+        public static void CollectHeroClasses(RulesetCharacterHero hero)
+        {
+            ClearHeroClasses();
+            heroClasses.AddRange(hero.ClassesAndLevels.Keys);
         }
 
         public static string GetAllClassesLabel(GuiCharacter character)
