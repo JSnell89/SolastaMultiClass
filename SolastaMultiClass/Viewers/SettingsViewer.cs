@@ -25,6 +25,12 @@ namespace SolastaMultiClass.Viewers
             {
                 Main.Settings.ForceMinInOutPreReqs = toggle;
             }
+
+            var sharedSpellToggle = Main.Settings.EnableSharedSpellcasting;
+            if (UI.Toggle("Enable shared spellcasting", ref sharedSpellToggle, 0, UI.AutoWidth()))
+            {
+                Main.Settings.EnableSharedSpellcasting = toggle;
+            }
         }
 
         public void OnGUI(UnityModManager.ModEntry modEntry)
