@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.UI;
 using static FeatureDefinitionCastSpell;
 using static SolastaMultiClass.Models.MultiClass;
@@ -300,7 +301,6 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-
         //Remove the ability to select spells of higher level than you should be able to when leveling up
         //This doesn't fix the 'Auto' choices however.
         //Essentially the only change that is needed to use class level instead of hero level but requires a whole bunch of postfix code to do so :)
@@ -313,8 +313,6 @@ namespace SolastaMultiClass.Patches
                     return;
 
                 var charBMType = typeof(CharacterStageSpellSelectionPanel);
-                var applyFeatureCastSpellMethod = charBMType.GetMethod("ApplyFeatureCastSpell", BindingFlags.NonPublic | BindingFlags.Instance);
-                var setPointPoolMethod = charBMType.GetMethod("SetPointPool", BindingFlags.NonPublic | BindingFlags.Instance);
                 var currentLearnStepFieldInfo = charBMType.GetField("currentLearnStep", BindingFlags.NonPublic | BindingFlags.Instance);
                 var allTagsFieldInfo = charBMType.GetField("allTags", BindingFlags.NonPublic | BindingFlags.Instance);
                 var spellsByLevelTableFieldInfo = charBMType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -335,6 +333,10 @@ namespace SolastaMultiClass.Patches
                 __instance.CharacterBuildingService.GetLastAssignedClassAndLevel(out characterClassDefinition, out int unused);
 
                 FeatureDefinitionCastSpell spellFeature = __instance.CharacterBuildingService.GetSpellFeature(item);
+
+                //Only need updates if for spell selection.  This fixes an issue where Clerics were getting level 1 spells as cantrips :).
+                if (spellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Selection || spellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook)
+                    return;
 
                 bool flag = false;
                 if (spellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Selection || spellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook)
@@ -360,7 +362,7 @@ namespace SolastaMultiClass.Patches
                     LayoutRebuilder.ForceRebuildLayoutImmediate(spellsByLevelRect);
                 }
             }
-        }
+        }        
 
         [HarmonyPatch(typeof(CharacterBuildingManager), "AutoAcquireSpells")]
         internal static class CharacterBuildingManager_AutoAcquireSpells_Patch
@@ -371,6 +373,65 @@ namespace SolastaMultiClass.Patches
                     return;
 
                 //TODO remove 
+            }
+        }
+
+        [HarmonyPatch(typeof(SpellRepertoirePanel), "Bind")]
+        internal static class SpellRepertoirePanel_Bind_Patch
+        {
+            internal static void Postfix(SpellRepertoirePanel __instance)
+            {
+                if (!Main.Settings.EnableSharedSpellcasting || Main.Settings.TurnOffSpellPreparationRestrictions)
+                    return;
+
+                //It would be nice to short-circuit here but since I'm setting the visibility of the subitems it needs to be redone every time since these subitems seem to be shared across 'tabs'
+                //if (__instance.SpellRepertoire.SpellCastingFeature.SpellReadyness != RuleDefinitions.SpellReadyness.Prepared)
+                //    return;
+
+                //This may not work for subclasses that have 'Prepared' spells, but I don't think any do.
+                CharacterClassDefinition characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
+
+                var hero = __instance.Caster as RulesetCharacterHero; //Cast to RulesetCharacterHero so we can figure out the level of the current class
+                if (hero == null || characterClassDefinition == null)
+                    return;
+
+                var currentCharacterClassAsDictionary = new Dictionary<CharacterClassDefinition, int>() { { characterClassDefinition, hero.ClassesAndLevels[characterClassDefinition] } };
+                var currentCharacterSubclassAsDictionary = new Dictionary<CharacterClassDefinition, CharacterSubclassDefinition>() { { characterClassDefinition, hero.ClassesAndSubclasses.ContainsKey(characterClassDefinition) ? hero.ClassesAndSubclasses[characterClassDefinition] : null } };
+
+                // Bit of an odd case here.  You actually want to prepare spells of the next caster level if you are part way into it.
+                // E.g. a Level 5 paladin should be able to prepare level 2 spells like a 3rd level full caster, even though they are only actually a level 2.5 caster.
+                int currentClassCasterPrepareSpellsLevel = (int)Math.Ceiling(GetCasterLevelForGivenLevel(currentCharacterClassAsDictionary, currentCharacterSubclassAsDictionary));
+
+                int maxLevelOfSpellcastingForClass = currentClassCasterPrepareSpellsLevel % 2 == 0 ? currentClassCasterPrepareSpellsLevel / 2 : (currentClassCasterPrepareSpellsLevel + 1) / 2;
+
+                //It would be nice to short-circuit here but since I'm setting the visibility of the subitems it needs to be redone every time
+                //if (maxSpellLevelOfSpellCastingLevelForHero == maxLevelOfSpellcastingForClass)
+                //    return;
+
+                var spellRepertoirePanelType = typeof(SpellRepertoirePanel);
+                var spellsByLevelTableFieldInfo = spellRepertoirePanelType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
+                UnityEngine.RectTransform spellsByLevelRect = (UnityEngine.RectTransform)spellsByLevelTableFieldInfo.GetValue(__instance);
+
+                int childCount = spellsByLevelRect.childCount;
+                int accountForCantripsInt = __instance.SpellRepertoire.SpellCastingFeature.SpellListDefinition.HasCantrips ? 1 : 0;
+
+                for (int i = 0; i < childCount; i++)
+                {
+                    Transform transforms = spellsByLevelRect.GetChild(i);
+                    for (int k = 0; k < transforms.childCount; k++)
+                    {
+                        var child = transforms.GetChild(k);
+                        //Don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
+                        if (child.TryGetComponent(typeof(SlotStatusTable), out Component unused))
+                            continue;
+                        if(i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1)
+                            child.gameObject.SetActive(false);
+                        else
+                            child.gameObject.SetActive(true); //Need to set to true because when switching tabs the false from one spellcasting class is carried over.
+                    }
+                }
+
+                LayoutRebuilder.ForceRebuildLayoutImmediate(spellsByLevelRect);
             }
         }
 
