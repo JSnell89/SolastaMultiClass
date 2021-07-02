@@ -152,7 +152,7 @@ namespace SolastaMultiClass.Models
                     return dexterity >= 13 && wisdom >= 13;
 
                 case "ClassTinkerer": // CJD's Tinkerer
-                    return intelligence >= 13 && wisdom >= 13;
+                    return intelligence >= 13;
 
                 case "Rogue":
                     return dexterity >= 13;
