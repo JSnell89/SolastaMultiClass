@@ -10,9 +10,18 @@ namespace SolastaMultiClass.Patches
 
         public static void UntrainPreviouslySelectedFightStyle(ICharacterBuildingService __instance)
         {
-            __instance.UntrainLastFightingStyle();
+            if (previouslySelectedFightingStyle > 0)
+            {
+                __instance.UntrainLastFightingStyle();
+            }
         }
-       
+
+        public static void AssignSelectedFightingStyle(CharacterStageFightingStyleSelectionPanel __instance, int selectedFightingStyle)
+        {
+            previouslySelectedFightingStyle = selectedFightingStyle;
+            AccessTools.Field(__instance.GetType(), "").SetValue(__instance, selectedFightingStyle);
+        }
+
         [HarmonyPatch(typeof(CharacterStageFightingStyleSelectionPanel), "OnBeginShow")]
         internal static class CharacterStageFightingStyleSelectionPanel_OnBeginShow_Patch
         {
@@ -49,15 +58,14 @@ namespace SolastaMultiClass.Patches
         {
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                var previouslySelectedFightingStyleField = AccessTools.Field(typeof(CharacterStageFightingStyleSelectionPanelPatcher), "previouslySelectedFightingStyle");
+                var selectedFightingStyleField = AccessTools.Field(typeof(CharacterStageFightingStyleSelectionPanel), "selectedFightingStyle");
+                var AssignSelectedFightingStyleMethod = typeof(CharacterStageFightingStyleSelectionPanelPatcher).GetMethod("AssignSelectedFightingStyle");
 
                 foreach (var instruction in instructions)
                 {
-                    if (instruction.StoresField(AccessTools.Field(typeof(CharacterStageFightingStyleSelectionPanel), "selectedFightingStyle")))
+                    if (instruction.StoresField(selectedFightingStyleField))
                     {
-                        yield return instruction;
-                        yield return new CodeInstruction(OpCodes.Ldloc_0);
-                        yield return new CodeInstruction(OpCodes.Stsfld, previouslySelectedFightingStyleField);
+                        yield return new CodeInstruction(OpCodes.Call, AssignSelectedFightingStyleMethod);
                     }
                     else
                     {
