@@ -1,5 +1,6 @@
 ﻿using UnityModManagerNet;
 using ModKit;
+using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Viewers
 {
@@ -11,15 +12,16 @@ namespace SolastaMultiClass.Viewers
 
         private static void DisplaySettings()
         {
+            int selected;
             bool toggle;
 
             UI.Label("House Rules".yellow());
             UI.Div();
 
-            var maxAllowedClasses = Main.Settings.maxAllowedClasses;
+            var maxAllowedClasses = Main.Settings.MaxAllowedClasses;
             if (UI.Slider("Max Allowed Classes", ref maxAllowedClasses, 1, 3, 2, "", UI.AutoWidth()))
             {
-                Main.Settings.maxAllowedClasses = maxAllowedClasses;
+                Main.Settings.MaxAllowedClasses = maxAllowedClasses;
             }
 
             toggle = Main.Settings.ForceMinInOutPreReqs;
@@ -32,6 +34,15 @@ namespace SolastaMultiClass.Viewers
             if (UI.Toggle("Enable shared spellcasting", ref toggle, 0, UI.AutoWidth()))
             {
                 Main.Settings.EnableSharedSpellCasting = toggle;
+            }
+
+            UI.Label("Deity when multi classing into a Cleric or Paladin");
+
+            var deityTitles = GetDeityList().ToArray();
+            selected = Main.Settings.SelectedDeity;
+            if (UI.SelectionGrid(ref selected, deityTitles, deityTitles.Length, UI.AutoWidth()))
+            {
+                Main.Settings.SelectedDeity = selected;
             }
         }
 

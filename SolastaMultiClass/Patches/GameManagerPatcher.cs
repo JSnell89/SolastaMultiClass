@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using static SolastaMultiClass.Settings;
-using static SolastaMultiClass.Models.MultiClass;
 
 namespace SolastaMultiClass.Patches
 {
@@ -11,9 +10,10 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix()
             {
-                ServiceRepository.GetService<IInputService>().RegisterCommand(PLAIN_RIGHT, 275, -1, -1, -1, -1, -1);
-                ServiceRepository.GetService<IInputService>().RegisterCommand(PLAIN_LEFT, 276, -1, -1, -1, -1, -1);
-                ForceDeityOnAllClasses();
+                var inputService = ServiceRepository.GetService<IInputService>();
+
+                inputService.RegisterCommand(PLAIN_RIGHT, 275, -1, -1, -1, -1, -1);
+                inputService.RegisterCommand(PLAIN_LEFT, 276, -1, -1, -1, -1, -1);
             }
         }
     }

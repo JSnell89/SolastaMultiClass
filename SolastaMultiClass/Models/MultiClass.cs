@@ -10,15 +10,36 @@ namespace SolastaMultiClass.Models
 
         private static RulesetCharacterHero selectedHero;
 
+        private static List<string> deityList = new List<string>() { };
+
+        public static List<string> GetDeityList()
+        {
+            if (deityList.Count == 0)
+            {
+                var database = DatabaseRepository.GetDatabase<DeityDefinition>();
+
+                if (database != null)
+                {
+                    foreach (var deityDefinition in database.GetAllElements())
+                    {
+                        deityList.Add(deityDefinition.FormatTitle());
+                    }
+                }
+
+            }
+            return deityList;
+        }
+
+        public static DeityDefinition GetDeityFromIndex(int index)
+        {
+            return DatabaseRepository.GetDatabase<DeityDefinition>().GetAllElements()[index];
+        }
+
         public static void ForceDeityOnAllClasses()
         {
-            var characterClassDefinitionDatabase = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
-            if (characterClassDefinitionDatabase != null)
+            foreach (var characterClassDefinition in DatabaseRepository.GetDatabase<CharacterClassDefinition>()?.GetAllElements())
             {
-                foreach (var characterClassDefinition in characterClassDefinitionDatabase.GetAllElements())
-                {
-                    characterClassDefinition.SetRequiresDeity(true);
-                }
+                characterClassDefinition.SetRequiresDeity(true);
             }
         }
 
@@ -157,7 +178,7 @@ namespace SolastaMultiClass.Models
             {
                 allowedClasses.Add(currentClass);
             }
-            else if (hero.ClassesAndLevels.Count >= Main.Settings.maxAllowedClasses)
+            else if (hero.ClassesAndLevels.Count >= Main.Settings.MaxAllowedClasses)
             {
                 foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
