@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Models
 {
@@ -9,7 +10,7 @@ namespace SolastaMultiClass.Models
 
         private static RulesetCharacterHero selectedHero;
 
-        private static List<string> deityList = new List<string>() { };
+        private static readonly List<string> deityList = new List<string>() { };
 
         public static List<string> GetDeityList()
         {
@@ -34,13 +35,17 @@ namespace SolastaMultiClass.Models
             return DatabaseRepository.GetDatabase<DeityDefinition>().GetAllElements()[index];
         }
 
-        //public static void ForceDeityOnAllClasses()
-        //{
-        //    foreach (var characterClassDefinition in DatabaseRepository.GetDatabase<CharacterClassDefinition>()?.GetAllElements())
-        //    {
-        //        characterClassDefinition.SetRequiresDeity(true);
-        //    }
-        //}
+        public static void AssignDeityIfRequired(ICharacterBuildingService characterBuildingService)
+        {
+            var hero = characterBuildingService.HeroCharacter;
+            var selectedClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1];
+
+            if (selectedClass == Paladin && !hero.ClassesAndLevels.ContainsKey(Cleric) || 
+                selectedClass == Cleric && !hero.ClassesAndLevels.ContainsKey(Paladin))
+            {
+                characterBuildingService.AssignDeity(GetDeityFromIndex(Main.Settings.SelectedDeity));
+            }
+        }
 
         public static void InspectionPanelBindHero(RulesetCharacterHero hero)
         {
