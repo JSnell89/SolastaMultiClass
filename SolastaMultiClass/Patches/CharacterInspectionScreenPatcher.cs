@@ -7,7 +7,7 @@ namespace SolastaMultiClass.Patches
     internal static class CharacterInspectionScreenPatcher
     {
         [HarmonyPatch(typeof(CharacterInspectionScreen), "Bind")]
-        internal static class CharacterInspectionScreen_Show_Patch
+        internal static class CharacterInspectionScreen_Bind_Patch
         {
             internal static void Prefix(RulesetCharacterHero heroCharacter)
             {
@@ -16,7 +16,7 @@ namespace SolastaMultiClass.Patches
         }
 
         [HarmonyPatch(typeof(CharacterInspectionScreen), "DoClose")]
-        internal static class CharacterInspectionScreen_OnCloseCb_Patch
+        internal static class CharacterInspectionScreen_DoClose_Patch
         {
             internal static void Postfix()
             {
