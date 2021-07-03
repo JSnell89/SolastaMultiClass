@@ -403,8 +403,6 @@ namespace SolastaMultiClass.Patches
                             ((IDisposable)enumerator1).Dispose();
                         }
                     }
-                    __result = featureDefinitionCastSpell;
-                    return false;
                 }
                 finally
                 {
