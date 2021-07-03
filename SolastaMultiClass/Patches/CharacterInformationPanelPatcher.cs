@@ -8,6 +8,90 @@ namespace SolastaMultiClass.Patches
 {
     internal static class CharacterInformationPanelPatcher
     {
+        internal static List<FightingStyleDefinition> GetClassBadges(RulesetCharacterHero rulesetCharacterHero)
+        {
+            var idx = 0;
+            var classNames = new List<string>() { };
+            var fightingStylePerClass = new Dictionary<string, List<FightingStyleDefinition>>()                    {
+                        {"Paladin", new List<FightingStyleDefinition>() { } },
+                        {"Ranger", new List<FightingStyleDefinition>() { } },
+                        {"Fighter", new List<FightingStyleDefinition>() { } },
+                    };
+
+            foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
+            {
+                if (activeFeature.Key.Contains("03Class"))
+                {
+                    foreach (FeatureDefinition featureDefinition in activeFeature.Value)
+                    {
+                        if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
+                        {
+                            var temp = activeFeature.Key.Substring(7, 7);
+                            classNames.Add(temp == "Ranger1" ? "Ranger" : temp);
+                        }
+                    }
+                }
+            }
+
+            // need to get the classes using this collection order
+            // this ensures I'll try my best to find an existing class to take the feature
+            foreach (var className in fightingStylePerClass.Keys)
+            {
+                if (!classNames.Contains(className))
+                {
+                    continue;
+                }
+
+                LABEL_RETRY_NEXT_FEATURE_IN_CASE_PREVIOUS_DIDNT_FIT:
+
+                var trainedFightingStyle = rulesetCharacterHero.TrainedFightingStyles[idx++];
+
+                switch (trainedFightingStyle.Name)
+                {
+                    case "Archery":
+                        if (className != "Paladin")
+                        {
+                            fightingStylePerClass[className].Add(trainedFightingStyle);
+                        }
+                        break;
+
+                    case "TwoWeapon":
+                        if (className != "Paladin")
+                        {
+                            fightingStylePerClass[className].Add(trainedFightingStyle);
+                        }
+                        break;
+
+
+                    case "GreatWeapon":
+                        if (className != "Ranger")
+                        {
+                            fightingStylePerClass[className].Add(trainedFightingStyle);
+                        }
+                        break;
+
+                    case "Protection":
+                        if (className != "Ranger")
+                        {
+                            fightingStylePerClass[className].Add(trainedFightingStyle);
+                        }
+                        break;
+
+                    case "Defense":
+                    case "Dueling":
+                        fightingStylePerClass[className].Add(trainedFightingStyle);
+                        break;
+
+                    // this is the rare case when a fighting style is assigned by a feat
+                    // in this case the fighting style list is bigger than the number of features
+                    default:
+                        idx++;
+                        goto LABEL_RETRY_NEXT_FEATURE_IN_CASE_PREVIOUS_DIDNT_FIT;
+                }
+            }
+            return fightingStylePerClass[GetSelectedClassSearchTerm("")];
+        }
+
         [HarmonyPatch(typeof(CharacterInformationPanel), "EnumerateClassBadges")]
         internal static class CharacterInformationPanel_EnumerateClassBadges_Patch
         {
@@ -36,86 +120,7 @@ namespace SolastaMultiClass.Patches
                         ___badgeDefinitions.Add(rulesetCharacterHero.DeityDefinition);
                     }
 
-                    //
-                    // SHOULD MOVE THIS AND ONLY CALCULATE ONCE
-                    //
-
-                    var idx = 0;
-                    var classNames = new List<string>() { };
-                    var fightingStylePerClass = new Dictionary<string, List<FightingStyleDefinition>>()                    {
-                        {"Paladin", new List<FightingStyleDefinition>() { } },
-                        {"Ranger", new List<FightingStyleDefinition>() { } },
-                        {"Fighter", new List<FightingStyleDefinition>() { } },
-                    };
-
-                    foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
-                    {
-                        if (activeFeature.Key.Contains("03Class"))
-                        {
-                            foreach(FeatureDefinition featureDefinition in activeFeature.Value)
-                            {
-                                if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
-                                {
-                                    var temp = activeFeature.Key.Substring(7, 7);
-                                    classNames.Add(temp == "Ranger1" ? "Ranger" : temp);
-                                }
-                            }
-                        }
-                    }
-
-                    // need to get the classes using this collection order
-                    foreach (var className in fightingStylePerClass.Keys)
-                    {
-                        if (!classNames.Contains(className))
-                        {
-                            continue;
-                        }
-
-                        var trainedFightingStyle = rulesetCharacterHero.TrainedFightingStyles[idx++];
-
-                        switch (trainedFightingStyle.Name)
-                        {
-                            case "Archery":
-                                if (className != "Paladin")
-                                {
-                                    fightingStylePerClass[className].Add(trainedFightingStyle);
-                                }
-                                break;
-
-                            case "TwoWeapon":
-                                if (className != "Paladin")
-                                {
-                                    fightingStylePerClass[className].Add(trainedFightingStyle);
-                                }
-                                break;
-
-
-                            case "GreatWeapon":
-                                if (className != "Ranger")
-                                {
-                                    fightingStylePerClass[className].Add(trainedFightingStyle);
-                                }
-                                break;
-
-                            case "Protection":
-                                if (className != "Ranger")
-                                {
-                                    fightingStylePerClass[className].Add(trainedFightingStyle);
-                                }
-                                break;
-                               
-                            case "Defense":
-                            case "Dueling":
-                                fightingStylePerClass[className].Add(trainedFightingStyle);
-                                break;
-                        }
-                    }
-
-                    ___badgeDefinitions.AddRange(fightingStylePerClass[GetSelectedClassSearchTerm("")]);
-
-                    //
-                    //
-                    //
+                    ___badgeDefinitions.AddRange(GetClassBadges(rulesetCharacterHero));
 
                     while (___classBadgesTable.childCount < ___badgeDefinitions.Count)
                     {
