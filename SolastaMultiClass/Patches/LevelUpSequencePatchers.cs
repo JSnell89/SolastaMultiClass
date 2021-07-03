@@ -167,8 +167,8 @@ namespace SolastaMultiClass.Patches
 
                 if (levelingUp)
                 {
-                    __instance.CommonData.AttackModesPanel.Hide();
-                    __instance.CommonData.PersonalityMapPanel.RefreshNow();
+                    __instance.CommonData.AttackModesPanel?.Hide();
+                    __instance.CommonData.PersonalityMapPanel?.RefreshNow();
                 }
             }
         }
