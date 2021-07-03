@@ -379,7 +379,7 @@ namespace SolastaMultiClass.Patches
 
             displayingClassPanel = false;
 
-            requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity && !(classesAndLevels.ContainsKey(Cleric) || classesAndLevels.ContainsKey(Paladin));
+            requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity && !classesAndLevels.ContainsKey(Cleric) && !classesAndLevels.ContainsKey(Paladin);
 
             if (requiresSpellbook && !hasSpellbookGranted)
             {
@@ -434,10 +434,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(ref bool ___isRelevant)
             {
-                if (levelingUp && requiresDeity)
-                {
-                    ___isRelevant = true;
-                }
+                ___isRelevant = (levelingUp && requiresDeity);
             }
         }
 
