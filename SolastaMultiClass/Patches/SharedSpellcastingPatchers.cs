@@ -444,8 +444,8 @@ namespace SolastaMultiClass.Patches
                 classesAndSubclasses.TryGetValue(classAndLevel.Key, out subclass);
                 eAHCasterType casterType = GetCasterTypeForSingleLevelOfClass(classAndLevel.Key, subclass);
 
-                //Only increment caster level when the class in question has actually gottent their spellcasting feature.
-                if (casterType == eAHCasterType.Full || (numLevelsToUseFromNextClass >= 2 && casterType == eAHCasterType.Half) || (numLevelsToUseFromNextClass >= 3 && casterType == eAHCasterType.OneThird))
+                //Only increment caster level when the class in question has actually gottent their spellcasting feature.  Artificer's get spell slots at level 1 just to complicate things :).
+                if (casterType == eAHCasterType.Full || casterType == eAHCasterType.HalfArtificer ||  (numLevelsToUseFromNextClass >= 2 && casterType == eAHCasterType.Half) || (numLevelsToUseFromNextClass >= 3 && casterType == eAHCasterType.OneThird))
                 {
                     for (int i = numLevelsToUseFromNextClass; i > 0; i--)
                         context.IncrementCasterLevel(casterType);
@@ -464,7 +464,43 @@ namespace SolastaMultiClass.Patches
             else if (OneThirdCasterList.Contains(subclass))
                 return eAHCasterType.OneThird;
 
-            return eAHCasterType.None;
+            //Fallback to get it from the class name.  TODO also do same for subclass (not necessary yet, should likely go through the class/subclass features to see if they have a spellcasting feature and get the type from that).
+            return GetCasterTypeFromClassName(charClass.Name);
+        }
+
+        private static eAHCasterType GetCasterTypeFromClassName(string className)
+        {
+            switch (className)
+            {
+                case "Cleric":
+                case "Bard":
+                case "BardClass": // Holic92's Bard
+                case "Sorcerer":
+                case "Wizard":
+                    return eAHCasterType.Full;
+
+                case "ClassTinkerer": // CJD's Tinkerer
+                    return eAHCasterType.HalfArtificer;
+                case "Paladin":
+                case "Ranger":
+                    return eAHCasterType.Half;
+
+                //Warlock is an odd case and should likely be handled completely separately
+                case "Warlock":
+                case "AHWarlockClass": // AceHigh's Warlock
+                    return eAHCasterType.None;
+
+                case "AHBarbarianClass": // AceHigh's Barbarian
+                case "BarbarianClass": // Holic92's Barbarian
+                case "Fighter":
+                case "Monk":
+                case "MonkClass": // Holic92's Monk
+                case "Rogue":
+                    return eAHCasterType.None;
+
+                default:
+                    return eAHCasterType.None;
+            }
         }
 
         public class CasterLevelContext
@@ -483,6 +519,8 @@ namespace SolastaMultiClass.Patches
                     NumOneThirdLevels++;
                 if (casterLevelType == eAHCasterType.Half)
                     NumHalfLevels++;
+                if (casterLevelType == eAHCasterType.HalfArtificer)
+                    NumHalfArtificerLevels++;
                 if (casterLevelType == eAHCasterType.Full)
                     NumFullLevels++;
             }
@@ -494,6 +532,9 @@ namespace SolastaMultiClass.Patches
                     casterLevel += NumOneThirdLevels / 3.0;
                 if (NumHalfLevels >= 2)
                     casterLevel += NumHalfLevels / 2.0;
+                if (NumHalfArtificerLevels >= 1) //artificer spell level round up instead of down like other spellcasting classes
+                    casterLevel +=  Math.Ceiling(NumHalfArtificerLevels / 2.0);
+
                 casterLevel += NumFullLevels;
 
                 return casterLevel;
@@ -501,6 +542,7 @@ namespace SolastaMultiClass.Patches
 
             double NumOneThirdLevels = 0;
             double NumHalfLevels = 0;
+            double NumHalfArtificerLevels = 0;
             double NumFullLevels = 0;
         }
 
@@ -509,6 +551,7 @@ namespace SolastaMultiClass.Patches
             None,
             OneThird,
             Half,
+            HalfArtificer,
             Full
         };
 
