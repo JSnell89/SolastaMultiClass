@@ -128,20 +128,23 @@ namespace SolastaMultiClass.Patches
             internal static bool Prefix(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
             {
                 // ensures this doesn't get executed in the class panel level up screen
-                if (levelingUp && displayingClassPanel)
+                if (levelingUp)
                 {
-                    return false;
-                }
-                else
-                {
-                    if (__instance.HeroCharacter.ClassesHistory.Count > 1)
+                    if (displayingClassPanel)
                     {
-                        grantedFeatures.RemoveAll(feature => FeaturesToExcludeFromMulticlassLevels.Contains(feature));
-
-                        // need to add logic to add extra skill points here
+                        return false;
                     }
-                    return true;
+                    else
+                    {
+                        if (__instance.HeroCharacter.ClassesHistory.Count > 1)
+                        {
+                            grantedFeatures.RemoveAll(feature => FeaturesToExcludeFromMulticlassLevels.Contains(feature));
+
+                            // need to add logic to add extra skill points here
+                        }
+                    }
                 }
+                return true;
             }
 
             private static readonly FeatureDefinition[] FeaturesToExcludeFromMulticlassLevels = new FeatureDefinition[]
