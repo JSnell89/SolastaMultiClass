@@ -10,10 +10,11 @@ namespace SolastaMultiClass.Patches
     {
         internal static bool levelingUp = false;
         internal static bool displayingClassPanel = false;
-        internal static bool requiresDeity = false;
-        internal static int selectedClassIndex = -1;
-        internal static CharacterClassDefinition selectedClass = null;
         internal static int levelsCount = 0;
+        internal static bool requiresDeity = false;
+        internal static bool requiresSpellbook = false;
+        internal static CharacterClassDefinition selectedClass = null;
+        internal static int selectedClassIndex = -1;
 
         //
         // CHARACTER LEVEL UP SCREEN
@@ -62,7 +63,11 @@ namespace SolastaMultiClass.Patches
                 var hero = __instance.CharacterBuildingService.HeroCharacter;
 
                 levelingUp = true;
+                displayingClassPanel = true;
                 levelsCount = hero.ClassesHistory.Count;
+                requiresDeity = false;
+                requiresSpellbook = false;
+                selectedClass = null;
 
                 // filter the available classes per multi class in/out rules
                 if (hero.ClassesHistory.Count == 0)
@@ -79,15 +84,14 @@ namespace SolastaMultiClass.Patches
                     compatibleClasses.AddRange(allowedClasses);
                     selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
                 }
-
             }     
         }
 
         //
-        // CHARACTER BUILDING MANAGER - must block any call to it while leveling up and displaying the class selection panel
+        // CHARACTER BUILDING MANAGER - must blocks any call to it while leveling up and displaying the class selection panel
         //
 
-        // capture the desired class but ensure rest doesn't get executed in the class panel level up screen
+        // captures the desired class / ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "AssignClassLevel")]
         internal static class CharacterBuildingManager_AssignClassLevel_Patch
         {
@@ -98,7 +102,7 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        // ensure this doesn't get executed in the class panel level up screen
+        // ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "ClearWieldedConfigurations")]
         internal static class CharacterBuildingManager_ClearWieldedConfigurations_Patch
         {
@@ -108,9 +112,9 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        // ensure this doesn't get executed in the class panel level up screen
+        // ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "GrantFeatures")]
-        internal static class CharacterBuildingManager_Patch
+        internal static class CharacterBuildingManager_GrantFeatures_Patch
         {
             internal static bool Prefix()
             {
@@ -118,7 +122,17 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        // ensure this doesn't get executed in the class panel level up screen
+        // ensures this doesn't get executed in the class panel level up screen
+        [HarmonyPatch(typeof(CharacterBuildingManager), "GrantBaseEquipment")]
+        internal static class CharacterBuildingManager_GrantBaseEquipment_Patch
+        {
+            internal static bool Prefix()
+            {
+                return !(levelingUp && displayingClassPanel);
+            }
+        }
+
+        // ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "RemoveBaseEquipment")]
         internal static class CharacterBuildingManager_RemoveBaseEquipment_Patch
         {
@@ -128,7 +142,7 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        // ensure this doesn't get executed in the class panel level up screen
+        // ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "UnassignEquipment")]
         internal static class CharacterBuildingManager_UnassignEquipment_Patch
         {
@@ -138,7 +152,7 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        // ensure this doesn't get executed in the class panel level up screen
+        // ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "UnassignLastClassLevel")]
         internal static class CharacterBuildingManager_UnassignLastClassLevel_Patch
         {
@@ -295,14 +309,25 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE LEVEL GAINS PANEL
         //
 
-        // determines if deity required, provides my own class, classLevel and unflags class panel display
+        // determines if deity / spellbook are required, provides my own class/classLevel, unflags class panel display
         public static void GetHeroSelectedClassAndLevel(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
         {
-            requiresDeity = characterBuildingService.HeroCharacter.DeityDefinition == null && selectedClass.RequiresDeity;
+            var hero = characterBuildingService.HeroCharacter;
+            var wizard = SolastaModApi.DatabaseHelper.CharacterClassDefinitions.Wizard;
+
+            displayingClassPanel = false;
+
+            requiresSpellbook = !hero.ClassesAndLevels.ContainsKey(wizard) && selectedClass == wizard;
+            requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity;
+
+            if (requiresSpellbook)
+            {
+                var item = new RulesetItem(SolastaModApi.DatabaseHelper.ItemDefinitions.Spellbook);
+                hero.GrantItem(item, false);
+            }
+
             lastClassDefinition = selectedClass;
             level = levelsCount;
-            displayingClassPanel = false;
-            selectedClass = null;
         }
 
         // patches the method to get my own class and level for level up
@@ -347,9 +372,9 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(ref bool ___isRelevant)
             {
-                if (levelingUp)
+                if (levelingUp && requiresDeity)
                 {
-                    ___isRelevant = requiresDeity;
+                    ___isRelevant = true;
                 }
             }
         }
@@ -363,9 +388,9 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(ref bool ___isRelevant)
             {
-                if (levelingUp)
+                if (levelingUp && requiresDeity)
                 {
-                    ___isRelevant = !requiresDeity;
+                    ___isRelevant = false;
                 }
             }
         }
