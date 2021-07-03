@@ -186,7 +186,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                var enumerateActiveFeaturesMethod = typeof(ICharacterBuildingService).GetMethod("get_HeroCharacter");
+                var getHeroCharacterMethod = typeof(ICharacterBuildingService).GetMethod("get_HeroCharacter");
                 var getClassLevelMethod = typeof(LevelUpSequencePatchers).GetMethod("GetClassLevel");
                 var instructionsToBypass = 0;
 
@@ -206,7 +206,7 @@ namespace SolastaMultiClass.Patches
                     {
                         instructionsToBypass--;
                     }
-                    else if (instruction.Calls(enumerateActiveFeaturesMethod))
+                    else if (instruction.Calls(getHeroCharacterMethod))
                     {
                         yield return instruction;
                         yield return new CodeInstruction(OpCodes.Call, getClassLevelMethod);
@@ -226,7 +226,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                var enumerateActiveFeaturesMethod = typeof(ICharacterBuildingService).GetMethod("get_HeroCharacter");
+                var getHeroCharacterMethod = typeof(ICharacterBuildingService).GetMethod("get_HeroCharacter");
                 var getClassLevelMethod = typeof(LevelUpSequencePatchers).GetMethod("GetClassLevel");
                 var instructionsToBypass = 0;
 
@@ -246,11 +246,45 @@ namespace SolastaMultiClass.Patches
                     {
                         instructionsToBypass--;
                     }
-                    else if (instruction.Calls(enumerateActiveFeaturesMethod))
+                    else if (instruction.Calls(getHeroCharacterMethod))
                     {
                         yield return instruction;
                         yield return new CodeInstruction(OpCodes.Call, getClassLevelMethod);
                         instructionsToBypass = 3;
+                    }
+                    else
+                    {
+                        yield return instruction;
+                    }
+                }
+            }
+        }
+
+        // hides de equipment panel group during a level up class selection
+        public static bool MySetActive(bool show)
+        {
+            return !(levelingUp && displayingClassPanel);
+        }
+
+        // patches the method to get my own class and level for level up
+        [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "Refresh")]
+        internal static class CharacterStageClassSelectionPanel_Refresh_Patch
+        {
+            internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var setActiveFound = 0;
+                var setActiveMethod = typeof(UnityEngine.GameObject).GetMethod("SetActive");
+                var mySetActiveMethod = typeof(LevelUpSequencePatchers).GetMethod("MySetActive");
+
+                foreach (var instruction in instructions)
+                {
+                    if (instruction.Calls(setActiveMethod))
+                    {
+                        if (++setActiveFound == 4)
+                        {
+                            yield return new CodeInstruction(OpCodes.Call, mySetActiveMethod);
+                        }
+                        yield return instruction;
                     }
                     else
                     {
