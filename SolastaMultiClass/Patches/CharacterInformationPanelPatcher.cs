@@ -36,25 +36,86 @@ namespace SolastaMultiClass.Patches
                         ___badgeDefinitions.Add(rulesetCharacterHero.DeityDefinition);
                     }
 
+                    //
+                    // SHOULD MOVE THIS AND ONLY CALCULATE ONCE
+                    //
+
+                    var idx = 0;
+                    var classNames = new List<string>() { };
+                    var fightingStylePerClass = new Dictionary<string, List<FightingStyleDefinition>>()                    {
+                        {"Paladin", new List<FightingStyleDefinition>() { } },
+                        {"Ranger", new List<FightingStyleDefinition>() { } },
+                        {"Fighter", new List<FightingStyleDefinition>() { } },
+                    };
+
                     foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
                     {
-                        if (activeFeature.Key.Contains(GetSelectedClassSearchTerm("03Class")))
+                        if (activeFeature.Key.Contains("03Class"))
                         {
                             foreach(FeatureDefinition featureDefinition in activeFeature.Value)
                             {
                                 if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
                                 {
-                                    foreach (BaseDefinition trainedFightingStyle in rulesetCharacterHero.TrainedFightingStyles)
-                                    {
-                                        if (featureDefinitionFightingStyleChoice.FightingStyles.Contains(trainedFightingStyle.Name))
-                                        {
-                                            ___badgeDefinitions.Add(trainedFightingStyle);
-                                        }
-                                    }
+                                    var temp = activeFeature.Key.Substring(7, 7);
+                                    classNames.Add(temp == "Ranger1" ? "Ranger" : temp);
                                 }
                             }
                         }
                     }
+
+                    // need to get the classes using this collection order
+                    foreach (var className in fightingStylePerClass.Keys)
+                    {
+                        if (!classNames.Contains(className))
+                        {
+                            continue;
+                        }
+
+                        var trainedFightingStyle = rulesetCharacterHero.TrainedFightingStyles[idx++];
+
+                        switch (trainedFightingStyle.Name)
+                        {
+                            case "Archery":
+                                if (className != "Paladin")
+                                {
+                                    fightingStylePerClass[className].Add(trainedFightingStyle);
+                                }
+                                break;
+
+                            case "TwoWeapon":
+                                if (className != "Paladin")
+                                {
+                                    fightingStylePerClass[className].Add(trainedFightingStyle);
+                                }
+                                break;
+
+
+                            case "GreatWeapon":
+                                if (className != "Ranger")
+                                {
+                                    fightingStylePerClass[className].Add(trainedFightingStyle);
+                                }
+                                break;
+
+                            case "Protection":
+                                if (className != "Ranger")
+                                {
+                                    fightingStylePerClass[className].Add(trainedFightingStyle);
+                                }
+                                break;
+                               
+                            case "Defense":
+                            case "Dueling":
+                                fightingStylePerClass[className].Add(trainedFightingStyle);
+                                break;
+                        }
+                    }
+
+                    ___badgeDefinitions.AddRange(fightingStylePerClass[GetSelectedClassSearchTerm("")]);
+
+                    //
+                    //
+                    //
 
                     while (___classBadgesTable.childCount < ___badgeDefinitions.Count)
                     {
