@@ -1,20 +1,23 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
 using static SolastaMultiClass.Models.Rules;
+using static SolastaModApi.DatabaseHelper.FeatureDefinitionPointPools;
+using static SolastaModApi.DatabaseHelper.FeatureDefinitionProficiencys;
 
 namespace SolastaMultiClass.Patches
 {
     internal static class LevelUpSequencePatchers
     {
-        internal static bool levelingUp = false;
-        internal static bool displayingClassPanel = false;
-        internal static int levelsCount = 0;
-        internal static bool requiresDeity = false;
-        internal static bool requiresSpellbook = false;
-        internal static CharacterClassDefinition selectedClass = null;
-        internal static int selectedClassIndex = -1;
+        private static bool levelingUp = false;
+        private static bool displayingClassPanel = false;
+        private static int levelsCount = 0;
+        private static bool requiresDeity = false;
+        private static bool hasSpellbookGranted = false;
+        private static int selectedClassIndex = -1;
+        private static CharacterClassDefinition selectedClass = null;
 
         //
         // CHARACTER LEVEL UP SCREEN
@@ -63,11 +66,12 @@ namespace SolastaMultiClass.Patches
                 var hero = __instance.CharacterBuildingService.HeroCharacter;
 
                 levelingUp = true;
-                displayingClassPanel = true;
+
                 levelsCount = hero.ClassesHistory.Count;
-                requiresDeity = false;
-                requiresSpellbook = false;
                 selectedClass = null;
+
+                requiresDeity = false;
+                hasSpellbookGranted = false;
 
                 // filter the available classes per multi class in/out rules
                 if (hero.ClassesHistory.Count == 0)
@@ -87,9 +91,74 @@ namespace SolastaMultiClass.Patches
             }     
         }
 
+        // unflags leveling up
+        [HarmonyPatch(typeof(CharacterLevelUpScreen), "OnBeginHide")]
+        internal static class CharacterLevelUpScreen_OnBeginHide_Patch
+        {
+            internal static void Postfix()
+            {
+                levelingUp = false;
+            }
+        }
+
+        // removes the wizard spell book in case it was granted
+        [HarmonyPatch(typeof(CharacterLevelUpScreen), "DoAbort")]
+        internal static class CharacterLevelUpScreen_DoAbort_Patch
+        {
+            internal static void Prefix(CharacterLevelUpScreen __instance)
+            {
+                if (hasSpellbookGranted)
+                {
+                    var hero = __instance.CharacterBuildingService.HeroCharacter;
+                    var item = new RulesetItemSpellbook(SolastaModApi.DatabaseHelper.ItemDefinitions.Spellbook);
+                    hero.LoseItem(item);
+                }    
+            }
+        }
+
         //
         // CHARACTER BUILDING MANAGER - must blocks any call to it while leveling up and displaying the class selection panel
         //
+
+        // exclude some features that would normally be added to a level 1 character but should not be added to a multiclass character
+        [HarmonyPatch(typeof(CharacterBuildingManager), "GrantFeatures")]
+        internal static class CharacterBuildingManager_GrantFeatures_Patch
+        {
+            internal static bool Prefix(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
+            {
+                // ensures this doesn't get executed in the class panel level up screen
+                if (levelingUp && displayingClassPanel)
+                {
+                    return false;
+                }
+                else
+                {
+                    if (__instance.HeroCharacter.ClassesHistory.Count > 1)
+                    {
+                        grantedFeatures.RemoveAll(feature => FeaturesToExcludeFromMulticlassLevels.Contains(feature));
+
+                        // need to add logic to add extra skill points here
+                    }
+                    return true;
+                }
+            }
+
+            private static readonly FeatureDefinition[] FeaturesToExcludeFromMulticlassLevels = new FeatureDefinition[]
+            {
+                PointPoolClericSkillPoints,
+                PointPoolFighterSkillPoints,
+                PointPoolPaladinSkillPoints,
+                PointPoolRangerSkillPoints,
+                PointPoolRogueSkillPoints,
+                PointPoolWizardSkillPoints,
+                ProficiencyClericSavingThrow,
+                ProficiencyFighterSavingThrow,
+                ProficiencyPaladinSavingThrow,
+                ProficiencyRangerSavingThrow,
+                ProficiencyRogueSavingThrow,
+                ProficiencyWizardSavingThrow,
+            };
+        }
 
         // captures the desired class / ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "AssignClassLevel")]
@@ -98,6 +167,7 @@ namespace SolastaMultiClass.Patches
             internal static bool Prefix(CharacterClassDefinition classDefinition)
             {
                 selectedClass = classDefinition;
+
                 return !(levelingUp && displayingClassPanel);
             }
         }
@@ -105,16 +175,6 @@ namespace SolastaMultiClass.Patches
         // ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "ClearWieldedConfigurations")]
         internal static class CharacterBuildingManager_ClearWieldedConfigurations_Patch
-        {
-            internal static bool Prefix()
-            {
-                return !(levelingUp && displayingClassPanel);
-            }
-        }
-
-        // ensures this doesn't get executed in the class panel level up screen
-        [HarmonyPatch(typeof(CharacterBuildingManager), "GrantFeatures")]
-        internal static class CharacterBuildingManager_GrantFeatures_Patch
         {
             internal static bool Prefix()
             {
@@ -166,7 +226,7 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE CLASS SELECTION PANEL
         //
 
-        // flags class panel display
+        // flags displaying the class panel
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "OnBeginShow")]
         internal static class CharacterStageClassSelectionPanel_OnBeginShow_Patch
         {
@@ -309,21 +369,22 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE LEVEL GAINS PANEL
         //
 
-        // determines if deity / spellbook are required, provides my own class/classLevel, unflags class panel display
+        // unflags displaying the class panel / determines if deity / spellbook are required, provides mod class/classLevel to level up gain stage
         public static void GetHeroSelectedClassAndLevel(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
         {
             var hero = characterBuildingService.HeroCharacter;
             var wizard = SolastaModApi.DatabaseHelper.CharacterClassDefinitions.Wizard;
+            var requiresSpellbook = !hero.ClassesAndLevels.ContainsKey(wizard) && selectedClass == wizard;
 
             displayingClassPanel = false;
 
-            requiresSpellbook = !hero.ClassesAndLevels.ContainsKey(wizard) && selectedClass == wizard;
             requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity;
 
-            if (requiresSpellbook)
+            if (requiresSpellbook && !hasSpellbookGranted)
             {
-                var item = new RulesetItem(SolastaModApi.DatabaseHelper.ItemDefinitions.Spellbook);
+                var item = new RulesetItemSpellbook(SolastaModApi.DatabaseHelper.ItemDefinitions.Spellbook);
                 hero.GrantItem(item, false);
+                hasSpellbookGranted = true;
             }
 
             lastClassDefinition = selectedClass;
