@@ -106,8 +106,8 @@ namespace SolastaMultiClass.Patches
 
                 if (___selectedClass >= 0)
                 {
-                    __instance.CommonData.AttackModesPanel.Hide();
-                    __instance.CommonData.PersonalityMapPanel.Hide();
+                    __instance.CommonData.AttackModesPanel?.Hide();
+                    __instance.CommonData.PersonalityMapPanel?.Hide();
                 }
             }
         }

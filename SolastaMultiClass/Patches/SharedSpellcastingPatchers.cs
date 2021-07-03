@@ -322,36 +322,28 @@ namespace SolastaMultiClass.Patches
                 if (allTags == null)
                     return;
 
-                string item = "";
-                if (currentLearnStep == allTags.Count)
-                {
-                    item = allTags[allTags.Count - 1];
-                }
-
+                string item = allTags[allTags.Count - 1];
                 CharacterClassDefinition characterClassDefinition = null;
                 __instance.CharacterBuildingService.GetLastAssignedClassAndLevel(out characterClassDefinition, out int unused);
 
                 FeatureDefinitionCastSpell spellFeature = __instance.CharacterBuildingService.GetSpellFeature(item);
 
                 //Only need updates if for spell selection.  This fixes an issue where Clerics were getting level 1 spells as cantrips :).
-                if (spellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Selection || spellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook)
+                if (spellFeature.SpellKnowledge != RuleDefinitions.SpellKnowledge.Selection && spellFeature.SpellKnowledge != RuleDefinitions.SpellKnowledge.Spellbook)
                     return;
 
-                bool flag = false;
-                if (spellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Selection || spellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook)
-                {
-                    flag = true;
-                }
                 int count = __instance.CharacterBuildingService.HeroCharacter.ClassesAndLevels[characterClassDefinition]; //Changed to use class level instead of hero level
-                int num = (flag ? spellFeature.ComputeHighestSpellLevel(count) : 0);
+                int highestSpellLevel = spellFeature.ComputeHighestSpellLevel(count);
+
+                int accountForCantripsInt = spellFeature.SpellListDefinition.HasCantrips ? 1 : 0;
 
                 UnityEngine.RectTransform spellsByLevelRect = (UnityEngine.RectTransform)spellsByLevelTableFieldInfo.GetValue(__instance);
                 int currentChildCount = spellsByLevelRect.childCount;
 
-                if (spellsByLevelRect != null && currentChildCount > num+1)
+                if (spellsByLevelRect != null && currentChildCount > highestSpellLevel + accountForCantripsInt)
                 {
                     //Deactivate the extra spell UI that can show up do to the original method using Character level instead of Class level
-                    for(int i = num+1; i < currentChildCount; i++)
+                    for(int i = highestSpellLevel + accountForCantripsInt; i < currentChildCount; i++)
                     {
                         var child = spellsByLevelRect.GetChild(i);
                         child?.gameObject?.SetActive(false);
@@ -361,17 +353,65 @@ namespace SolastaMultiClass.Patches
                     LayoutRebuilder.ForceRebuildLayoutImmediate(spellsByLevelRect);
                 }
             }
-        }        
+        }
 
-        [HarmonyPatch(typeof(CharacterBuildingManager), "AutoAcquireSpells")]
-        internal static class CharacterBuildingManager_AutoAcquireSpells_Patch
+
+        [HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
+        internal static class CharacterBuildingManager_GetSpellFeature_Patch
         {
-            internal static void Postfix(CharacterStageSpellSelectionPanel __instance, string spellTag)
+            internal static bool Prefix(CharacterBuildingManager __instance, string tag, ref FeatureDefinitionCastSpell __result)
             {
-                if (!Main.Settings.EnableSharedSpellCasting)
-                    return;
-
-                //TODO remove 
+                FeatureDefinitionCastSpell featureDefinitionCastSpell = null;
+                string str = tag;
+                if (str.StartsWith("03Class"))
+                {
+                    str = tag.Substring(0, tag.Length - 2); //Remvoes any levels from the tag examples are 03ClassRanger2, 03ClassRanger20.  This is a bit lazy but no class will have a tag where the class name is only 1 character.  
+                    //Old Solasta code was str = "03Class"; which lead to getting the first spell feature from any class
+                }
+                else if (str.StartsWith("06Subclass"))
+                {
+                    str = tag.Substring(0, tag.Length - 2); //Similar to above just with subclasses
+                    //Old Solasta code was str = "06Subclass"; which lead to getting the first spell feature from any subclass
+                }
+                Dictionary<string, List<FeatureDefinition>>.Enumerator enumerator = __instance.HeroCharacter.ActiveFeatures.GetEnumerator();
+                try
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        KeyValuePair<string, List<FeatureDefinition>> current = enumerator.Current;
+                        if (!current.Key.StartsWith(str))
+                        {
+                            continue;
+                        }
+                        List<FeatureDefinition>.Enumerator enumerator1 = current.Value.GetEnumerator();
+                        try
+                        {
+                            while (enumerator1.MoveNext())
+                            {
+                                FeatureDefinition featureDefinition = enumerator1.Current;
+                                if (!(featureDefinition is FeatureDefinitionCastSpell))
+                                {
+                                    continue;
+                                }
+                                featureDefinitionCastSpell = featureDefinition as FeatureDefinitionCastSpell;
+                                __result = featureDefinitionCastSpell;
+                                return false;
+                            }
+                        }
+                        finally
+                        {
+                            ((IDisposable)enumerator1).Dispose();
+                        }
+                    }
+                    __result = featureDefinitionCastSpell;
+                    return false;
+                }
+                finally
+                {
+                    ((IDisposable)enumerator).Dispose();
+                }
+                __result = featureDefinitionCastSpell;
+                return false;
             }
         }
 
