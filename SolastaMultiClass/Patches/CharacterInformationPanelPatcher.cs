@@ -34,7 +34,7 @@ namespace SolastaMultiClass.Patches
 
             foreach (var tuple in classLevelFightingStyle)
             {
-                if (className == "Fighter" && (tuple.Key == "Figther1" || tuple.Key == "Fighter10"))
+                if (className == "Fighter" && (tuple.Key == "Fighter1" || tuple.Key == "Fighter10"))
                 {
                     classBadges.Add(tuple.Value);
                 }
