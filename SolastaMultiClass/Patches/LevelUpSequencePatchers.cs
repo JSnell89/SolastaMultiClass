@@ -4,6 +4,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
 using static SolastaMultiClass.Models.Rules;
+using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 using static SolastaModApi.DatabaseHelper.FeatureDefinitionPointPools;
 using static SolastaModApi.DatabaseHelper.FeatureDefinitionProficiencys;
 
@@ -373,12 +374,12 @@ namespace SolastaMultiClass.Patches
         public static void GetHeroSelectedClassAndLevel(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
         {
             var hero = characterBuildingService.HeroCharacter;
-            var wizard = SolastaModApi.DatabaseHelper.CharacterClassDefinitions.Wizard;
-            var requiresSpellbook = !hero.ClassesAndLevels.ContainsKey(wizard) && selectedClass == wizard;
+            var classesAndLevels = hero.ClassesAndLevels;
+            var requiresSpellbook = !classesAndLevels.ContainsKey(Wizard) && selectedClass == Wizard;
 
             displayingClassPanel = false;
 
-            requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity;
+            requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity && !(classesAndLevels.ContainsKey(Cleric) || classesAndLevels.ContainsKey(Paladin));
 
             if (requiresSpellbook && !hasSpellbookGranted)
             {
