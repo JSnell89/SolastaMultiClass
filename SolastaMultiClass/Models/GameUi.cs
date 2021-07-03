@@ -68,6 +68,45 @@ namespace SolastaMultiClass.Models
             return contains + selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
         }
 
+        public static List<FightingStyleDefinition> GetClassBadges(RulesetCharacterHero rulesetCharacterHero)
+        {
+            var className = GetSelectedClassSearchTerm("");
+            var lenTagClass = AttributeDefinitions.TagClass.Length;
+            var classBadges = new List<FightingStyleDefinition>() { };
+            var classLevelFightingStyle = new Dictionary<string, FightingStyleDefinition>() { };
+            var fightingStyleidx = 0;
+
+            foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
+            {
+                if (activeFeature.Key.Contains(AttributeDefinitions.TagClass))
+                {
+                    foreach (FeatureDefinition featureDefinition in activeFeature.Value)
+                    {
+                        if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
+                        {
+                            classLevelFightingStyle.Add(activeFeature.Key.Substring(lenTagClass), rulesetCharacterHero.TrainedFightingStyles[fightingStyleidx++]);
+                        }
+                    }
+                }
+            }
+            foreach (var tuple in classLevelFightingStyle)
+            {
+                if (className == "Fighter" && (tuple.Key == "Fighter1" || tuple.Key == "Fighter10"))
+                {
+                    classBadges.Add(tuple.Value);
+                }
+                else if (className == "Paladin" && tuple.Key == "Paladin2")
+                {
+                    classBadges.Add(tuple.Value);
+                }
+                else if (className == "Ranger" && tuple.Key == "Ranger2")
+                {
+                    classBadges.Add(tuple.Value);
+                }
+            }
+            return classBadges;
+        }
+
         public static CharacterClassDefinition GetSelectedClass(CharacterClassDefinition defaultClass = null)
         {
             return selectedHero == null ? defaultClass : selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass];
