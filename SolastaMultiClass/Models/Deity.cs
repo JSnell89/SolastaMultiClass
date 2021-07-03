@@ -25,18 +25,16 @@ namespace SolastaMultiClass.Models
             return deityList;
         }
 
-        public static DeityDefinition GetDeityFromIndex(int index)
+        private static DeityDefinition GetDeityFromIndex(int index)
         {
             return DatabaseRepository.GetDatabase<DeityDefinition>().GetAllElements()[index];
         }
 
-        public static void AssignDeityIfRequired(ICharacterBuildingService characterBuildingService)
+        public static void AssignDeityIfRequired(ICharacterBuildingService characterBuildingService, CharacterClassDefinition selectedClass)
         {
             var hero = characterBuildingService.HeroCharacter;
-            var selectedClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1];
 
-            if (selectedClass == Paladin && !hero.ClassesAndLevels.ContainsKey(Cleric) || 
-                selectedClass == Cleric && !hero.ClassesAndLevels.ContainsKey(Paladin))
+            if (selectedClass == Paladin && !hero.ClassesAndLevels.ContainsKey(Cleric) || selectedClass == Cleric && !hero.ClassesAndLevels.ContainsKey(Paladin))
             {
                 characterBuildingService.AssignDeity(GetDeityFromIndex(Main.Settings.SelectedDeity));
             }

@@ -155,12 +155,6 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE CLASS SELECTION PANEL
         //
 
-        public static int GetClassLevel(RulesetCharacterHero hero)
-        {
-            hero.ClassesAndLevels.TryGetValue(selectedClass, out int classLevel);
-            return classLevel == 0 ? 1 : classLevel;
-        }
-
         // enables the trap on CharacterBuildingManager.UnassignLastClassLevel
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "OnBeginShow")]
         internal static class CharacterStageClassSelectionPanel_OnBeginShow_Patch
@@ -179,6 +173,14 @@ namespace SolastaMultiClass.Patches
             }
         }
 
+        // provides my own classLevel to CharacterStageClassSelectionPanel.FillClassFeatures and CharacterStageClassSelectionPanel.RefreshCharacter
+        public static int GetClassLevel(RulesetCharacterHero hero)
+        {
+            hero.ClassesAndLevels.TryGetValue(selectedClass, out int classLevel);
+            return classLevel == 0 ? 1 : classLevel;
+        }
+
+        // patches the method to get my own classLevel
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "FillClassFeatures")]
         internal static class CharacterStageClassSelectionPanel_FillClassFeatures_Patch
         {
@@ -187,6 +189,16 @@ namespace SolastaMultiClass.Patches
                 var enumerateActiveFeaturesMethod = typeof(ICharacterBuildingService).GetMethod("get_HeroCharacter");
                 var getClassLevelMethod = typeof(LevelUpSequencePatchers).GetMethod("GetClassLevel");
                 var instructionsToBypass = 0;
+
+                /*
+                2 0006 ldarg.0
+                3 0007 call     instance class ICharacterBuildingService CharacterStagePanel::get_CharacterBuildingService()
+                4 000C callvirt instance class RulesetCharacterHero ICharacterBuildingService::get_HeroCharacter()
+                5 0011 callvirt instance class [mscorlib]System.Collections.Generic.Dictionary`2<class CharacterClassDefinition, int32> RulesetCharacterHero::get_ClassesAndLevels()
+                6 0016 ldarg.1
+                7 0017 callvirt instance !1 class [mscorlib]System.Collections.Generic.Dictionary`2<class CharacterClassDefinition, int32>::get_Item(!0)
+                8 001C stloc.1
+                */
 
                 foreach (var instruction in instructions)
                 {
@@ -208,6 +220,7 @@ namespace SolastaMultiClass.Patches
             }
         }
 
+        // patches the method to get my own classLevel
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "RefreshCharacter")]
         internal static class CharacterStageClassSelectionPanel_RefreshCharacter_Patch
         {
@@ -216,6 +229,16 @@ namespace SolastaMultiClass.Patches
                 var enumerateActiveFeaturesMethod = typeof(ICharacterBuildingService).GetMethod("get_HeroCharacter");
                 var getClassLevelMethod = typeof(LevelUpSequencePatchers).GetMethod("GetClassLevel");
                 var instructionsToBypass = 0;
+
+                /*
+                2 0006 ldarg.0
+                3 0007 call     instance class ICharacterBuildingService CharacterStagePanel::get_CharacterBuildingService()
+                4 000C callvirt instance class RulesetCharacterHero ICharacterBuildingService::get_HeroCharacter()
+                5 0011 callvirt instance class [mscorlib]System.Collections.Generic.Dictionary`2<class CharacterClassDefinition, int32> RulesetCharacterHero::get_ClassesAndLevels()
+                6 0016 ldarg.1
+                7 0017 callvirt instance !1 class [mscorlib]System.Collections.Generic.Dictionary`2<class CharacterClassDefinition, int32>::get_Item(!0)
+                8 001C stloc.1
+                */
 
                 foreach (var instruction in instructions)
                 {
@@ -241,45 +264,38 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE LEVEL GAINS PANEL
         //
 
-        // called by CharacterStageLevelGainsPanel.EnterStage with the transpiler injection
-        public static void GetHeroSelectedClassAndLevel(out CharacterClassDefinition lastClassDefinition, out int level)
+        // provides my own class and classLevel to CharacterStageLevelGainsPanel.EnterStage
+        public static void GetHeroSelectedClassAndLevel(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
         {
+            AssignDeityIfRequired(characterBuildingService, selectedClass);
             lastClassDefinition = selectedClass;
             level = levelsCount;
             displayingClassPanel = false;
             selectedClass = null;
         }
 
-        // patches the stage to get my own class selection
+        // patches the method to get my own class and level for level up
         [HarmonyPatch(typeof(CharacterStageLevelGainsPanel), "EnterStage")]
         internal static class CharacterStageLevelGainsPanel_EnterStage_Patch
         {
-            // replaces ICharacterBuildingService.GetLastAssignedClassAndLevel call with SolastaMultiClass.Patches.LevelUpSequencePatcher.GetHeroSelectedClassAndLevel
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var getLastAssignedClassAndLevelMethod = typeof(ICharacterBuildingService).GetMethod("GetLastAssignedClassAndLevel");
                 var getHeroSelectedClassAndLevelMethod = typeof(LevelUpSequencePatchers).GetMethod("GetHeroSelectedClassAndLevel");
-                var instructionsToBypass = 2;
 
                 /*
-                0	0000	ldarg.0
-                1	0001	call	instance class ICharacterBuildingService CharacterStagePanel::get_CharacterBuildingService()
-                2	0006	ldarg.0
-                3	0007	ldflda	class CharacterClassDefinition CharacterStageLevelGainsPanel::lastGainedClassDefinition
-                4	000C	ldarg.0
-                5	000D	ldflda	int32 CharacterStageLevelGainsPanel::lastGainedClassLevel
-                6	0012	callvirt	instance void ICharacterBuildingService::GetLastAssignedClassAndLevel(class CharacterClassDefinition&, int32&)
-
-                below removes lines 0 and 1 and then replaces 6 with a call to SolastaMultiClass.Models.MultiClass.GetHeroSelectedClassAndLevel (same signature as one replaced)
+                0 0000 ldarg.0
+                1 0001 call     instance class ICharacterBuildingService CharacterStagePanel::get_CharacterBuildingService()
+                2 0006 ldarg.0
+                3 0007 ldflda   class CharacterClassDefinition CharacterStageLevelGainsPanel::lastGainedClassDefinition
+                4 000C ldarg.0
+                5 000D ldflda   int32 CharacterStageLevelGainsPanel::lastGainedClassLevel
+                6 0012 callvirt instance void ICharacterBuildingService::GetLastAssignedClassAndLevel(class CharacterClassDefinition&, int32&)
                 */
 
                 foreach (var instruction in instructions)
                 {
-                    if (instructionsToBypass > 0)
-                    {
-                        instructionsToBypass--;
-                    }
-                    else if (instruction.Calls(getLastAssignedClassAndLevelMethod))
+                    if (instruction.Calls(getLastAssignedClassAndLevelMethod))
                     {
                         yield return new CodeInstruction(OpCodes.Call, getHeroSelectedClassAndLevelMethod);
                     }
@@ -290,18 +306,5 @@ namespace SolastaMultiClass.Patches
                 }
             }
         }
-
-        //// assigns a deity if moving ahead on workflow
-        //[HarmonyPatch(typeof(CharacterEditionScreen), "OnNextCb")]
-        //internal static class CharacterEditionScreen_OnNextCb_Patch
-        //{
-        //    internal static void Postfix()
-        //    {
-        //        if (levelingUp && !displayingClassPanel)
-        //        {
-        //            AssignDeityIfRequired();
-        //        }
-        //    }
-        //}
     }
 }
