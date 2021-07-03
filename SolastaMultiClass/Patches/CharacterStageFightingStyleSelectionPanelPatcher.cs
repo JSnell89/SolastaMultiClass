@@ -4,6 +4,7 @@ using System.Reflection.Emit;
 
 namespace SolastaMultiClass.Patches
 {
+    // prevents a new Fighting Style from overwriting existing ones
     internal static class CharacterStageFightingStyleSelectionPanelPatcher
     {
         public static int previouslySelectedFightingStyle = -1;
