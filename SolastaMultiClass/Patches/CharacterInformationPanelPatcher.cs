@@ -8,16 +8,15 @@ namespace SolastaMultiClass.Patches
 {
     internal static class CharacterInformationPanelPatcher
     {
+        //
+        // code below isn't pythonic ;-) wish there were an easier way but the game data structures don't proper track who gave what on fighting styles
+        //
         internal static List<FightingStyleDefinition> GetClassBadges(RulesetCharacterHero rulesetCharacterHero)
         {
-            var idx = 0;
-            var classNames = new List<string>() { };
-            var fightingStylePerClass = new Dictionary<string, List<FightingStyleDefinition>>()                    {
-                        {"Paladin", new List<FightingStyleDefinition>() { } },
-                        {"Ranger", new List<FightingStyleDefinition>() { } },
-                        {"Fighter", new List<FightingStyleDefinition>() { } },
-                    };
 
+            var classNames = new List<string>() { };
+
+            // collects all #CLASS#LEVEL tags where a fighting style got granted
             foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
             {
                 if (activeFeature.Key.Contains("03Class"))
@@ -26,15 +25,21 @@ namespace SolastaMultiClass.Patches
                     {
                         if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
                         {
-                            var temp = activeFeature.Key.Substring(7, 7);
-                            classNames.Add(temp == "Ranger1" ? "Ranger" : temp);
+                            classNames.Add(activeFeature.Key.Substring(7));
                         }
                     }
                 }
             }
 
-            // need to get the classes using this collection order
-            // this ensures I'll try my best to find an existing class to take the feature
+            var idx = 0;
+            var fightingStylePerClass = new Dictionary<string, List<FightingStyleDefinition>>()                    {
+                        {"Paladin2", new List<FightingStyleDefinition>() { } },
+                        {"Ranger2", new List<FightingStyleDefinition>() { } },
+                        {"Fighter1", new List<FightingStyleDefinition>() { } },
+                        {"Fighter10", new List<FightingStyleDefinition>() { } },
+                    };
+
+            // now traverse above buckets in order and try to find the best class who could own the fighting style
             foreach (var className in fightingStylePerClass.Keys)
             {
                 if (!classNames.Contains(className))
@@ -49,14 +54,14 @@ namespace SolastaMultiClass.Patches
                 switch (trainedFightingStyle.Name)
                 {
                     case "Archery":
-                        if (className != "Paladin")
+                        if (className != "Paladin2")
                         {
                             fightingStylePerClass[className].Add(trainedFightingStyle);
                         }
                         break;
 
                     case "TwoWeapon":
-                        if (className != "Paladin")
+                        if (className != "Paladin2")
                         {
                             fightingStylePerClass[className].Add(trainedFightingStyle);
                         }
@@ -64,14 +69,14 @@ namespace SolastaMultiClass.Patches
 
 
                     case "GreatWeapon":
-                        if (className != "Ranger")
+                        if (className != "Ranger2")
                         {
                             fightingStylePerClass[className].Add(trainedFightingStyle);
                         }
                         break;
 
                     case "Protection":
-                        if (className != "Ranger")
+                        if (className != "Ranger2")
                         {
                             fightingStylePerClass[className].Add(trainedFightingStyle);
                         }
@@ -84,12 +89,29 @@ namespace SolastaMultiClass.Patches
 
                     // this is the rare case when a fighting style is assigned by a feat
                     // in this case the fighting style list is bigger than the number of features
+                    // i.e: a Paladin who takes a GreatWeapon and later on takes Archery on a feat... 
                     default:
                         idx++;
                         goto LABEL_RETRY_NEXT_FEATURE_IN_CASE_PREVIOUS_DIDNT_FIT;
                 }
             }
-            return fightingStylePerClass[GetSelectedClassSearchTerm("")];
+
+            fightingStylePerClass["Fighter1"].AddRange(fightingStylePerClass["Fighter10"]);
+
+            switch (GetSelectedClassSearchTerm(""))
+            {
+                case "Fighter":
+                    return fightingStylePerClass["Fighter1"];
+
+                case "Paladin":
+                    return fightingStylePerClass["Paladin2"];
+
+                case "Ranger":
+                    return fightingStylePerClass["Ranger2"];
+
+                default:
+                    return new List<FightingStyleDefinition>() { };
+            }
         }
 
         [HarmonyPatch(typeof(CharacterInformationPanel), "EnumerateClassBadges")]
