@@ -2,7 +2,6 @@
 using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
-using static SolastaMultiClass.Models.Deity;
 using static SolastaMultiClass.Models.Rules;
 
 namespace SolastaMultiClass.Patches
@@ -11,9 +10,10 @@ namespace SolastaMultiClass.Patches
     {
         internal static bool levelingUp = false;
         internal static bool displayingClassPanel = false;
-        internal static int levelsCount = 0;
+        internal static bool requiresDeity = false;
         internal static int selectedClassIndex = -1;
         internal static CharacterClassDefinition selectedClass = null;
+        internal static int levelsCount = 0;
 
         //
         // CHARACTER LEVEL UP SCREEN
@@ -28,15 +28,22 @@ namespace SolastaMultiClass.Patches
                 var screen = Gui.GuiService.GetScreen<CharacterCreationScreen>();
                 var stagePanelPrefabs = (GameObject[])AccessTools.Field(screen.GetType(), "stagePanelPrefabs").GetValue(screen);
                 var classSelectionStagePanelPrefab = stagePanelPrefabs[1];
+                var deitySelectionStagePanelPrefab = stagePanelPrefabs[2];
                 var classSelectionPanel = Gui.GetPrefabFromPool(classSelectionStagePanelPrefab, __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
+                var deitySelectionPanel = Gui.GetPrefabFromPool(deitySelectionStagePanelPrefab, __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
 
                 Dictionary<string, CharacterStagePanel> stagePanelsByName = new Dictionary<string, CharacterStagePanel>
                 {
                     { "ClassSelection", classSelectionPanel }
                 };
+                var idx = 0;
                 foreach (var stagePanelName in ___stagePanelsByName)
                 {
                     stagePanelsByName.Add(stagePanelName.Key, stagePanelName.Value);
+                    if (++idx == 1)
+                    {
+                        stagePanelsByName.Add("DeitySelection", deitySelectionPanel);
+                    }
                 }
                 ___stagePanelsByName.Clear();
                 foreach (var stagePanelName in stagePanelsByName)
@@ -74,16 +81,6 @@ namespace SolastaMultiClass.Patches
                 }
 
             }     
-        }
-
-        // unflags leveling up
-        [HarmonyPatch(typeof(CharacterLevelUpScreen), "OnEndHide")]
-        internal static class CharacterLevelUpScreen_OnEndHide_Patch
-        {
-            internal static void Postfix()
-            {
-                levelingUp = false;
-            }
         }
 
         //
@@ -155,7 +152,7 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE CLASS SELECTION PANEL
         //
 
-        // enables the trap on CharacterBuildingManager.UnassignLastClassLevel
+        // flags class panel display
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "OnBeginShow")]
         internal static class CharacterStageClassSelectionPanel_OnBeginShow_Patch
         {
@@ -298,10 +295,10 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE LEVEL GAINS PANEL
         //
 
-        // provides my own class and classLevel to CharacterStageLevelGainsPanel.EnterStage
+        // determines if deity required, provides my own class, classLevel and unflags class panel display
         public static void GetHeroSelectedClassAndLevel(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
         {
-            AssignDeityIfRequired(characterBuildingService, selectedClass);
+            requiresDeity = characterBuildingService.HeroCharacter.DeityDefinition == null && selectedClass.RequiresDeity;
             lastClassDefinition = selectedClass;
             level = levelsCount;
             displayingClassPanel = false;
@@ -337,6 +334,38 @@ namespace SolastaMultiClass.Patches
                     {
                         yield return instruction;
                     }
+                }
+            }
+        }
+
+        //
+        // CHARACTER STAGE DEITY SELECTION PANEL
+        //
+
+        [HarmonyPatch(typeof(CharacterStageDeitySelectionPanel), "UpdateRelevance")]
+        internal static class CharacterEditionScreen_UpdateRelevance_Patch
+        {
+            internal static void Postfix(CharacterStageDeitySelectionPanel __instance, ref bool ___isRelevant)
+            {
+                if (levelingUp)
+                {
+                    ___isRelevant = requiresDeity;
+                }
+            }
+        }
+
+        //
+        // CHARACTER STAGE SUB CLASS SELECTION PANEL
+        //
+
+        [HarmonyPatch(typeof(CharacterStageSubclassSelectionPanel), "UpdateRelevance")]
+        internal static class CharacterStageSubclassSelectionPanel_UpdateRelevance_Patch
+        {
+            internal static void Postfix(CharacterStageSubclassSelectionPanel __instance, ref bool ___isRelevant)
+            {
+                if (levelingUp)
+                {
+                    ___isRelevant = !requiresDeity;
                 }
             }
         }

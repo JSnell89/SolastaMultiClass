@@ -1,6 +1,5 @@
 ﻿using UnityModManagerNet;
 using ModKit;
-using static SolastaMultiClass.Models.Deity;
 
 namespace SolastaMultiClass.Viewers
 {
@@ -12,7 +11,6 @@ namespace SolastaMultiClass.Viewers
 
         private static void DisplaySettings()
         {
-            int selected;
             bool toggle;
 
             UI.Label("House Rules".yellow());
@@ -40,15 +38,6 @@ namespace SolastaMultiClass.Viewers
             if (UI.Toggle("Turn off multiclass spell preparing restrictions", ref toggle, 0, UI.AutoWidth()))
             {
                 Main.Settings.TurnOffSpellPreparationRestrictions = toggle;
-            }
-
-            UI.Label("Default Deity (set when using a divine caster from level 2)".cyan());
-
-            var deityTitles = GetDeityList().ToArray();
-            selected = Main.Settings.SelectedDeity;
-            if (UI.SelectionGrid(ref selected, deityTitles, deityTitles.Length, UI.AutoWidth()))
-            {
-                Main.Settings.SelectedDeity = selected;
             }
         }
 
