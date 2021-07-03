@@ -63,18 +63,22 @@ namespace SolastaMultiClass.Models
             return hitDiceLabel;
         }
 
+        internal static string GetSelectedClassName()
+        {
+            return selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
+        }
+
         public static string GetSelectedClassSearchTerm(string contains)
         {
-            return contains + selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
+            return contains + GetSelectedClassName();
         }
 
         public static List<FightingStyleDefinition> GetClassBadges(RulesetCharacterHero rulesetCharacterHero)
         {
-            var className = GetSelectedClassSearchTerm("");
-            var lenTagClass = AttributeDefinitions.TagClass.Length;
-            var classBadges = new List<FightingStyleDefinition>() { };
             var classLevelFightingStyle = new Dictionary<string, FightingStyleDefinition>() { };
             var fightingStyleidx = 0;
+            var className = GetSelectedClassName();
+            var classBadges = new List<FightingStyleDefinition>() { };
 
             foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
             {
@@ -84,22 +88,14 @@ namespace SolastaMultiClass.Models
                     {
                         if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
                         {
-                            classLevelFightingStyle.Add(activeFeature.Key.Substring(lenTagClass), rulesetCharacterHero.TrainedFightingStyles[fightingStyleidx++]);
+                            classLevelFightingStyle.Add(activeFeature.Key, rulesetCharacterHero.TrainedFightingStyles[fightingStyleidx++]);
                         }
                     }
                 }
             }
             foreach (var tuple in classLevelFightingStyle)
             {
-                if (className == "Fighter" && (tuple.Key == "Fighter1" || tuple.Key == "Fighter10"))
-                {
-                    classBadges.Add(tuple.Value);
-                }
-                else if (className == "Paladin" && tuple.Key == "Paladin2")
-                {
-                    classBadges.Add(tuple.Value);
-                }
-                else if (className == "Ranger" && tuple.Key == "Ranger2")
+                if (tuple.Key.Contains(className))
                 {
                     classBadges.Add(tuple.Value);
                 }

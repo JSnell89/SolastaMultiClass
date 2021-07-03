@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Models
 {
@@ -32,9 +31,7 @@ namespace SolastaMultiClass.Models
 
         public static void AssignDeityIfRequired(ICharacterBuildingService characterBuildingService, CharacterClassDefinition selectedClass)
         {
-            var hero = characterBuildingService.HeroCharacter;
-
-            if ((selectedClass.Name == "Paladin" || selectedClass.Name == "Cleric" || selectedClass.Name == "AHWarlockClass") && hero.DeityDefinition == null)
+            if (selectedClass.RequiresDeity && characterBuildingService.HeroCharacter.DeityDefinition == null)
             {
                 characterBuildingService.AssignDeity(GetDeityFromIndex(Main.Settings.SelectedDeity));
             }
