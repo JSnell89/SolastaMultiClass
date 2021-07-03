@@ -19,11 +19,7 @@ namespace SolastaMultiClass.Patches
                             ___hitDiceBox.ValueLabel.RectTransform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
                             break;
 
-                        case 2:
-                            ___hitDiceBox.ValueLabel.RectTransform.localScale = new Vector3(0.9f, 0.9f, 0.9f);
-                            break;
-
-                        case 3:
+                        default:
                             ___hitDiceBox.ValueLabel.RectTransform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
                             break;
                     }
