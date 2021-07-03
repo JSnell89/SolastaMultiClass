@@ -345,7 +345,7 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterStageDeitySelectionPanel), "UpdateRelevance")]
         internal static class CharacterEditionScreen_UpdateRelevance_Patch
         {
-            internal static void Postfix(CharacterStageDeitySelectionPanel __instance, ref bool ___isRelevant)
+            internal static void Postfix(ref bool ___isRelevant)
             {
                 if (levelingUp)
                 {
@@ -361,7 +361,7 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterStageSubclassSelectionPanel), "UpdateRelevance")]
         internal static class CharacterStageSubclassSelectionPanel_UpdateRelevance_Patch
         {
-            internal static void Postfix(CharacterStageSubclassSelectionPanel __instance, ref bool ___isRelevant)
+            internal static void Postfix(ref bool ___isRelevant)
             {
                 if (levelingUp)
                 {
