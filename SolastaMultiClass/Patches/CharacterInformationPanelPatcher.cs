@@ -8,6 +8,111 @@ namespace SolastaMultiClass.Patches
 {
     internal static class CharacterInformationPanelPatcher
     {
+        //
+        // code below isn't pythonic ;-) wish there were an easier way but the game data structures don't proper track who gave what on fighting styles
+        //
+        internal static List<FightingStyleDefinition> GetClassBadges(RulesetCharacterHero rulesetCharacterHero, string className)
+        {
+            var lenTagClass = AttributeDefinitions.TagClass.Length;
+            var classLevelNames = new List<string>() { };
+
+            // collects all #CLASS#LEVEL tags where a fighting style got granted
+            foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
+            {
+                if (activeFeature.Key.Contains(AttributeDefinitions.TagClass))
+                {
+                    foreach (FeatureDefinition featureDefinition in activeFeature.Value)
+                    {
+                        if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
+                        {
+                            classLevelNames.Add(activeFeature.Key.Substring(lenTagClass));
+                        }
+                    }
+                }
+            }
+
+            var idx = 0;
+            var fightingStylePerClass = new Dictionary<string, List<FightingStyleDefinition>>()                    {
+                        {"Paladin2", new List<FightingStyleDefinition>() { } },
+                        {"Ranger2", new List<FightingStyleDefinition>() { } },
+                        {"Fighter1", new List<FightingStyleDefinition>() { } },
+                        {"Fighter10", new List<FightingStyleDefinition>() { } },
+                    };
+
+            // now traverse above buckets in order and try to find the best class who could own the fighting style
+            foreach (var classLevelName in fightingStylePerClass.Keys)
+            {
+                if (!classLevelNames.Contains(classLevelName))
+                {
+                    continue;
+                }
+
+                LABEL_RETRY_NEXT_FEATURE_IN_CASE_PREVIOUS_DIDNT_FIT:
+                var trainedFightingStyle = rulesetCharacterHero.TrainedFightingStyles[idx++]; // looping over TrainedFightingStyles here
+
+                switch (trainedFightingStyle.Name)
+                {
+                    case "Archery":
+                        if (classLevelName != "Paladin2")
+                        {
+                            fightingStylePerClass[classLevelName].Add(trainedFightingStyle);
+                        }
+                        break;
+
+                    case "TwoWeapon":
+                        if (classLevelName != "Paladin2")
+                        {
+                            fightingStylePerClass[classLevelName].Add(trainedFightingStyle);
+                        }
+                        break;
+
+
+                    case "GreatWeapon":
+                        if (classLevelName != "Ranger2")
+                        {
+                            fightingStylePerClass[classLevelName].Add(trainedFightingStyle);
+                        }
+                        break;
+
+                    case "Protection":
+                        if (classLevelName != "Ranger2")
+                        {
+                            fightingStylePerClass[classLevelName].Add(trainedFightingStyle);
+                        }
+                        break;
+
+                    case "Defense":
+                    case "Dueling":
+                        fightingStylePerClass[classLevelName].Add(trainedFightingStyle);
+                        break;
+
+                    // this is the rare case when a fighting style is assigned by a feat
+                    // in this case the fighting style list is bigger than the number of features
+                    // i.e: a Paladin who takes a GreatWeapon and later on takes Archery on a feat... 
+                    default:
+                        idx++; // this fighting style was granted by a feat and doesn't fit. try next on same class
+                        goto LABEL_RETRY_NEXT_FEATURE_IN_CASE_PREVIOUS_DIDNT_FIT;
+                }
+            }
+
+            fightingStylePerClass["Fighter1"].AddRange(fightingStylePerClass["Fighter10"]);
+
+            switch (className)
+            {
+                case "Fighter":
+                    return fightingStylePerClass["Fighter1"];
+
+                case "Paladin":
+                    return fightingStylePerClass["Paladin2"];
+
+                case "Ranger":
+                    return fightingStylePerClass["Ranger2"];
+
+                default:
+                    return new List<FightingStyleDefinition>() { };
+            }
+        }
+
         [HarmonyPatch(typeof(CharacterInformationPanel), "EnumerateClassBadges")]
         internal static class CharacterInformationPanel_EnumerateClassBadges_Patch
         {
@@ -36,25 +141,7 @@ namespace SolastaMultiClass.Patches
                         ___badgeDefinitions.Add(rulesetCharacterHero.DeityDefinition);
                     }
 
-                    foreach (var activeFeature in rulesetCharacterHero.ActiveFeatures)
-                    {
-                        if (activeFeature.Key.Contains(GetSelectedClassSearchTerm("03Class")))
-                        {
-                            foreach(FeatureDefinition featureDefinition in activeFeature.Value)
-                            {
-                                if (featureDefinition is FeatureDefinitionFightingStyleChoice featureDefinitionFightingStyleChoice)
-                                {
-                                    foreach (BaseDefinition trainedFightingStyle in rulesetCharacterHero.TrainedFightingStyles)
-                                    {
-                                        if (featureDefinitionFightingStyleChoice.FightingStyles.Contains(trainedFightingStyle.Name))
-                                        {
-                                            ___badgeDefinitions.Add(trainedFightingStyle);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    ___badgeDefinitions.AddRange(GetClassBadges(rulesetCharacterHero, GetSelectedClassSearchTerm("")));
 
                     while (___classBadgesTable.childCount < ___badgeDefinitions.Count)
                     {
