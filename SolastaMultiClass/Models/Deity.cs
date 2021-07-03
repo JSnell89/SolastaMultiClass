@@ -34,7 +34,11 @@ namespace SolastaMultiClass.Models
         {
             var hero = characterBuildingService.HeroCharacter;
 
-            if (selectedClass == Paladin && !hero.ClassesAndLevels.ContainsKey(Cleric) || selectedClass == Cleric && !hero.ClassesAndLevels.ContainsKey(Paladin))
+            //Should we consider just checking DeityDefinition for all classes that need a Deity?
+            //Currently AHWarlock abuses Deity and puts the subclasses under the Deity so that's why Warlock needs it right now.
+            if(string.Equals(selectedClass.Name, "AHWarlockClass") && hero.DeityDefinition == null)
+                characterBuildingService.AssignDeity(GetDeityFromIndex(Main.Settings.SelectedDeity));
+            else if (selectedClass == Paladin && !hero.ClassesAndLevels.ContainsKey(Cleric) || selectedClass == Cleric && !hero.ClassesAndLevels.ContainsKey(Paladin))
             {
                 characterBuildingService.AssignDeity(GetDeityFromIndex(Main.Settings.SelectedDeity));
             }
