@@ -12,7 +12,8 @@
             "ProficiencyPaladinSavingThrow",
             "ProficiencyRangerSavingThrow",
             "ProficiencyRogueSavingThrow",
-            "ProficiencyWizardSavingThrow"
+            "ProficiencyWizardSavingThrow",
+            "ProficiencyTinkererSavingThrow"
         };
 
         public static readonly string[] skillProficiencysToExclude = new string[]
@@ -25,7 +26,8 @@
             "PointPoolPaladinSkillPoints",
             "PointPoolRangerSkillPoints",
             "PointPoolRogueSkillPoints",
-            "PointPoolWizardSkillPoints"
+            "PointPoolWizardSkillPoints",
+            "PointPoolTinkererSkillPoints"
         };
 
         public static readonly string[] skillProficiencysToInclude = new string[]
@@ -54,7 +56,8 @@
             "BardWeaponProficiency",
             "ProficiencyClericWeapon",
             "ProficiencyRogueWeapon",
-            "ProficiencyWizardWeapon"
+            "ProficiencyWizardWeapon",
+            "ProficiencyWeaponTinkerer"
         };
     }
 }
