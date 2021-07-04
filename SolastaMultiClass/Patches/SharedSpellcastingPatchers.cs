@@ -20,12 +20,12 @@ namespace SolastaMultiClass.Patches
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
-                var allSpellRepetoires = __instance.ActionParams.ActingCharacter.RulesetCharacter.SpellRepertoires;
-                if (allSpellRepetoires.Count < 2 || __instance.ActionParams.SpellRepertoire.SpellCastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
+                var allSpellRepertoires = __instance.ActionParams.ActingCharacter.RulesetCharacter.SpellRepertoires;
+                if (allSpellRepertoires.Count < 2 || __instance.ActionParams.SpellRepertoire.SpellCastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
                     return;
 
                 RuleDefinitions.RechargeRate rechargeRateToSpendSlotsFrom = __instance.ActionParams.SpellRepertoire.SpellCastingFeature.SlotsRecharge;
-                var additionalSpellRepetoriesToSpendSlotsFrom = allSpellRepetoires.Where(sr => sr != __instance.ActionParams.SpellRepertoire && sr.SpellCastingFeature.SlotsRecharge == rechargeRateToSpendSlotsFrom);
+                var additionalSpellRepetoriesToSpendSlotsFrom = allSpellRepertoires.Where(sr => sr != __instance.ActionParams.SpellRepertoire && sr.SpellCastingFeature.SlotsRecharge == rechargeRateToSpendSlotsFrom);
                 foreach (var spellRepetoire in additionalSpellRepetoriesToSpendSlotsFrom)
                     spellRepetoire.SpendSpellSlot(__instance.ActionParams.IntParameter);
             }
@@ -39,12 +39,12 @@ namespace SolastaMultiClass.Patches
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
-                var allSpellRepetoires = __instance.SpellRepertoires;
-                if (allSpellRepetoires.Count < 2 || activeSpell.SpellRepertoire.SpellCastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
+                var allSpellRepertoires = __instance.SpellRepertoires;
+                if (allSpellRepertoires.Count < 2 || activeSpell.SpellRepertoire.SpellCastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
                     return;
 
                 RuleDefinitions.RechargeRate rechargeRateToSpendSlotsFrom = activeSpell.SpellRepertoire.SpellCastingFeature.SlotsRecharge;
-                var additionalSpellRepetoriesToSpendSlotsFrom = allSpellRepetoires.Where(sr => sr != activeSpell.SpellRepertoire && sr.SpellCastingFeature.SlotsRecharge == rechargeRateToSpendSlotsFrom);
+                var additionalSpellRepetoriesToSpendSlotsFrom = allSpellRepertoires.Where(sr => sr != activeSpell.SpellRepertoire && sr.SpellCastingFeature.SlotsRecharge == rechargeRateToSpendSlotsFrom);
                 foreach (var spellRepetoire in additionalSpellRepetoriesToSpendSlotsFrom)
                     spellRepetoire.SpendSpellSlot(activeSpell.SlotLevel);
             }
@@ -58,14 +58,14 @@ namespace SolastaMultiClass.Patches
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
-                var allSpellRepetoires = __instance.SpellRepertoires;
-                if (allSpellRepetoires.Count < 2 || usablePower.PowerDefinition.RechargeRate != RuleDefinitions.RechargeRate.SpellSlot || usablePower.PowerDefinition.SpellcastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
+                var allSpellRepertoires = __instance.SpellRepertoires;
+                if (allSpellRepertoires.Count < 2 || usablePower.PowerDefinition.RechargeRate != RuleDefinitions.RechargeRate.SpellSlot || usablePower.PowerDefinition.SpellcastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
                     return;
 
                 RuleDefinitions.RechargeRate rechargeRateToSpendSlotsFrom = usablePower.PowerDefinition.SpellcastingFeature.SlotsRecharge;
-                var additionalSpellRepetoriesToSpendSlotsFrom = allSpellRepetoires.Where(sr => sr.SpellCastingFeature != usablePower.PowerDefinition.SpellcastingFeature && sr.SpellCastingFeature.SlotsRecharge == rechargeRateToSpendSlotsFrom);
+                var additionalSpellRepetoriesToSpendSlotsFrom = allSpellRepertoires.Where(sr => sr.SpellCastingFeature != usablePower.PowerDefinition.SpellcastingFeature && sr.SpellCastingFeature.SlotsRecharge == rechargeRateToSpendSlotsFrom);
                 foreach (var spellRepetoire in additionalSpellRepetoriesToSpendSlotsFrom)
-                    spellRepetoire.SpendSpellSlot(spellRepetoire.GetLowestAvailableSlotLevel()); //Theoretically if we've done this correctly the lowest slot in the other repetoires will be the same as what the power used from the initial repetoire
+                    spellRepetoire.SpendSpellSlot(spellRepetoire.GetLowestAvailableSlotLevel()); //Theoretically if we've done this correctly the lowest slot in the other repertoires will be the same as what the power used from the initial repetoire
             }
         }
 
@@ -152,7 +152,7 @@ namespace SolastaMultiClass.Patches
 
                 var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 
-                //Don't bother doing fancy work if there aren't multiple spell repetoires that are shared (multiple long rest spell features).
+                //Don't bother doing fancy work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
                 if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
                 {
                     int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
@@ -198,7 +198,7 @@ namespace SolastaMultiClass.Patches
                 
                 var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 
-                //Don't bother doing fancy work if there aren't multiple spell repetoires that are shared (multiple long rest spell features).
+                //Don't bother doing fancy work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
                 if (Main.Settings.EnableSharedSpellCasting && heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
                 {
                     int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
@@ -272,7 +272,7 @@ namespace SolastaMultiClass.Patches
                 //    heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
                 //}
                 
-                //Don't bother doing extra work if there aren't multiple spell repetoires that are shared (multiple long rest spell features).
+                //Don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
                 if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr =>sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
                 {
                     __instance.AvailableSpellsSlots.Clear();
