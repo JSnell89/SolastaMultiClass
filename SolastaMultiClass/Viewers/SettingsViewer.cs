@@ -17,7 +17,7 @@ namespace SolastaMultiClass.Viewers
             UI.Div();
 
             var maxAllowedClasses = Main.Settings.MaxAllowedClasses;
-            if (UI.Slider("Max Allowed Classes", ref maxAllowedClasses, 1, 3, 2, "", UI.AutoWidth()))
+            if (UI.Slider("Max allowed classes", ref maxAllowedClasses, 1, 3, 2, "", UI.AutoWidth()))
             {
                 Main.Settings.MaxAllowedClasses = maxAllowedClasses;
             }
@@ -29,7 +29,7 @@ namespace SolastaMultiClass.Viewers
             }
 
             toggle = Main.Settings.EnableSharedSpellCasting;
-            if (UI.Toggle("Enable shared spellcasting", ref toggle, 0, UI.AutoWidth()))
+            if (UI.Toggle("Enable shared spell casting", ref toggle, 0, UI.AutoWidth()))
             {
                 Main.Settings.EnableSharedSpellCasting = toggle;
             }
@@ -41,14 +41,14 @@ namespace SolastaMultiClass.Viewers
             }
 
             toggle = Main.Settings.AllowExtraAttacksToStack;
-            if (UI.Toggle("Allow extra attacks to stack (only on new acquired levels)", ref toggle, 0, UI.AutoWidth()))
+            if (UI.Toggle("Allow extra attacks to stack (only on newly acquired levels)", ref toggle, 0, UI.AutoWidth()))
             {
                 Main.Settings.AllowExtraAttacksToStack = toggle;
             }
 
             UI.Div();
-            UI.Label("Character Inspection Screen Instructions:".yellow().bold());
-            UI.Label(". press LEFT / RIGHT arrows in the character inspection tab to browser for other classes features...");
+            UI.Label("Character Inspection Screen Instructions:".yellow());
+            UI.Label(". press the " + "LEFT".yellow().bold() + " and " + "RIGHT".yellow().bold() + " arrows in the character tab to display other classes");
         }
 
         public void OnGUI(UnityModManager.ModEntry modEntry)

@@ -19,25 +19,25 @@ namespace SolastaMultiClass.Viewers
 
                     UI.Div();
                     UI.Label("Features:".yellow());
-                    UI.Label(". supports official game classes, Holic92's Barbarian/Bard/Monk, CJD's Tinkerer");
+                    UI.Label(". supports official game classes, Holic92's " + "Barbarian".green() + " / " + "Bard".green() + " / " + "Monk".green() +", CJD's " + "Tinkerer".green());
                     UI.Label(". can multiclass into up to 3 different classes");
-                    UI.Label(". gain only some of new class's starting proficiencies");
+                    UI.Label(". only gains some of new class's starting proficiencies");
                     UI.Label(". attributes prerequisites for class in/out");
-                    UI.Label(". extra attacks / unarmored defenses won't stack if granted by more than 1 class");
+                    UI.Label(". " + "extra attacks".cyan() + " / " + "unarmored defenses".cyan() + " won't stack when granted by different classes");
                     UI.Label(". shared spell casting system");
                     UI.Label(". some of above rules can be customized in the Mod Settings panel");
 
                     UI.Label(""); 
-                    UI.Label("Known limitations:".yellow());
-                    UI.Label(". level up UI displays full level 1 proficiencies on a new class. They are correctly implemented though");
-                    UI.Label(". level up UI displays extra attacks as granted. They aren't! Too much work to change that...");
-                    UI.Label(". inspecting the character might not show correctly out of a game");
-                    UI.Label(". leveled up characters in the pool need a long rest to properly refresh the spell slots");
-                    UI.Label(". Paladin/Cleric Channel Divinity stacks");
+                    UI.Label("Known Limitations:".yellow());
+                    UI.Label(". spell casting UI isn't patched for multi casters. Use " + "CJD's Solasta UI Update Mod".magenta() + " instead");
+                    UI.Label(". level up UI displays full level 1 proficiencies on a new class. Rules are correctly implemented thought");
+                    UI.Label(". level up UI displays extra attacks on level 5 progression. Rules are correctly implemented thought");
+                    UI.Label(". inspecting the character might not show up correctly in the pool. An in game long rest fixes that");
+                    UI.Label(". " + "Paladin".green() + " / " + "Cleric".green() + " " + "channel divinity".cyan() + " stacks");
                     
                     UI.Label("");
                     UI.Label("Character Inspection Screen Instructions:".yellow());
-                    UI.Label(". press LEFT / RIGHT arrows in the character inspection tab to browser for other classes features...");
+                    UI.Label(". press the " + "LEFT".yellow().bold() + " and " +  "RIGHT".yellow().bold() + " arrows in the character tab to display other classes");
                 }
             }
         }
