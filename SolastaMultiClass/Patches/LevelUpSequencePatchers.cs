@@ -134,7 +134,7 @@ namespace SolastaMultiClass.Patches
                     }
                     else
                     {
-                        if (__instance.HeroCharacter.ClassesHistory.Count > 1)
+                        if (__instance.HeroCharacter.ClassesHistory.Count > 1 && __instance.HeroCharacter.ClassesAndLevels[selectedClass] == 1)
                         {
                             var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
                             var groupsToExclude = new List<string[]>()
@@ -163,7 +163,7 @@ namespace SolastaMultiClass.Patches
                             {
                                 foreach (var featureName in grouptoInclude)
                                 {
-                                    if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
+                                    if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature) && featureName.Contains(selectedClass.Name))
                                     {
                                         grantedFeatures.Add(feature);
                                     }
