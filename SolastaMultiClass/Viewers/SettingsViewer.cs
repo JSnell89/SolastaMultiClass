@@ -39,6 +39,16 @@ namespace SolastaMultiClass.Viewers
             {
                 Main.Settings.TurnOffSpellPreparationRestrictions = toggle;
             }
+
+            toggle = Main.Settings.AllowExtraAttacksToStack;
+            if (UI.Toggle("Allow extra attacks to stack (only on new acquired levels)", ref toggle, 0, UI.AutoWidth()))
+            {
+                Main.Settings.AllowExtraAttacksToStack = toggle;
+            }
+
+            UI.Div();
+            UI.Label("Character Inspection Screen Instructions:".yellow().bold());
+            UI.Label(". press LEFT / RIGHT arrows in the character inspection tab to browser for other classes features...");
         }
 
         public void OnGUI(UnityModManager.ModEntry modEntry)

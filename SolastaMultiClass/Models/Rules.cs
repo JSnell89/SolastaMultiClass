@@ -80,6 +80,8 @@ namespace SolastaMultiClass.Models
 
         public static void FixExtraAttacks(RulesetCharacterHero hero, CharacterClassDefinition selectedClass, List<FeatureDefinition> grantedFeatures)
         {
+            if (Main.Settings.AllowExtraAttacksToStack) return;
+
             var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
             var isHighLevelFighter = selectedClass == Fighter && hero.ClassesAndLevels.TryGetValue(Fighter, out int levels) && levels >= 11;
             var hasExtraAttack = false;
