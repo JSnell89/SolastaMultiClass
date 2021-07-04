@@ -103,7 +103,7 @@ namespace SolastaMultiClass.Models
             foreach (var classAndLevel in hero.ClassesAndLevels)
             {
                 var className = classAndLevel.Key.Name;
-                if (extraAttacksClassNames.Contains(className) && classAndLevel.Value >= 5)
+                if (className != selectedClass.Name && classAndLevel.Value >= 5 && extraAttacksClassNames.Contains(className))
                 {
                     hasExtraAttack = true;
                 }
