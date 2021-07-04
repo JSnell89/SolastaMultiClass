@@ -4,7 +4,7 @@
     {
         public static readonly string[] savingThrownsProficiencysToExclude = new string[]
         {
-            "BabarianSavingthrowProficiency",
+            "BarbarianSavingthrowProficiency",
             "BardSavingthrowProficiency",
             "MonkSavingthrowProficiency",
             "ProficiencyClericSavingThrow",
