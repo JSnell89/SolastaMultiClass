@@ -449,7 +449,10 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(ref bool ___isRelevant)
             {
-                ___isRelevant = (levelingUp && requiresDeity);
+                if (levelingUp && requiresDeity)
+                {
+                    ___isRelevant = true;
+                }
             }
         }
 
