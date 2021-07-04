@@ -16,6 +16,7 @@ namespace SolastaMultiClass.Patches
         private static bool hasSpellbookGranted = false;
         private static int selectedClassIndex = -1;
         private static CharacterClassDefinition selectedClass = null;
+        private static readonly List<CharacterClassDefinition> allowedClasses = new List<CharacterClassDefinition>() { };
 
         //
         // CHARACTER LEVEL UP SCREEN
@@ -61,6 +62,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterLevelUpScreen __instance, Dictionary<string, CharacterStagePanel> ___stagePanelsByName)
             {
+                var classSelectionPanel = (CharacterStageClassSelectionPanel)___stagePanelsByName["ClassSelection"];
                 var hero = __instance.CharacterBuildingService.HeroCharacter;
 
                 levelingUp = true;
@@ -71,21 +73,11 @@ namespace SolastaMultiClass.Patches
                 requiresDeity = false;
                 hasSpellbookGranted = false;
 
-                // filter the available classes per multi class in/out rules
-                if (hero.ClassesHistory.Count == 0)
-                {
-                    selectedClassIndex = -1;
-                }
-                else
-                {
-                    var classSelectionPanel = (CharacterStageClassSelectionPanel)___stagePanelsByName["ClassSelection"];
-                    var compatibleClasses = (List<CharacterClassDefinition>)AccessTools.Field(classSelectionPanel.GetType(), "compatibleClasses").GetValue(classSelectionPanel);
-                    var allowedClasses = GetHeroAllowedClassDefinitions(hero);
+                allowedClasses.Clear();
+                allowedClasses.AddRange(GetHeroAllowedClassDefinitions(hero));
+                AccessTools.Field(classSelectionPanel.GetType(), "compatibleClasses").SetValue(classSelectionPanel, allowedClasses);
 
-                    compatibleClasses.Clear();
-                    compatibleClasses.AddRange(allowedClasses);
-                    selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
-                }
+                selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
             }     
         }
 
@@ -145,9 +137,13 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterBuildingManager), "AssignClassLevel")]
         internal static class CharacterBuildingManager_AssignClassLevel_Patch
         {
-            internal static bool Prefix(CharacterClassDefinition classDefinition)
+            internal static bool Prefix(CharacterBuildingManager __instance, CharacterClassDefinition classDefinition)
             {
+                var hero = __instance.HeroCharacter;
+                var classesAndLevels = hero.ClassesAndLevels;
+
                 selectedClass = classDefinition;
+                requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity && !(classesAndLevels.ContainsKey(Cleric) || classesAndLevels.ContainsKey(Paladin));
 
                 return !(levelingUp && displayingClassPanel);
             }
@@ -318,7 +314,7 @@ namespace SolastaMultiClass.Patches
             return !(levelingUp && displayingClassPanel);
         }
 
-        // patches the method to get my own class and level for level up
+        // patches the method to hide the equipment panel group
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "Refresh")]
         internal static class CharacterStageClassSelectionPanel_Refresh_Patch
         {
@@ -350,7 +346,7 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE LEVEL GAINS PANEL
         //
 
-        // unflags displaying the class panel / determines if deity / spellbook are required, provides mod class/classLevel to level up gain stage
+        // unflags displaying the class panel / adds spellbook to inventory if required, provides my modded class/classLevel to level up gain stage
         public static void GetHeroSelectedClassAndLevel(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
         {
             var hero = characterBuildingService.HeroCharacter;
@@ -358,8 +354,6 @@ namespace SolastaMultiClass.Patches
             var requiresSpellbook = !classesAndLevels.ContainsKey(Wizard) && selectedClass == Wizard;
 
             displayingClassPanel = false;
-
-            requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity && !classesAndLevels.ContainsKey(Cleric) && !classesAndLevels.ContainsKey(Paladin);
 
             if (requiresSpellbook && !hasSpellbookGranted)
             {
@@ -414,9 +408,9 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(ref bool ___isRelevant)
             {
-                if (levelingUp && requiresDeity)
+                if (levelingUp)
                 {
-                    ___isRelevant = true;
+                    ___isRelevant = requiresDeity;
                 }
             }
         }
