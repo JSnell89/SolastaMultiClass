@@ -2,7 +2,6 @@
 using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
-using static SolastaMultiClass.Models.Proficiencies;
 using static SolastaMultiClass.Models.Rules;
 using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
@@ -125,51 +124,17 @@ namespace SolastaMultiClass.Patches
         {
             internal static bool Prefix(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
             {
-                // ensures this doesn't get executed in the class panel level up screen
                 if (levelingUp)
                 {
+                    // ensures this doesn't get executed in the class panel level up screen
                     if (displayingClassPanel)
                     {
                         return false;
                     }
                     else
                     {
-                        if (__instance.HeroCharacter.ClassesHistory.Count > 1 && __instance.HeroCharacter.ClassesAndLevels[selectedClass] == 1)
-                        {
-                            var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
-                            var groupsToExclude = new List<string[]>()
-                            {
-                                savingThrownsProficiencysToExclude,
-                                skillProficiencysToExclude,
-                                armorProficiencysToExclude,
-                                weaponProficiencysToExclude
-                            };
-                            foreach (var grouptoExclude in groupsToExclude)
-                            {
-                                foreach (var featureName in grouptoExclude)
-                                {
-                                    if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
-                                    {
-                                        grantedFeatures.Remove(feature);
-                                    }
-                                }
-                            }
-                            var groupsToInclude = new List<string[]>()
-                            {
-                                armorProficiencysToInclude,
-                                skillProficiencysToInclude
-                            };
-                            foreach (var grouptoInclude in groupsToInclude)
-                            {
-                                foreach (var featureName in grouptoInclude)
-                                {
-                                    if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature) && featureName.Contains(selectedClass.Name))
-                                    {
-                                        grantedFeatures.Add(feature);
-                                    }
-                                }
-                            }
-                        }
+                        FixMulticlassProficiencies(__instance.HeroCharacter, selectedClass, grantedFeatures);
+                        FixExtraAttacks(__instance.HeroCharacter, selectedClass, grantedFeatures);
                     }
                 }
                 return true;
