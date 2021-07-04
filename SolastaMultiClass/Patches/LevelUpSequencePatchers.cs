@@ -154,9 +154,14 @@ namespace SolastaMultiClass.Patches
                                     }
                                 }
                             }
-                            foreach (var featureName in armorProficiencysToInclude)
+                            var groupsToInclude = new List<string[]>()
                             {
-                                if (featureName.Contains(selectedClass.Name))
+                                armorProficiencysToInclude,
+                                skillProficiencysToInclude
+                            };
+                            foreach (var grouptoInclude in groupsToInclude)
+                            {
+                                foreach (var featureName in grouptoInclude)
                                 {
                                     if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
                                     {

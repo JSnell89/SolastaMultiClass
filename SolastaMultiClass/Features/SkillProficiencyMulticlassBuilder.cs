@@ -7,11 +7,11 @@ namespace SolastaMultiClass.Features
 {
     internal class SkillProficiencyMulticlassBuilder : BaseDefinitionBuilder<FeatureDefinitionPointPool>
     {
-        const string BardClassSkillProficiencyMulticlassName = "BarbarianClassArmorProficiencyMulticlass";
-        const string BardClassSkillProficiencyGuid = "69430d6b82dc48bf9aaba0a887cba5b8";
+        const string BardClassSkillProficiencyMulticlassName = "BardClassSkillProficiencyMulticlass";
+        const string BardClassSkillProficiencyMulticlassGuid = "a69b2527569b4893abe57ad1f80e97ed";
 
-        const string PointPoolRangerSkillPointsMulticlassName = "FighterArmorProficiencyMulticlass";
-        const string PointPoolRangerSkillPointsMulticlassGuid = "680861ab72a04038a8e437fa5ff9dbe9";
+        const string PointPoolRangerSkillPointsMulticlassName = "PointPoolRangerSkillPointsMulticlass";
+        const string PointPoolRangerSkillPointsMulticlassGuid = "096e4e01b52b490e807cf8d458845aa5";
 
         protected SkillProficiencyMulticlassBuilder(string name, string guid, List<string> restrictedChoices) : base(PointPoolRangerSkillPoints, name, guid)
         {
@@ -24,7 +24,7 @@ namespace SolastaMultiClass.Features
             => new SkillProficiencyMulticlassBuilder(name, guid, proficiencysToReplace).AddToDB();
 
         public static readonly FeatureDefinitionPointPool BardClassSkillProficiencyMulticlass =
-            CreateAndAddToDB(BardClassSkillProficiencyMulticlassName, BardClassSkillProficiencyGuid, new List<string> {
+            CreateAndAddToDB(BardClassSkillProficiencyMulticlassName, BardClassSkillProficiencyMulticlassGuid, new List<string> {
                 "AnimalHandling",
                 "Athletics",
                 "Insight",
