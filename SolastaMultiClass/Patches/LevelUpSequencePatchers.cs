@@ -139,10 +139,10 @@ namespace SolastaMultiClass.Patches
                             var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
                             var groupsToExclude = new List<string[]>()
                             {
-                                savingThrownsToExclude,
-                                skillPointsToExclude,
-                                armorsProficiencyToExclude,
-                                weaponsProficiencyToExclude
+                                savingThrownsProficiencysToExclude,
+                                skillProficiencysToExclude,
+                                armorProficiencysToExclude,
+                                weaponProficiencysToExclude
                             };
                             foreach (var grouptoExclude in groupsToExclude)
                             {
@@ -151,6 +151,16 @@ namespace SolastaMultiClass.Patches
                                     if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
                                     {
                                         grantedFeatures.Remove(feature);
+                                    }
+                                }
+                            }
+                            foreach (var featureName in armorProficiencysToInclude)
+                            {
+                                if (featureName.Contains(selectedClass.Name))
+                                {
+                                    if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
+                                    {
+                                        grantedFeatures.Add(feature);
                                     }
                                 }
                             }

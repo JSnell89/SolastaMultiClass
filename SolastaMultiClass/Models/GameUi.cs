@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using static SolastaMultiClass.Settings;
 
 namespace SolastaMultiClass.Models
 {
@@ -116,6 +117,14 @@ namespace SolastaMultiClass.Models
         public static void InspectionPanelPickNextHeroClass()
         {
             selectedClass = selectedClass < selectedHero.ClassesAndLevels.Count - 1 ? selectedClass + 1 : 0;
+        }
+
+        public static void RegisterCommands()
+        {
+            var inputService = ServiceRepository.GetService<IInputService>();
+
+            inputService.RegisterCommand(PLAIN_RIGHT, 275, -1, -1, -1, -1, -1);
+            inputService.RegisterCommand(PLAIN_LEFT, 276, -1, -1, -1, -1, -1);
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     internal static class Proficiencies
     {
-        public static readonly string[] savingThrownsToExclude = new string[]
+        public static readonly string[] savingThrownsProficiencysToExclude = new string[]
         {
             "BabarianSavingthrowProficiency",
             "BardSavingthrowProficiency",
@@ -15,43 +15,49 @@
             "ProficiencyWizardSavingThrow"
         };
 
-        public static readonly string[] skillPointsToExclude = new string[]
+        public static readonly string[] skillProficiencysToExclude = new string[]
         {
             "BarbarianSkillProficiency",
-            "BardSkillProficiency",
+            "BardSkillProficiency", // need to dup and give only one skill
             "MonkSkillProficiency",
             "PointPoolClericSkillPoints",
             "PointPoolFighterSkillPoints",
             "PointPoolPaladinSkillPoints",
-            "PointPoolRangerSkillPoints",
+            "PointPoolRangerSkillPoints", // need to dup and give only one skill 
             "PointPoolRogueSkillPoints",
             "PointPoolWizardSkillPoints"
         };
 
-        public static readonly string[] armorsProficiencyToExclude = new string[]
+        public static readonly string[] armorProficiencysToExclude = new string[]
         {
-            "BarbarianArmorProficiency",
-            "BardArmorProficiency",
-            "MonkArmorProficiency",
-            "ProficiencyClericArmor",
-            "ProficiencyFighterArmor",
-            "ProficiencyPaladinArmor",
-            "ProficiencyRangerArmor",
-            "ProficiencyRogueArmor",
-            "ProficiencyWizardArmor"
+            "BarbarianArmorProficiency", // need to dup and remove light and medium
+            //"BardArmorProficiency", // same
+            //"ProficiencyClericArmor", // same
+            "ProficiencyFighterArmor", // need to dup and remove heavy
+            "ProficiencyPaladinArmor", // need to dup and remove heavy
+            //"ProficiencyRangerArmor", // same
+            //"ProficiencyRogueArmor", // same
+            "ProficiencyWizardArmor" // remove all
         };
 
-        public static readonly string[] weaponsProficiencyToExclude = new string[]
+        public static readonly string[] armorProficiencysToInclude = new string[]
+{
+            "BarbarianClassArmorProficiencyMulticlass",
+            "FighterArmorProficiencyMulticlass",
+            "PaladinArmorProficiencyMulticlass"
+};
+
+        public static readonly string[] weaponProficiencysToExclude = new string[]
         {
-            "BarbarianArmorProficiency",
-            "BardArmorProficiency",
-            "MonkArmorProficiency",
-            "ProficiencyClericArmor",
-            "ProficiencyFighterArmor",
-            "ProficiencyPaladinArmor",
-            "ProficiencyRangerArmor",
-            "ProficiencyRogueArmor",
-            "ProficiencyWizardArmor"
+            //"BarbarianWeaponProficiency", // same
+            "BardWeaponProficiency", // remove all
+            //"MonkWeaponProficiency", // same
+            "ProficiencyClericWeapon", // remove all
+            //"ProficiencyFighterWeapon", // same
+            //"ProficiencyPaladinWeapon", // same
+            //"ProficiencyRangerWeapon", // same
+            "ProficiencyRogueWeapon", // remove all
+            "ProficiencyWizardWeapon" // remove all
         };
     }
 }

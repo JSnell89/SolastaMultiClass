@@ -1,5 +1,5 @@
 ﻿using HarmonyLib;
-using static SolastaMultiClass.Settings;
+using SolastaMultiClass.Features;
 
 namespace SolastaMultiClass.Patches
 {
@@ -10,10 +10,14 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix()
             {
-                var inputService = ServiceRepository.GetService<IInputService>();
+                SolastaMultiClass.Models.GameUi.RegisterCommands();
 
-                inputService.RegisterCommand(PLAIN_RIGHT, 275, -1, -1, -1, -1, -1);
-                inputService.RegisterCommand(PLAIN_LEFT, 276, -1, -1, -1, -1, -1);
+                _ = ArmorProficiencyMulticlassBuilder.BarbarianArmorProficiencyMulticlass;
+                _ = ArmorProficiencyMulticlassBuilder.FighterArmorProficiencyMulticlass;
+                _ = ArmorProficiencyMulticlassBuilder.PaladinArmorProficiencyMulticlass;
+
+                _ = SkillProficiencyMulticlassBuilder.BardClassSkillProficiencyMulticlass;
+                _ = SkillProficiencyMulticlassBuilder.PointPoolRangerSkillPointsMulticlass;
             }
         }
     }
