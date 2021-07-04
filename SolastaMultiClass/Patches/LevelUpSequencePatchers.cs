@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
+using static SolastaMultiClass.Models.Proficiencies;
 using static SolastaMultiClass.Models.Rules;
 using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
-using static SolastaModApi.DatabaseHelper.FeatureDefinitionPointPools;
-using static SolastaModApi.DatabaseHelper.FeatureDefinitionProficiencys;
 
 namespace SolastaMultiClass.Patches
 {
@@ -138,30 +136,29 @@ namespace SolastaMultiClass.Patches
                     {
                         if (__instance.HeroCharacter.ClassesHistory.Count > 1)
                         {
-                            grantedFeatures.RemoveAll(feature => FeaturesToExcludeFromMulticlassLevels.Contains(feature));
-
-                            // need to add logic to add extra skill points here
+                            var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
+                            var groupsToExclude = new List<string[]>()
+                            {
+                                savingThrownsToExclude,
+                                skillPointsToExclude,
+                                armorsProficiencyToExclude,
+                                weaponsProficiencyToExclude
+                            };
+                            foreach (var grouptoExclude in groupsToExclude)
+                            {
+                                foreach (var featureName in grouptoExclude)
+                                {
+                                    if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
+                                    {
+                                        grantedFeatures.Remove(feature);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 return true;
             }
-
-            private static readonly FeatureDefinition[] FeaturesToExcludeFromMulticlassLevels = new FeatureDefinition[]
-            {
-                PointPoolClericSkillPoints,
-                PointPoolFighterSkillPoints,
-                PointPoolPaladinSkillPoints,
-                PointPoolRangerSkillPoints,
-                PointPoolRogueSkillPoints,
-                PointPoolWizardSkillPoints,
-                ProficiencyClericSavingThrow,
-                ProficiencyFighterSavingThrow,
-                ProficiencyPaladinSavingThrow,
-                ProficiencyRangerSavingThrow,
-                ProficiencyRogueSavingThrow,
-                ProficiencyWizardSavingThrow,
-            };
         }
 
         // captures the desired class / ensures this doesn't get executed in the class panel level up screen
