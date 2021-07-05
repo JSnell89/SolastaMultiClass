@@ -13,8 +13,8 @@ namespace SolastaMultiClass.Viewers
         {
             bool toggle;
 
-            UI.Label("House Rules".yellow());
             UI.Div();
+            UI.Label("House Rules".yellow());
 
             var maxAllowedClasses = Main.Settings.MaxAllowedClasses;
             if (UI.Slider("Max allowed classes", ref maxAllowedClasses, 1, 3, 2, "", UI.AutoWidth()))
@@ -46,7 +46,8 @@ namespace SolastaMultiClass.Viewers
                 Main.Settings.AllowExtraAttacksToStack = toggle;
             }
 
-            UI.Div();
+            UI.Label("");
+
             UI.Label("Character Inspection Screen Instructions:".yellow());
             UI.Label(". press the " + "LEFT".yellow().bold() + " and " + "RIGHT".yellow().bold() + " arrows in the character tab to display other classes");
         }
@@ -54,6 +55,8 @@ namespace SolastaMultiClass.Viewers
         public void OnGUI(UnityModManager.ModEntry modEntry)
         {
             if (Main.Mod == null) return;
+
+            UI.Label("Welcome to Multi Class (EA VERSION)".yellow().bold());
 
             DisplaySettings();
         }
