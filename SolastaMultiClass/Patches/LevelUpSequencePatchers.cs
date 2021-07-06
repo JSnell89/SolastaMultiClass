@@ -110,29 +110,6 @@ namespace SolastaMultiClass.Patches
         // CHARACTER BUILDING MANAGER - must blocks any call to it while leveling up and displaying the class selection panel
         //
 
-        // exclude some features that would normally be added to a level 1 character but should not be added to a multiclass character
-        [HarmonyPatch(typeof(CharacterBuildingManager), "GrantFeatures")]
-        internal static class CharacterBuildingManager_GrantFeatures_Patch
-        {
-            internal static bool Prefix(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
-            {
-                if (levelingUp)
-                {
-                    // ensures this doesn't get executed in the class panel level up screen
-                    if (displayingClassPanel)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        FixMulticlassProficiencies(__instance.HeroCharacter, selectedClass, grantedFeatures);
-                        FixExtraAttacks(__instance.HeroCharacter, selectedClass, grantedFeatures);
-                    }
-                }
-                return true;
-            }
-        }
-
         // captures the desired class / ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "AssignClassLevel")]
         internal static class CharacterBuildingManager_AssignClassLevel_Patch
@@ -196,6 +173,23 @@ namespace SolastaMultiClass.Patches
             internal static bool Prefix()
             {
                 return !(levelingUp && displayingClassPanel);
+            }
+        }
+
+        //
+        // CHARACTER CLASS DEFINITION
+        //
+
+        [HarmonyPatch(typeof(CharacterClassDefinition), "FeatureUnlocks", MethodType.Getter)]
+        internal static class CharacterClassDefinition_FeatureUnlocks_Patch
+        {
+            internal static void Postfix(CharacterClassDefinition __instance, ref List<FeatureUnlockByLevel> __result)
+            {
+                if (levelingUp)
+                {
+                    FixMulticlassProficiencies(selectedClass, ref __result);
+                    FixExtraAttacks(selectedClass, ref __result);
+                }
             }
         }
 

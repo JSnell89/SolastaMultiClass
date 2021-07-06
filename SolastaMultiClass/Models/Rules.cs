@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Models
 {
@@ -37,87 +36,108 @@ namespace SolastaMultiClass.Models
             return allowedClasses;
         }
 
-        public static void FixMulticlassProficiencies(RulesetCharacterHero hero, CharacterClassDefinition selectedClass, List<FeatureDefinition> grantedFeatures)
+        public static void FixMulticlassProficiencies(CharacterClassDefinition selectedClass, ref List<FeatureUnlockByLevel> featureUnlockByLevels)
         {
-            if (hero.ClassesHistory.Count > 1 && hero.ClassesAndLevels[selectedClass] == 1)
+            var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
+            var result = new List<FeatureUnlockByLevel>() { };
+            var groupsToExclude = new List<string[]>()
             {
-                var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
-                var groupsToExclude = new List<string[]>()
-                {
-                    savingThrownsProficiencysToExclude,
-                    skillProficiencysToExclude,
-                    armorProficiencysToExclude,
-                    weaponProficiencysToExclude
-                };
-                var groupsToInclude = new List<string[]>()
-                {
-                    armorProficiencysToInclude,
-                    skillProficiencysToInclude
-                };
+                savingThrownsProficiencysToExclude,
+                skillProficiencysToExclude,
+                armorProficiencysToExclude,
+                weaponProficiencysToExclude
+            };
+            var groupsToInclude = new List<string[]>()
+            {
+                armorProficiencysToInclude,
+                skillProficiencysToInclude
+            };
 
-                foreach (var grouptoExclude in groupsToExclude)
+            result.AddRange(featureUnlockByLevels);
+
+            foreach (var grouptoExclude in groupsToExclude)
+            {
+                foreach (var featureName in grouptoExclude)
                 {
-                    foreach (var featureName in grouptoExclude)
+                    if (featureName.Contains(selectedClass.Name) && featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
                     {
-                        if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
-                        {
-                            grantedFeatures.Remove(feature);
-                        }
-                    }
-                }
-                foreach (var grouptoInclude in groupsToInclude)
-                {
-                    foreach (var featureName in grouptoInclude)
-                    {
-                        if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature) && featureName.Contains(selectedClass.Name))
-                        {
-                            grantedFeatures.Add(feature);
-                        }
+                        result.RemoveAll(x => x.Level == 1 && x.FeatureDefinition == feature);
                     }
                 }
             }
+
+            foreach (var grouptoInclude in groupsToInclude)
+            {
+                foreach (var featureName in grouptoInclude)
+                {
+                    if (featureName.Contains(selectedClass.Name) && featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
+                    {
+                        result.Add(new FeatureUnlockByLevel(feature, 1));
+                    }
+                }
+            }
+
+            featureUnlockByLevels = result;
         }
 
-        public static void FixExtraAttacks(RulesetCharacterHero hero, CharacterClassDefinition selectedClass, List<FeatureDefinition> grantedFeatures)
+        private static bool CannotAddExtraAttack()
+        {
+            var service = ServiceRepository.GetService<CharacterBuildingManager>();
+            var hero = service?.HeroCharacter;
+            var hasExtraAttack = false;
+
+            if (hero != null)
+            {
+                foreach (var classAndLevel in hero.ClassesAndLevels)
+                {
+                    var className = classAndLevel.Key.Name;
+                    if (className != hero.ClassesHistory[hero.ClassesHistory.Count - 1].Name && classAndLevel.Value >= 5 && extraAttacksClassNames.Contains(className))
+                    {
+                        hasExtraAttack = true;
+                    }
+                }
+            }
+
+            return hasExtraAttack;
+        }
+
+        public static void FixExtraAttacks(CharacterClassDefinition selectedClass, ref List<FeatureUnlockByLevel> featureUnlockByLevels)
         {
             if (Main.Settings.AllowExtraAttacksToStack) return;
 
             var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
-            var isHighLevelFighter = selectedClass == Fighter && hero.ClassesAndLevels.TryGetValue(Fighter, out int levels) && levels >= 11;
-            var hasExtraAttack = false;
-            var extraAttacksToExclude = new string[]
-            {
-                "BarbarianClassExtraAttack",
-                "MonkClassExtraAttack",
-                "AttributeModifierFighterExtraAttack",
-                "AttributeModifierRangerExtraAttack",
-                "AttributeModifierPaladinExtraAttack"
-            };
-            var extraAttacksClassNames = new List<string>
-            {
-                "BarbarianClass",
-                "MonkClass",
-                "Fighter",
-                "Ranger",
-                "Paladin"
-            };
+            var result = new List<FeatureUnlockByLevel>() { };
 
-            foreach (var classAndLevel in hero.ClassesAndLevels)
-            {
-                var className = classAndLevel.Key.Name;
-                if (className != selectedClass.Name && classAndLevel.Value >= 5 && extraAttacksClassNames.Contains(className))
-                {
-                    hasExtraAttack = true;
-                }
-            }
+            result.AddRange(featureUnlockByLevels);
+
             foreach (var featureName in extraAttacksToExclude)
             {
-                if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature) && hasExtraAttack && !isHighLevelFighter)
+                if (featureName.Contains(selectedClass.Name) && CannotAddExtraAttack() && featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
                 {
-                    grantedFeatures.Remove(feature);
+                    result.RemoveAll(x => x.Level == 5 && x.FeatureDefinition == feature);
                 }
             }
+
+            featureUnlockByLevels = result;
         }
+
+        private static readonly string[] extraAttacksToExclude = new string[]
+        {
+            "BarbarianClassExtraAttack",
+            "MonkClassExtraAttack",
+            "AttributeModifierFighterExtraAttack",
+            "AttributeModifierRangerExtraAttack",
+            "AttributeModifierPaladinExtraAttack"
+        };
+
+        private static readonly List<string> extraAttacksClassNames = new List<string>
+        {
+            "BarbarianClass",
+            "MonkClass",
+            "Fighter",
+            "Ranger",
+            "Paladin"
+        };
 
         private static readonly string[] savingThrownsProficiencysToExclude = new string[]
         {
@@ -129,6 +149,7 @@ namespace SolastaMultiClass.Models
             "ProficiencyPaladinSavingThrow",
             "ProficiencyRangerSavingThrow",
             "ProficiencyRogueSavingThrow",
+            "ProficiencySorcererSavingThrow",
             "ProficiencyWizardSavingThrow",
             "ProficiencyTinkererSavingThrow"
         };
@@ -143,6 +164,7 @@ namespace SolastaMultiClass.Models
             "PointPoolPaladinSkillPoints",
             "PointPoolRangerSkillPoints",
             "PointPoolRogueSkillPoints",
+            "PointPoolSorcererSkillPoints",
             "PointPoolWizardSkillPoints",
             "PointPoolTinkererSkillPoints"
         };
@@ -173,6 +195,7 @@ namespace SolastaMultiClass.Models
             "BardWeaponProficiency",
             "ProficiencyClericWeapon",
             "ProficiencyRogueWeapon",
+            "ProficiencySorcererWeapon",
             "ProficiencyWizardWeapon",
             "ProficiencyWeaponTinkerer"
         };
