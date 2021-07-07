@@ -28,6 +28,10 @@ namespace SolastaMultiClass.Patches
                 var classesAndLevels = hero.ClassesAndLevels;
 
                 requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity && !(classesAndLevels.ContainsKey(Cleric) || classesAndLevels.ContainsKey(Paladin));
+                foreach(var featureUnlock in characterClassDefinition.FeatureUnlocks)
+                {
+                    selectedClassFeaturesUnlock.Add(new FeatureUnlockByLevel(featureUnlock.FeatureDefinition, featureUnlock.Level));
+                }
                 selectedClassFeaturesUnlock.AddRange(characterClassDefinition.FeatureUnlocks);
                 FixMulticlassProficiencies(selectedClass, selectedClassFeaturesUnlock);
                 FixExtraAttacks(selectedClass, selectedClassFeaturesUnlock);
@@ -239,8 +243,11 @@ namespace SolastaMultiClass.Patches
         // provides my own classLevel to CharacterStageClassSelectionPanel.FillClassFeatures and CharacterStageClassSelectionPanel.RefreshCharacter
         public static int GetClassLevel(RulesetCharacterHero hero)
         {
-            hero.ClassesAndLevels.TryGetValue(selectedClass, out int classLevel);
-            return classLevel == 0 ? 1 : classLevel;
+            if (selectedClass == null || !hero.ClassesAndLevels.ContainsKey(selectedClass))
+            {
+                return 1;
+            }
+            return hero.ClassesAndLevels[selectedClass];
         }
 
         // patches the method to get my own classLevel

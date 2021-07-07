@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HarmonyLib;
 
 namespace SolastaMultiClass.Models
 {
@@ -42,18 +43,19 @@ namespace SolastaMultiClass.Models
 
             if (featuresToExclude.ContainsKey(selectedClass.Name))
             {
-                foreach (var featureName in featuresToExclude[selectedClass.name])
+                foreach (var oldNewFeatureName in featuresToExclude[selectedClass.name])
                 {
-                    featureUnlockByLevels.RemoveAll(x => x.FeatureDefinition.Name == featureName && x.Level == 1);
-                }
-            }
-            if (featuresToInclude.ContainsKey(selectedClass.Name))
-            {
-                foreach (var featureName in featuresToInclude[selectedClass.name])
-                {
-                    if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
+                    if (oldNewFeatureName.Value != null && featuresDb.TryGetElement(oldNewFeatureName.Value, out FeatureDefinition feature))
                     {
-                        featureUnlockByLevels.Add(new FeatureUnlockByLevel(feature, 1));
+                        var featureUnlockByLevel = featureUnlockByLevels.Find(x => x.FeatureDefinition.Name == oldNewFeatureName.Key && x.Level == 1);
+                        if (featureUnlockByLevel != null)
+                        {
+                            AccessTools.Field(featureUnlockByLevel.GetType(), "featureDefinition").SetValue(featureUnlockByLevel, feature);
+                        }
+                    }
+                    else
+                    {
+                        featureUnlockByLevels.RemoveAll(x => x.FeatureDefinition.Name == oldNewFeatureName.Key && x.Level == 1);
                     }
                 }
             }
@@ -100,75 +102,62 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        private static readonly Dictionary<string, List<string>> featuresToExclude = new Dictionary<string, List<string>>
+        private static readonly Dictionary<string, Dictionary<string, string>> featuresToExclude = new Dictionary<string, Dictionary<string, string>>
         {
-            {"BarbarianClass", new List<string> {
-                "BarbarianArmorProficiency",
-                "BarbarianSkillProficiency",
-                "BarbarianSavingthrowProficiency" } },
+            {"BarbarianClass", new Dictionary<string, string> {
+                {"BarbarianArmorProficiency", "BarbarianClassArmorProficiencyMulticlass" },
+                {"BarbarianSkillProficiency", null},
+                {"BarbarianSavingthrowProficiency", null} } },
 
-            {"BardClass", new List<string> {
-                "BardWeaponProficiency",
-                "BardSkillProficiency",
-                "BardSavingthrowProficiency" } },
+            {"BardClass", new Dictionary<string, string> {
+                {"BardWeaponProficiency", null},
+                {"BardSkillProficiency", "BardClassSkillProficiencyMulticlass"},
+                {"BardSavingthrowProficiency", null} } },
 
-            {"MonkClass", new List<string> {
-                "MonkSkillProficiency",
-                "MonkSavingthrowProficiency" } },
+            {"MonkClass", new Dictionary<string, string> {
+                {"MonkSkillProficiency", null},
+                {"MonkSavingthrowProficiency", null} } },
 
-            {"Cleric", new List<string> {
-                "ProficiencyClericWeapon",
-                "PointPoolClericSkillPoints",
-                "ProficiencyClericSavingThrow" } },
+            {"Cleric", new Dictionary<string, string> {
+                {"ProficiencyClericWeapon", null},
+                {"PointPoolClericSkillPoints", null},
+                {"ProficiencyClericSavingThrow", null} } },
 
-            {"Fighter", new List<string> {
-                "ProficiencyFighterArmor",
-                "PointPoolFighterSkillPoints",
-                "ProficiencyFighterSavingThrow" } },
+            {"Fighter", new Dictionary<string, string> {
+                {"ProficiencyFighterArmor", "FighterArmorProficiencyMulticlass"},
+                {"PointPoolFighterSkillPoints", null},
+                {"ProficiencyFighterSavingThrow", null} } },
 
-            {"Paladin", new List<string> {
-                "ProficiencyPaladinArmor",
-                "PointPoolPaladinSkillPoints",
-                "ProficiencyPaladinSavingThrow" } },
+            {"Paladin", new Dictionary<string, string> {
+                {"ProficiencyPaladinArmor", "PaladinArmorProficiencyMulticlass"},
+                {"PointPoolPaladinSkillPoints", null},
+                {"ProficiencyPaladinSavingThrow", null} } },
 
-            {"Ranger", new List<string> {
-                "PointPoolRangerSkillPoints",
-                "ProficiencyRangerSavingThrow" } },
+            {"Ranger", new Dictionary<string, string> {
+                {"PointPoolRangerSkillPoints", "PointPoolRangerSkillPointsMulticlass"},
+                {"ProficiencyRangerSavingThrow", null} } },
 
-            {"Rogue", new List<string> {
-                "ProficiencyRogueWeapon",
-                "PointPoolRogueSkillPoints",
-                "ProficiencyRogueSavingThrow" } },
+            {"Rogue", new Dictionary<string, string> {
+                {"ProficiencyRogueWeapon", null},
+                {"PointPoolRogueSkillPoints", null},
+                {"ProficiencyRogueSavingThrow", null} } },
 
-            {"Sorcerer", new List<string> {
-                "ProficiencySorcererWeapon",
-                "ProficiencySorcererArmor",
-                "PointPoolSorcererSkillPoints",
-                "ProficiencySorcererSavingThrow" } },
+            {"Sorcerer", new Dictionary<string, string> {
+                {"ProficiencySorcererWeapon", null},
+                {"ProficiencySorcererArmor", null},
+                {"PointPoolSorcererSkillPoints", null},
+                {"ProficiencySorcererSavingThrow", null}} },
 
-            {"Wizard", new List<string> {
-                "ProficiencyWizardWeapon",
-                "ProficiencyWizardArmor",
-                "PointPoolWizardSkillPoints",
-                "ProficiencyWizardSavingThrow" } },
+            {"Wizard", new Dictionary<string, string> {
+                {"ProficiencyWizardWeapon", null},
+                {"ProficiencyWizardArmor", null},
+                {"PointPoolWizardSkillPoints", null},
+                {"ProficiencyWizardSavingThrow", null}} },
 
-            {"Tinkerer", new List<string> {
-                "ProficiencyWeaponTinkerer",
-                "PointPoolTinkererSkillPoints",
-                "ProficiencyTinkererSavingThrow" } }
-        };
-
-        private static readonly Dictionary<string, List<string>> featuresToInclude = new Dictionary<string, List<string>>
-        {
-            {"BarbarianClass", new List<string> { "BarbarianClassArmorProficiencyMulticlass" } },
-
-            {"BardClass", new List<string> { "BardClassSkillProficiencyMulticlass" } },
-
-            {"Fighter", new List<string> { "FighterArmorProficiencyMulticlass" } },
-
-            {"Paladin", new List<string> { "PaladinArmorProficiencyMulticlass" } },
-
-            {"Ranger", new List<string> { "PointPoolRangerSkillPointsMulticlass" } }
+            {"Tinkerer", new Dictionary<string, string> {
+                {"ProficiencyWeaponTinkerer", null},
+                {"PointPoolTinkererSkillPoints", null},
+                {"ProficiencyTinkererSavingThrow", null}} }
         };
 
         private static readonly Dictionary<string, List<string>> extraAttacksToExclude = new Dictionary<string, List<string>>
