@@ -16,7 +16,32 @@ namespace SolastaMultiClass.Patches
         private static bool hasSpellbookGranted = false;
         private static int selectedClassIndex = -1;
         private static CharacterClassDefinition selectedClass = null;
+        private static readonly List<FeatureUnlockByLevel> selectedClassFeaturesUnlock = new List<FeatureUnlockByLevel>();
         private static readonly List<CharacterClassDefinition> allowedClasses = new List<CharacterClassDefinition>() { };
+
+        private static void SetMulticlassLevelUpContext(CharacterClassDefinition characterClassDefinition, RulesetCharacterHero hero)
+        {
+            selectedClass = characterClassDefinition;
+            selectedClassFeaturesUnlock.Clear();
+            if (characterClassDefinition != null)
+            {
+                var classesAndLevels = hero.ClassesAndLevels;
+
+                requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity && !(classesAndLevels.ContainsKey(Cleric) || classesAndLevels.ContainsKey(Paladin));
+                selectedClassFeaturesUnlock.AddRange(characterClassDefinition.FeatureUnlocks);
+                FixMulticlassProficiencies(selectedClass, selectedClassFeaturesUnlock);
+                FixExtraAttacks(selectedClass, selectedClassFeaturesUnlock);
+            }
+            else
+            {
+                allowedClasses.Clear();
+                allowedClasses.AddRange(GetHeroAllowedClassDefinitions(hero));
+                selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
+                levelsCount = hero.ClassesHistory.Count;
+                requiresDeity = false;
+                hasSpellbookGranted = false;
+            }
+        }
 
         //
         // CHARACTER LEVEL UP SCREEN
@@ -63,21 +88,10 @@ namespace SolastaMultiClass.Patches
             internal static void Postfix(CharacterLevelUpScreen __instance, Dictionary<string, CharacterStagePanel> ___stagePanelsByName)
             {
                 var classSelectionPanel = (CharacterStageClassSelectionPanel)___stagePanelsByName["ClassSelection"];
-                var hero = __instance.CharacterBuildingService.HeroCharacter;
 
                 levelingUp = true;
-
-                levelsCount = hero.ClassesHistory.Count;
-                selectedClass = null;
-
-                requiresDeity = false;
-                hasSpellbookGranted = false;
-
-                allowedClasses.Clear();
-                allowedClasses.AddRange(GetHeroAllowedClassDefinitions(hero));
+                SetMulticlassLevelUpContext(null, __instance.CharacterBuildingService.HeroCharacter);
                 AccessTools.Field(classSelectionPanel.GetType(), "compatibleClasses").SetValue(classSelectionPanel, allowedClasses);
-
-                selectedClassIndex = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
             }     
         }
 
@@ -116,12 +130,10 @@ namespace SolastaMultiClass.Patches
         {
             internal static bool Prefix(CharacterBuildingManager __instance, CharacterClassDefinition classDefinition)
             {
-                var hero = __instance.HeroCharacter;
-                var classesAndLevels = hero.ClassesAndLevels;
-
-                selectedClass = classDefinition;
-                requiresDeity = hero.DeityDefinition == null && selectedClass.RequiresDeity && !(classesAndLevels.ContainsKey(Cleric) || classesAndLevels.ContainsKey(Paladin));
-
+                if (levelingUp && displayingClassPanel)
+                {
+                    SetMulticlassLevelUpContext(classDefinition, __instance.HeroCharacter);
+                }
                 return !(levelingUp && displayingClassPanel);
             }
         }
@@ -139,6 +151,16 @@ namespace SolastaMultiClass.Patches
         // ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "GrantBaseEquipment")]
         internal static class CharacterBuildingManager_GrantBaseEquipment_Patch
+        {
+            internal static bool Prefix()
+            {
+                return !(levelingUp && displayingClassPanel);
+            }
+        }
+
+        // ensures this doesn't get executed in the class panel level up screen
+        [HarmonyPatch(typeof(CharacterBuildingManager), "GrantFeatures")]
+        internal static class CharacterBuildingManager_GrantFeatures_Patch
         {
             internal static bool Prefix()
             {
@@ -185,10 +207,9 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterClassDefinition __instance, ref List<FeatureUnlockByLevel> __result)
             {
-                if (levelingUp)
+                if (levelingUp && selectedClassFeaturesUnlock.Count > 0)
                 {
-                    FixMulticlassProficiencies(selectedClass, ref __result);
-                    FixExtraAttacks(selectedClass, ref __result);
+                    __result = selectedClassFeaturesUnlock;
                 }
             }
         }

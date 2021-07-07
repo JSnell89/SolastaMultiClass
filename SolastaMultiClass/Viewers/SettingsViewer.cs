@@ -14,7 +14,7 @@ namespace SolastaMultiClass.Viewers
             bool toggle;
 
             UI.Div();
-            UI.Label("House Rules".yellow());
+            UI.Label("House Rules:".yellow());
 
             var maxAllowedClasses = Main.Settings.MaxAllowedClasses;
             if (UI.Slider("Max allowed classes", ref maxAllowedClasses, 1, 3, 2, "", UI.AutoWidth()))

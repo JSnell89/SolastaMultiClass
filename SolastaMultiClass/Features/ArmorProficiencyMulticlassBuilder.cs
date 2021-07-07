@@ -15,29 +15,30 @@ namespace SolastaMultiClass.Features
         const string PaladinArmorProficiencyMulticlassName = "PaladinArmorProficiencyMulticlass";
         const string PaladinArmorProficiencyMulticlassGuid = "69b18e44aabd4acca702c05f9d6c7fcb";
 
-        protected ArmorProficiencyMulticlassBuilder(string name, string guid, List<string> proficiencysToReplace) : base(ProficiencyFighterArmor, name, guid)
+        protected ArmorProficiencyMulticlassBuilder(string name, string guid, string title, List<string> proficiencysToReplace) : base(ProficiencyFighterArmor, name, guid)
         {
             Definition.Proficiencies.Clear();
             Definition.Proficiencies.AddRange(proficiencysToReplace);
+            Definition.GuiPresentation.Title = title;
         }
 
-        private static FeatureDefinitionProficiency CreateAndAddToDB(string name, string guid, List<string> proficiencysToReplace)
-            => new ArmorProficiencyMulticlassBuilder(name, guid, proficiencysToReplace).AddToDB();
+        private static FeatureDefinitionProficiency CreateAndAddToDB(string name, string guid, string title, List<string> proficiencysToReplace)
+            => new ArmorProficiencyMulticlassBuilder(name, guid, title, proficiencysToReplace).AddToDB();
 
         public static readonly FeatureDefinitionProficiency BarbarianArmorProficiencyMulticlass =
-            CreateAndAddToDB(BarbarianClassArmorProficiencyMulticlassName, BarbarianClassArmorProficiencyMulticlassGuid, new List<string> {
+            CreateAndAddToDB(BarbarianClassArmorProficiencyMulticlassName, BarbarianClassArmorProficiencyMulticlassGuid, "Feature/&BarbarianArmorProficiencyTitle", new List<string> {
                 "ShieldCategory"
             });
 
         public static readonly FeatureDefinitionProficiency FighterArmorProficiencyMulticlass =
-            CreateAndAddToDB(FighterArmorProficiencyMulticlassName, FighterArmorProficiencyMulticlassGuid, new List<string> {
+            CreateAndAddToDB(FighterArmorProficiencyMulticlassName, FighterArmorProficiencyMulticlassGuid, "Feature/&FighterArmorProficiencyTitle", new List<string> {
                 "LightArmorCategory",
                 "MediumArmorCategory",
                 "ShieldCategory"
             });
 
         public static readonly FeatureDefinitionProficiency PaladinArmorProficiencyMulticlass =
-            CreateAndAddToDB(PaladinArmorProficiencyMulticlassName, PaladinArmorProficiencyMulticlassGuid, new List<string> {
+            CreateAndAddToDB(PaladinArmorProficiencyMulticlassName, PaladinArmorProficiencyMulticlassGuid, "Feature/&PaladinArmorProficiencyTitle", new List<string> {
                 "LightArmorCategory",
                 "MediumArmorCategory",
                 "ShieldCategory"

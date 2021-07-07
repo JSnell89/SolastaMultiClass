@@ -36,51 +36,30 @@ namespace SolastaMultiClass.Models
             return allowedClasses;
         }
 
-        public static void FixMulticlassProficiencies(CharacterClassDefinition selectedClass, ref List<FeatureUnlockByLevel> featureUnlockByLevels)
+        public static void FixMulticlassProficiencies(CharacterClassDefinition selectedClass, List<FeatureUnlockByLevel> featureUnlockByLevels)
         {
             var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
-            var result = new List<FeatureUnlockByLevel>() { };
-            var groupsToExclude = new List<string[]>()
-            {
-                savingThrownsProficiencysToExclude,
-                skillProficiencysToExclude,
-                armorProficiencysToExclude,
-                weaponProficiencysToExclude
-            };
-            var groupsToInclude = new List<string[]>()
-            {
-                armorProficiencysToInclude,
-                skillProficiencysToInclude
-            };
 
-            result.AddRange(featureUnlockByLevels);
-
-            foreach (var grouptoExclude in groupsToExclude)
+            if (featuresToExclude.ContainsKey(selectedClass.Name))
             {
-                foreach (var featureName in grouptoExclude)
+                foreach (var featureName in featuresToExclude[selectedClass.name])
                 {
-                    if (featureName.Contains(selectedClass.Name) && featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
+                    featureUnlockByLevels.RemoveAll(x => x.FeatureDefinition.Name == featureName && x.Level == 1);
+                }
+            }
+            if (featuresToInclude.ContainsKey(selectedClass.Name))
+            {
+                foreach (var featureName in featuresToInclude[selectedClass.name])
+                {
+                    if (featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
                     {
-                        result.RemoveAll(x => x.Level == 1 && x.FeatureDefinition == feature);
+                        featureUnlockByLevels.Add(new FeatureUnlockByLevel(feature, 1));
                     }
                 }
             }
-
-            foreach (var grouptoInclude in groupsToInclude)
-            {
-                foreach (var featureName in grouptoInclude)
-                {
-                    if (featureName.Contains(selectedClass.Name) && featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
-                    {
-                        result.Add(new FeatureUnlockByLevel(feature, 1));
-                    }
-                }
-            }
-
-            featureUnlockByLevels = result;
         }
 
-        private static bool CannotAddExtraAttack()
+        private static bool HasExtraAttack()
         {
             var service = ServiceRepository.GetService<CharacterBuildingManager>();
             var hero = service?.HeroCharacter;
@@ -88,116 +67,121 @@ namespace SolastaMultiClass.Models
 
             if (hero != null)
             {
+                var lastClassName = hero.ClassesHistory[hero.ClassesHistory.Count - 1].Name;
+
                 foreach (var classAndLevel in hero.ClassesAndLevels)
                 {
                     var className = classAndLevel.Key.Name;
-                    if (className != hero.ClassesHistory[hero.ClassesHistory.Count - 1].Name && classAndLevel.Value >= 5 && extraAttacksClassNames.Contains(className))
+
+                    if (extraAttacksToExclude.ContainsKey(className) && className != lastClassName && classAndLevel.Value >= 5)
                     {
                         hasExtraAttack = true;
                     }
                 }
             }
-
             return hasExtraAttack;
         }
 
-        public static void FixExtraAttacks(CharacterClassDefinition selectedClass, ref List<FeatureUnlockByLevel> featureUnlockByLevels)
+        public static void FixExtraAttacks(CharacterClassDefinition selectedClass, List<FeatureUnlockByLevel> featureUnlockByLevels)
         {
             if (Main.Settings.AllowExtraAttacksToStack) return;
 
             var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
-            var result = new List<FeatureUnlockByLevel>() { };
 
-            result.AddRange(featureUnlockByLevels);
-
-            foreach (var featureName in extraAttacksToExclude)
+            if (extraAttacksToExclude.ContainsKey(selectedClass.name))
             {
-                if (featureName.Contains(selectedClass.Name) && CannotAddExtraAttack() && featuresDb.TryGetElement(featureName, out FeatureDefinition feature))
+                foreach (var featureName in extraAttacksToExclude[selectedClass.Name])
                 {
-                    result.RemoveAll(x => x.Level == 5 && x.FeatureDefinition == feature);
+                    if (HasExtraAttack())
+                    {
+                        featureUnlockByLevels.RemoveAll(x => x.FeatureDefinition.Name == featureName && x.Level == 5);
+                    }
                 }
             }
-
-            featureUnlockByLevels = result;
         }
 
-        private static readonly string[] extraAttacksToExclude = new string[]
+        private static readonly Dictionary<string, List<string>> featuresToExclude = new Dictionary<string, List<string>>
         {
-            "BarbarianClassExtraAttack",
-            "MonkClassExtraAttack",
-            "AttributeModifierFighterExtraAttack",
-            "AttributeModifierRangerExtraAttack",
-            "AttributeModifierPaladinExtraAttack"
+            {"BarbarianClass", new List<string> {
+                "BarbarianArmorProficiency",
+                "BarbarianSkillProficiency",
+                "BarbarianSavingthrowProficiency" } },
+
+            {"BardClass", new List<string> {
+                "BardWeaponProficiency",
+                "BardSkillProficiency",
+                "BardSavingthrowProficiency" } },
+
+            {"MonkClass", new List<string> {
+                "MonkSkillProficiency",
+                "MonkSavingthrowProficiency" } },
+
+            {"Cleric", new List<string> {
+                "ProficiencyClericWeapon",
+                "PointPoolClericSkillPoints",
+                "ProficiencyClericSavingThrow" } },
+
+            {"Fighter", new List<string> {
+                "ProficiencyFighterArmor",
+                "PointPoolFighterSkillPoints",
+                "ProficiencyFighterSavingThrow" } },
+
+            {"Paladin", new List<string> {
+                "ProficiencyPaladinArmor",
+                "PointPoolPaladinSkillPoints",
+                "ProficiencyPaladinSavingThrow" } },
+
+            {"Ranger", new List<string> {
+                "PointPoolRangerSkillPoints",
+                "ProficiencyRangerSavingThrow" } },
+
+            {"Rogue", new List<string> {
+                "ProficiencyRogueWeapon",
+                "PointPoolRogueSkillPoints",
+                "ProficiencyRogueSavingThrow" } },
+
+            {"Sorcerer", new List<string> {
+                "ProficiencySorcererWeapon",
+                "ProficiencySorcererArmor",
+                "PointPoolSorcererSkillPoints",
+                "ProficiencySorcererSavingThrow" } },
+
+            {"Wizard", new List<string> {
+                "ProficiencyWizardWeapon",
+                "ProficiencyWizardArmor",
+                "PointPoolWizardSkillPoints",
+                "ProficiencyWizardSavingThrow" } },
+
+            {"Tinkerer", new List<string> {
+                "ProficiencyWeaponTinkerer",
+                "PointPoolTinkererSkillPoints",
+                "ProficiencyTinkererSavingThrow" } }
         };
 
-        private static readonly List<string> extraAttacksClassNames = new List<string>
+        private static readonly Dictionary<string, List<string>> featuresToInclude = new Dictionary<string, List<string>>
         {
-            "BarbarianClass",
-            "MonkClass",
-            "Fighter",
-            "Ranger",
-            "Paladin"
+            {"BarbarianClass", new List<string> { "BarbarianClassArmorProficiencyMulticlass" } },
+
+            {"BardClass", new List<string> { "BardClassSkillProficiencyMulticlass" } },
+
+            {"Fighter", new List<string> { "FighterArmorProficiencyMulticlass" } },
+
+            {"Paladin", new List<string> { "PaladinArmorProficiencyMulticlass" } },
+
+            {"Ranger", new List<string> { "PointPoolRangerSkillPointsMulticlass" } }
         };
 
-        private static readonly string[] savingThrownsProficiencysToExclude = new string[]
+        private static readonly Dictionary<string, List<string>> extraAttacksToExclude = new Dictionary<string, List<string>>
         {
-            "BarbarianSavingthrowProficiency",
-            "BardSavingthrowProficiency",
-            "MonkSavingthrowProficiency",
-            "ProficiencyClericSavingThrow",
-            "ProficiencyFighterSavingThrow",
-            "ProficiencyPaladinSavingThrow",
-            "ProficiencyRangerSavingThrow",
-            "ProficiencyRogueSavingThrow",
-            "ProficiencySorcererSavingThrow",
-            "ProficiencyWizardSavingThrow",
-            "ProficiencyTinkererSavingThrow"
-        };
+            {"BarbarianClass", new List<string> { "BarbarianClassExtraAttack" } },
 
-        private static readonly string[] skillProficiencysToExclude = new string[]
-        {
-            "BarbarianSkillProficiency",
-            "BardSkillProficiency",
-            "MonkSkillProficiency",
-            "PointPoolClericSkillPoints",
-            "PointPoolFighterSkillPoints",
-            "PointPoolPaladinSkillPoints",
-            "PointPoolRangerSkillPoints",
-            "PointPoolRogueSkillPoints",
-            "PointPoolSorcererSkillPoints",
-            "PointPoolWizardSkillPoints",
-            "PointPoolTinkererSkillPoints"
-        };
+            {"MonkClass", new List<string> { "MonkClassExtraAttack" } },
 
-        private static readonly string[] skillProficiencysToInclude = new string[]
-        {
-            "BardClassSkillProficiencyMulticlass",
-            "PointPoolRangerSkillPointsMulticlass"
-        };
+            {"Fighter", new List<string> { "AttributeModifierFighterExtraAttack" } },
 
-        private static readonly string[] armorProficiencysToExclude = new string[]
-        {
-            "BarbarianArmorProficiency",
-            "ProficiencyFighterArmor",
-            "ProficiencyPaladinArmor",
-            "ProficiencyWizardArmor"
-        };
+            {"Paladin", new List<string> { "AttributeModifierPaladinExtraAttack" } },
 
-        private static readonly string[] armorProficiencysToInclude = new string[]
-        {
-            "BarbarianClassArmorProficiencyMulticlass",
-            "FighterArmorProficiencyMulticlass",
-            "PaladinArmorProficiencyMulticlass"
-        };
-
-        private static readonly string[] weaponProficiencysToExclude = new string[]
-        {
-            "BardWeaponProficiency",
-            "ProficiencyClericWeapon",
-            "ProficiencyRogueWeapon",
-            "ProficiencySorcererWeapon",
-            "ProficiencyWizardWeapon",
-            "ProficiencyWeaponTinkerer"
+            {"Ranger", new List<string> { "AttributeModifierRangerExtraAttack" } }
         };
 
         private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, CharacterClassDefinition classDefinition)

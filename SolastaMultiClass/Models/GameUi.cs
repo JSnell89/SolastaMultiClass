@@ -23,7 +23,7 @@ namespace SolastaMultiClass.Models
         public static string GetAllClassesLabel(GuiCharacter character)
         {
             var allClassesLabel = "";
-            var snapshot = character.Snapshot;
+            var snapshot = character?.Snapshot;
 
             if (snapshot != null)
             {
@@ -45,28 +45,31 @@ namespace SolastaMultiClass.Models
         {
             var hitDiceLabel = "";
             var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
-            var hero = character.RulesetCharacterHero;
+            var hero = character?.RulesetCharacterHero;
             var separator = " ";
 
-            foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+            if (hero != null)
             {
-                if (!dieTypesCount.ContainsKey(characterClassDefinition.HitDice))
+                foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                 {
-                    dieTypesCount.Add(characterClassDefinition.HitDice, 0);
+                    if (!dieTypesCount.ContainsKey(characterClassDefinition.HitDice))
+                    {
+                        dieTypesCount.Add(characterClassDefinition.HitDice, 0);
+                    }
+                    dieTypesCount[characterClassDefinition.HitDice] += hero.ClassesAndLevels[characterClassDefinition];
                 }
-                dieTypesCount[characterClassDefinition.HitDice] += hero.ClassesAndLevels[characterClassDefinition];
-            }
-            foreach (var dieType in dieTypesCount.Keys)
-            {
-                hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
-                separator = separator == " " ? "\n" : " ";
+                foreach (var dieType in dieTypesCount.Keys)
+                {
+                    hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
+                    separator = separator == " " ? "\n" : " ";
+                }
             }
             return hitDiceLabel;
         }
 
         internal static string GetSelectedClassName()
         {
-            return selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
+            return selectedHero?.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
         }
 
         public static string GetSelectedClassSearchTerm(string contains)

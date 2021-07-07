@@ -19,26 +19,14 @@ namespace SolastaMultiClass.Features
             Definition.RestrictedChoices.Clear();
             Definition.RestrictedChoices.AddRange(restrictedChoices);
             Definition.GuiPresentation.Title = title;
-            Definition.GuiPresentation.Description = "Choose one skill";
+            Definition.GuiPresentation.Description = "Feature/&SkillGainChoicesPluralDescription";
         }
 
         private static FeatureDefinitionPointPool CreateAndAddToDB(string name, string guid, string title, List<string> proficiencysToReplace)
             => new SkillProficiencyMulticlassBuilder(name, guid, title, proficiencysToReplace).AddToDB();
 
         public static readonly FeatureDefinitionPointPool BardClassSkillProficiencyMulticlass =
-            CreateAndAddToDB(BardClassSkillProficiencyMulticlassName, BardClassSkillProficiencyMulticlassGuid, "Feature/&RangerSkillsTitle", new List<string> {
-                "AnimalHandling",
-                "Athletics",
-                "Insight",
-                "Investigation",
-                "Nature",
-                "Perception",
-                "Survival",
-                "Stealth"
-            });
-
-        public static readonly FeatureDefinitionPointPool PointPoolRangerSkillPointsMulticlass =
-            CreateAndAddToDB(PointPoolRangerSkillPointsMulticlassName, PointPoolRangerSkillPointsMulticlassGuid, "Feature/&BardClassSkillPointPoolTitle", new List<string> {
+            CreateAndAddToDB(BardClassSkillProficiencyMulticlassName, BardClassSkillProficiencyMulticlassGuid, "Feature/&BardClassSkillPointPoolTitle", new List<string> {
                 "Acrobatics",
                 "AnimalHandling",
                 "Arcana",
@@ -57,6 +45,18 @@ namespace SolastaMultiClass.Features
                 "SleightOfHand",
                 "Stealth",
                 "Survival"
+            });
+
+        public static readonly FeatureDefinitionPointPool PointPoolRangerSkillPointsMulticlass =
+            CreateAndAddToDB(PointPoolRangerSkillPointsMulticlassName, PointPoolRangerSkillPointsMulticlassGuid, "Feature/&RangerSkillsTitle", new List<string> {
+                "AnimalHandling",
+                "Athletics",
+                "Insight",
+                "Investigation",
+                "Nature",
+                "Perception",
+                "Survival",
+                "Stealth"
             });
     }
 }
