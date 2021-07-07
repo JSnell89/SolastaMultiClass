@@ -13,6 +13,7 @@ namespace SolastaMultiClass.Models
         public static void InspectionPanelBindHero(RulesetCharacterHero hero)
         {
             selectedHero = hero;
+            selectedClass = 0;
         }
 
         public static void InspectionPanelUnbindHero()
@@ -77,7 +78,7 @@ namespace SolastaMultiClass.Models
             return contains + GetSelectedClassName();
         }
 
-        public static List<FightingStyleDefinition> GetClassBadges(RulesetCharacterHero rulesetCharacterHero)
+        public static List<FightingStyleDefinition> GetTrainedFightingStyles(RulesetCharacterHero rulesetCharacterHero)
         {
             var classLevelFightingStyle = new Dictionary<string, FightingStyleDefinition>() { };
             var fightingStyleidx = 0;

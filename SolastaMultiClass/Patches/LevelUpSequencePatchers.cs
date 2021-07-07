@@ -32,7 +32,6 @@ namespace SolastaMultiClass.Patches
                 {
                     selectedClassFeaturesUnlock.Add(new FeatureUnlockByLevel(featureUnlock.FeatureDefinition, featureUnlock.Level));
                 }
-                selectedClassFeaturesUnlock.AddRange(characterClassDefinition.FeatureUnlocks);
                 FixMulticlassProficiencies(selectedClass, selectedClassFeaturesUnlock);
                 FixExtraAttacks(selectedClass, selectedClassFeaturesUnlock);
             }
@@ -369,7 +368,7 @@ namespace SolastaMultiClass.Patches
         //
 
         // unflags displaying the class panel / adds spellbook to inventory if required, provides my modded class/classLevel to level up gain stage
-        public static void GetHeroSelectedClassAndLevel(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
+        public static void GetLastAssignedClassAndLevelCustom(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
         {
             var hero = characterBuildingService.HeroCharacter;
             var classesAndLevels = hero.ClassesAndLevels;
@@ -395,7 +394,7 @@ namespace SolastaMultiClass.Patches
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var getLastAssignedClassAndLevelMethod = typeof(ICharacterBuildingService).GetMethod("GetLastAssignedClassAndLevel");
-                var getHeroSelectedClassAndLevelMethod = typeof(LevelUpSequencePatchers).GetMethod("GetHeroSelectedClassAndLevel");
+                var getLastAssignedClassAndLevelCustomMethod = typeof(LevelUpSequencePatchers).GetMethod("GetLastAssignedClassAndLevelCustom");
 
                 /*
                 0 0000 ldarg.0
@@ -411,7 +410,7 @@ namespace SolastaMultiClass.Patches
                 {
                     if (instruction.Calls(getLastAssignedClassAndLevelMethod))
                     {
-                        yield return new CodeInstruction(OpCodes.Call, getHeroSelectedClassAndLevelMethod);
+                        yield return new CodeInstruction(OpCodes.Call, getLastAssignedClassAndLevelCustomMethod);
                     }
                     else
                     {

@@ -61,21 +61,19 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        private static bool HasExtraAttack()
+        private static bool HasExtraAttack(CharacterClassDefinition selectedClass)
         {
-            var service = ServiceRepository.GetService<CharacterBuildingManager>();
+            var service = ServiceRepository.GetService<ICharacterBuildingService>();
             var hero = service?.HeroCharacter;
             var hasExtraAttack = false;
 
             if (hero != null)
             {
-                var lastClassName = hero.ClassesHistory[hero.ClassesHistory.Count - 1].Name;
-
                 foreach (var classAndLevel in hero.ClassesAndLevels)
                 {
                     var className = classAndLevel.Key.Name;
 
-                    if (extraAttacksToExclude.ContainsKey(className) && className != lastClassName && classAndLevel.Value >= 5)
+                    if (extraAttacksToExclude.ContainsKey(className) && className != selectedClass.Name && classAndLevel.Value >= 5) // && !WasGrantedBy(selectedClass)
                     {
                         hasExtraAttack = true;
                     }
@@ -94,7 +92,7 @@ namespace SolastaMultiClass.Models
             {
                 foreach (var featureName in extraAttacksToExclude[selectedClass.Name])
                 {
-                    if (HasExtraAttack())
+                    if (HasExtraAttack(selectedClass))
                     {
                         featureUnlockByLevels.RemoveAll(x => x.FeatureDefinition.Name == featureName && x.Level == 5);
                     }

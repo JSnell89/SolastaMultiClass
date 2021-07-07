@@ -16,7 +16,7 @@
 //        internal static class CharacterActionSpendSpellSlot_ExecuteImpl_Patch
 //        {
 //            internal static void Postfix(CharacterActionSpendSpellSlot __instance)
-//            {   
+//            {
 //                if (!Main.Settings.EnableSharedSpellCasting)
 //                    return;
 
@@ -76,7 +76,7 @@
 //        internal static class CharacterBuildingManager_UpgradeSpellPointPools_Patch
 //        {
 //            internal static bool Prefix(CharacterBuildingManager __instance)
-//            {                
+//            {
 //                foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
 //                {
 //                    string empty = string.Empty;
@@ -119,14 +119,14 @@
 //                    var charBMType = typeof(CharacterBuildingManager);
 //                    var applyFeatureCastSpellMethod = charBMType.GetMethod("ApplyFeatureCastSpell", BindingFlags.NonPublic | BindingFlags.Instance);
 //                    var setPointPoolMethod = charBMType.GetMethod("SetPointPool", BindingFlags.NonPublic | BindingFlags.Instance);
-//                    var tempAcquiredCantripsNumberFieldInfo = charBMType.GetField("tempAcquiredCantripsNumber", BindingFlags.NonPublic | BindingFlags.Instance);                    
+//                    var tempAcquiredCantripsNumberFieldInfo = charBMType.GetField("tempAcquiredCantripsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
 //                    var tempAcquiredSpellsNumberFieldInfo = charBMType.GetField("tempAcquiredSpellsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
 
 //                    tempAcquiredCantripsNumberFieldInfo.SetValue(__instance, 0);
 //                    tempAcquiredSpellsNumberFieldInfo.SetValue(__instance, 0);
-                    
+
 //                    //Make sure not to recurse indefinitely!  The call here is needed 
-//                    applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature});
+//                    applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature });
 
 //                    int tempCantrips = (int)tempAcquiredCantripsNumberFieldInfo.GetValue(__instance);
 //                    int tempSpells = (int)tempAcquiredSpellsNumberFieldInfo.GetValue(__instance);
@@ -195,7 +195,7 @@
 //            {
 //                // This only affects when loaded in game since looping through all created characters is quite slow.  This means that spell slots may be incorrect until the character is used/long rests in game though :(
 //                var heroes = GetHeroesParty();
-                
+
 //                var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 
 //                //Don't bother doing fancy work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
@@ -271,9 +271,9 @@
 //                //    var fullHeroList = GetFullHeroesPool();
 //                //    heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 //                //}
-                
+
 //                //Don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
-//                if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr =>sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
+//                if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
 //                {
 //                    __instance.AvailableSpellsSlots.Clear();
 //                    //TODO hero pool may be outdated at this point (1 level behind)
@@ -343,7 +343,7 @@
 //                if (spellsByLevelRect != null && currentChildCount > highestSpellLevel + accountForCantripsInt)
 //                {
 //                    //Deactivate the extra spell UI that can show up do to the original method using Character level instead of Class level
-//                    for(int i = highestSpellLevel + accountForCantripsInt; i < currentChildCount; i++)
+//                    for (int i = highestSpellLevel + accountForCantripsInt; i < currentChildCount; i++)
 //                    {
 //                        var child = spellsByLevelRect.GetChild(i);
 //                        child?.gameObject?.SetActive(false);
@@ -461,7 +461,7 @@
 //                        //Don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
 //                        if (child.TryGetComponent(typeof(SlotStatusTable), out Component unused))
 //                            continue;
-//                        if(i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1 && !Main.Settings.TurnOffSpellPreparationRestrictions) //The toggle option needs to be here otherwise if you already had it on and opened a spell list it will mess things up potentially for all spellcasters
+//                        if (i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1 && !Main.Settings.TurnOffSpellPreparationRestrictions) //The toggle option needs to be here otherwise if you already had it on and opened a spell list it will mess things up potentially for all spellcasters
 //                            child.gameObject.SetActive(false);
 //                        else
 //                            child.gameObject.SetActive(true); //Need to set to true because when switching tabs the false from one spellcasting class is carried over.
@@ -483,7 +483,7 @@
 //                eAHCasterType casterType = GetCasterTypeForSingleLevelOfClass(classAndLevel.Key, subclass);
 
 //                //Only increment caster level when the class in question has actually gottent their spellcasting feature.  Artificer's get spell slots at level 1 just to complicate things :).
-//                if (casterType == eAHCasterType.Full || casterType == eAHCasterType.HalfArtificer ||  (numLevelsToUseFromNextClass >= 2 && casterType == eAHCasterType.Half) || (numLevelsToUseFromNextClass >= 3 && casterType == eAHCasterType.OneThird))
+//                if (casterType == eAHCasterType.Full || casterType == eAHCasterType.HalfArtificer || (numLevelsToUseFromNextClass >= 2 && casterType == eAHCasterType.Half) || (numLevelsToUseFromNextClass >= 3 && casterType == eAHCasterType.OneThird))
 //                {
 //                    for (int i = numLevelsToUseFromNextClass; i > 0; i--)
 //                        context.IncrementCasterLevel(casterType);
@@ -571,7 +571,7 @@
 //                if (NumHalfLevels >= 2)
 //                    casterLevel += NumHalfLevels / 2.0;
 //                if (NumHalfArtificerLevels >= 1) //artificer spell level round up instead of down like other spellcasting classes
-//                    casterLevel +=  Math.Ceiling(NumHalfArtificerLevels / 2.0);
+//                    casterLevel += Math.Ceiling(NumHalfArtificerLevels / 2.0);
 
 //                casterLevel += NumFullLevels;
 
