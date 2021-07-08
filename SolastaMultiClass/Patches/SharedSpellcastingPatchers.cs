@@ -191,7 +191,7 @@ namespace SolastaMultiClass.Patches
         internal static class RulesetSpellRepertoire_GetSlotsNumber_Patch
         {
             //Maybe make this a prefix to not have to re-run the Solasta code if there is only one spell repetoire?
-            internal static void Postfix(RulesetSpellRepertoire __instance, int spellLevel, out int remaining, out int max)
+            internal static void Postfix(RulesetSpellRepertoire __instance, Dictionary<int, int> ___legacyAvailableSpellsSlots, int spellLevel, out int remaining, out int max)
             {
                 // This only affects when loaded in game since looping through all created characters is quite slow.  This means that spell slots may be incorrect until the character is used/long rests in game though :(
                 var heroes = GetHeroesParty();
@@ -203,13 +203,13 @@ namespace SolastaMultiClass.Patches
                 {
                     int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
 
-                    if (spellLevel == 0 || !__instance.AvailableSpellsSlots.ContainsKey(spellLevel))
+                    if (spellLevel == 0 || !___legacyAvailableSpellsSlots.ContainsKey(spellLevel))
                     {
                         remaining = 0;
                         max = 0;
                         return;
                     }
-                    remaining = __instance.AvailableSpellsSlots[spellLevel];
+                    remaining = ___legacyAvailableSpellsSlots[spellLevel];
                     if (__instance.SpellCastingFeature == null)
                     {
                         max = remaining;
@@ -225,13 +225,13 @@ namespace SolastaMultiClass.Patches
                 else //Copy of Solasta code
                 {
                     //I don't know how to nicely handle the out params another way - this is inefficient though :(
-                    if (spellLevel == 0 || !__instance.AvailableSpellsSlots.ContainsKey(spellLevel))
+                    if (spellLevel == 0 || !___legacyAvailableSpellsSlots.ContainsKey(spellLevel))
                     {
                         remaining = 0;
                         max = 0;
                         return;
                     }
-                    remaining = __instance.AvailableSpellsSlots[spellLevel];
+                    remaining = ___legacyAvailableSpellsSlots[spellLevel];
                     if (__instance.SpellCastingFeature == null)
                     {
                         max = remaining;
@@ -252,7 +252,7 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(RulesetSpellRepertoire), "RestoreAllSpellSlots")]
         internal static class RulesetSpellRepertoire_RestoreAllSpellSlots_Patch
         {
-            internal static void Postfix(RulesetSpellRepertoire __instance)
+            internal static void Postfix(RulesetSpellRepertoire __instance, Dictionary<int, int> ___legacyAvailableSpellsSlots)
             {
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
@@ -275,7 +275,7 @@ namespace SolastaMultiClass.Patches
                 //Don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
                 if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
                 {
-                    __instance.AvailableSpellsSlots.Clear();
+                    ___legacyAvailableSpellsSlots.Clear();
                     //TODO hero pool may be outdated at this point (1 level behind)
                     int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
                     int casterLevelArrayIndex = casterLevel % 2 == 0 ? casterLevel / 2 : (casterLevel + 1) / 2;
@@ -283,7 +283,7 @@ namespace SolastaMultiClass.Patches
                     //Update the instance
                     for (int i = 0; i < casterLevelArrayIndex; i++)
                     {
-                        __instance.AvailableSpellsSlots[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i];
+                        ___legacyAvailableSpellsSlots[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i];
                     }
                     __instance.RepertoireRefreshed?.Invoke(__instance);
 
@@ -292,7 +292,8 @@ namespace SolastaMultiClass.Patches
                     {
                         for (int i = 0; i < casterLevelArrayIndex; i++)
                         {
-                            spellRepetoire.AvailableSpellsSlots[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i];
+                            var legacyAvailableSpellSlots = (Dictionary<int, int>)AccessTools.Field(spellRepetoire.GetType(), "legacyAvailableSpellsSlots").GetValue(spellRepetoire);
+                            legacyAvailableSpellSlots[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i];
                         }
                         spellRepetoire.RepertoireRefreshed?.Invoke(spellRepetoire);
                     }
@@ -428,7 +429,7 @@ namespace SolastaMultiClass.Patches
                 //This may not work for subclasses that have 'Prepared' spells, but I don't think any do.
                 CharacterClassDefinition characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
 
-                var hero = __instance.Caster as RulesetCharacterHero; //Cast to RulesetCharacterHero so we can figure out the level of the current class
+                var hero = __instance.GuiCharacter.RulesetCharacterHero as RulesetCharacterHero; //Cast to RulesetCharacterHero so we can figure out the level of the current class
                 if (hero == null || characterClassDefinition == null)
                     return;
 
