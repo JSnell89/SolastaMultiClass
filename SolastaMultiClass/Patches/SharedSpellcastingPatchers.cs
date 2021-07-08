@@ -69,9 +69,9 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        //Probably want this patch either way so not turned off by EnableSharedSpellCasting
-        //This fixes the case where if you multiclass a caster that selects spells at level up (e.g. Wizard) the Solasta engine will have you select spells even when you are leveling up another class (they don't get saved properly but seem to break some things)
-        //This also fixes selecting spells with these caster types when multiclassing back into them.  Note Wizard may have multiclass issues if it doesn't have a spellbook no matter what, it might be worth giving every char a spell book to prevent this.
+               //Probably want this patch either way so not turned off by EnableSharedSpellCasting
+               //This fixes the case where if you multiclass a caster that selects spells at level up (e.g. Wizard) the Solasta engine will have you select spells even when you are leveling up another class (they don't get saved properly but seem to break some things)
+               //This also fixes selecting spells with these caster types when multiclassing back into them.  Note Wizard may have multiclass issues if it doesn't have a spellbook no matter what, it might be worth giving every char a spell book to prevent this.
         [HarmonyPatch(typeof(CharacterBuildingManager), "UpgradeSpellPointPools")]
         internal static class CharacterBuildingManager_UpgradeSpellPointPools_Patch
         {
@@ -187,119 +187,119 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        [HarmonyPatch(typeof(RulesetSpellRepertoire), "GetSlotsNumber")]
-        internal static class RulesetSpellRepertoire_GetSlotsNumber_Patch
-        {
-            //Maybe make this a prefix to not have to re-run the Solasta code if there is only one spell repetoire?
-            internal static void Postfix(RulesetSpellRepertoire __instance, Dictionary<int, int> ___legacyAvailableSpellsSlots, int spellLevel, out int remaining, out int max)
-            {
-                // This only affects when loaded in game since looping through all created characters is quite slow.  This means that spell slots may be incorrect until the character is used/long rests in game though :(
-                var heroes = GetHeroesParty();
+        //        [HarmonyPatch(typeof(RulesetSpellRepertoire), "GetSlotsNumber")]
+        //        internal static class RulesetSpellRepertoire_GetSlotsNumber_Patch
+        //        {
+        //            //Maybe make this a prefix to not have to re-run the Solasta code if there is only one spell repetoire?
+        //            internal static void Postfix(RulesetSpellRepertoire __instance, Dictionary<int, int> ___legacyAvailableSpellsSlots, int spellLevel, out int remaining, out int max)
+        //            {
+        //                // This only affects when loaded in game since looping through all created characters is quite slow.  This means that spell slots may be incorrect until the character is used/long rests in game though :(
+        //                var heroes = GetHeroesParty();
 
-                var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
+        //                var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 
-                //Don't bother doing fancy work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
-                if (Main.Settings.EnableSharedSpellCasting && heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
-                {
-                    int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
+        //                //Don't bother doing fancy work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
+        //                if (Main.Settings.EnableSharedSpellCasting && heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
+        //                {
+        //                    int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
 
-                    if (spellLevel == 0 || !___legacyAvailableSpellsSlots.ContainsKey(spellLevel))
-                    {
-                        remaining = 0;
-                        max = 0;
-                        return;
-                    }
-                    remaining = ___legacyAvailableSpellsSlots[spellLevel];
-                    if (__instance.SpellCastingFeature == null)
-                    {
-                        max = remaining;
-                        return;
-                    }
-                    if (FullCastingSlots[casterLevel - 1].Slots.Count <= spellLevel - 1)
-                    {
-                        max = 0;
-                        return;
-                    }
-                    max = FullCastingSlots[casterLevel - 1].Slots[spellLevel - 1];
-                }
-                else //Copy of Solasta code
-                {
-                    //I don't know how to nicely handle the out params another way - this is inefficient though :(
-                    if (spellLevel == 0 || !___legacyAvailableSpellsSlots.ContainsKey(spellLevel))
-                    {
-                        remaining = 0;
-                        max = 0;
-                        return;
-                    }
-                    remaining = ___legacyAvailableSpellsSlots[spellLevel];
-                    if (__instance.SpellCastingFeature == null)
-                    {
-                        max = remaining;
-                        return;
-                    }
-                    if (__instance.SpellCastingFeature.SlotsPerLevels[__instance.SpellCastingLevel - 1].Slots.Count <= spellLevel - 1)
-                    {
-                        max = 0;
-                        return;
-                    }
-                    max = __instance.SpellCastingFeature.SlotsPerLevels[__instance.SpellCastingLevel - 1].Slots[spellLevel - 1];
-                }
+        //                    if (spellLevel == 0 || !___legacyAvailableSpellsSlots.ContainsKey(spellLevel))
+        //                    {
+        //                        remaining = 0;
+        //                        max = 0;
+        //                        return;
+        //                    }
+        //                    remaining = ___legacyAvailableSpellsSlots[spellLevel];
+        //                    if (__instance.SpellCastingFeature == null)
+        //                    {
+        //                        max = remaining;
+        //                        return;
+        //                    }
+        //                    if (FullCastingSlots[casterLevel - 1].Slots.Count <= spellLevel - 1)
+        //                    {
+        //                        max = 0;
+        //                        return;
+        //                    }
+        //                    max = FullCastingSlots[casterLevel - 1].Slots[spellLevel - 1];
+        //                }
+        //                else //Copy of Solasta code
+        //                {
+        //                    //I don't know how to nicely handle the out params another way - this is inefficient though :(
+        //                    if (spellLevel == 0 || !___legacyAvailableSpellsSlots.ContainsKey(spellLevel))
+        //                    {
+        //                        remaining = 0;
+        //                        max = 0;
+        //                        return;
+        //                    }
+        //                    remaining = ___legacyAvailableSpellsSlots[spellLevel];
+        //                    if (__instance.SpellCastingFeature == null)
+        //                    {
+        //                        max = remaining;
+        //                        return;
+        //                    }
+        //                    if (__instance.SpellCastingFeature.SlotsPerLevels[__instance.SpellCastingLevel - 1].Slots.Count <= spellLevel - 1)
+        //                    {
+        //                        max = 0;
+        //                        return;
+        //                    }
+        //                    max = __instance.SpellCastingFeature.SlotsPerLevels[__instance.SpellCastingLevel - 1].Slots[spellLevel - 1];
+        //                }
 
-            }
-        }
+        //            }
+        //        }
 
 
-        [HarmonyPatch(typeof(RulesetSpellRepertoire), "RestoreAllSpellSlots")]
-        internal static class RulesetSpellRepertoire_RestoreAllSpellSlots_Patch
-        {
-            internal static void Postfix(RulesetSpellRepertoire __instance, Dictionary<int, int> ___legacyAvailableSpellsSlots)
-            {
-                if (!Main.Settings.EnableSharedSpellCasting)
-                    return;
+        //        [HarmonyPatch(typeof(RulesetSpellRepertoire), "RestoreAllSpellSlots")]
+        //        internal static class RulesetSpellRepertoire_RestoreAllSpellSlots_Patch
+        //        {
+        //            internal static void Postfix(RulesetSpellRepertoire __instance, Dictionary<int, int> ___legacyAvailableSpellsSlots)
+        //            {
+        //                if (!Main.Settings.EnableSharedSpellCasting)
+        //                    return;
 
-                //Only do custom slot sharing for long rest (e.g. non-Warlock) slots
-                if (__instance.SpellCastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
-                    return;
+        //                //Only do custom slot sharing for long rest (e.g. non-Warlock) slots
+        //                if (__instance.SpellCastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
+        //                    return;
 
-                //If combined with shared spell slot usage from the other patches we want every spell feature to have the number of spell slots for the total caster level of the character
-                var heroes = GetHeroesParty();
-                var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
+        //                //If combined with shared spell slot usage from the other patches we want every spell feature to have the number of spell slots for the total caster level of the character
+        //                var heroes = GetHeroesParty();
+        //                var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
 
-                ////Attempt to have the slots updated when not in game.  Much more expensive since it goes through the full hero list using IO methods.
-                //if(heroWithSpellRepetoire == null)
-                //{
-                //    var fullHeroList = GetFullHeroesPool();
-                //    heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
-                //}
+        //                ////Attempt to have the slots updated when not in game.  Much more expensive since it goes through the full hero list using IO methods.
+        //                //if(heroWithSpellRepetoire == null)
+        //                //{
+        //                //    var fullHeroList = GetFullHeroesPool();
+        //                //    heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
+        //                //}
 
-                //Don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
-                if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
-                {
-                    ___legacyAvailableSpellsSlots.Clear();
-                    //TODO hero pool may be outdated at this point (1 level behind)
-                    int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
-                    int casterLevelArrayIndex = casterLevel % 2 == 0 ? casterLevel / 2 : (casterLevel + 1) / 2;
+        //                //Don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
+        //                if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
+        //                {
+        //                    ___legacyAvailableSpellsSlots.Clear();
+        //                    //TODO hero pool may be outdated at this point (1 level behind)
+        //                    int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
+        //                    int casterLevelArrayIndex = casterLevel % 2 == 0 ? casterLevel / 2 : (casterLevel + 1) / 2;
 
-                    //Update the instance
-                    for (int i = 0; i < casterLevelArrayIndex; i++)
-                    {
-                        ___legacyAvailableSpellsSlots[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i];
-                    }
-                    __instance.RepertoireRefreshed?.Invoke(__instance);
+        //                    //Update the instance
+        //                    for (int i = 0; i < casterLevelArrayIndex; i++)
+        //                    {
+        //                        ___legacyAvailableSpellsSlots[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i];
+        //                    }
+        //                    __instance.RepertoireRefreshed?.Invoke(__instance);
 
-                    //And update the spell repetoire on the hero?  They seem to be disjointed/decoupled at this point
-                    foreach (var spellRepetoire in heroWithSpellRepetoire.SpellRepertoires.Where(spellRep => spellRep.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest))
-                    {
-                        for (int i = 0; i < casterLevelArrayIndex; i++)
-                        {
-                            var legacyAvailableSpellSlots = (Dictionary<int, int>)AccessTools.Field(spellRepetoire.GetType(), "legacyAvailableSpellsSlots").GetValue(spellRepetoire);
-                            legacyAvailableSpellSlots[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i];
-                        }
-                        spellRepetoire.RepertoireRefreshed?.Invoke(spellRepetoire);
-                    }
-                }
-            }
-        }
+        //                    //And update the spell repetoire on the hero?  They seem to be disjointed/decoupled at this point
+        //                    foreach (var spellRepetoire in heroWithSpellRepetoire.SpellRepertoires.Where(spellRep => spellRep.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest))
+        //                    {
+        //                        for (int i = 0; i < casterLevelArrayIndex; i++)
+        //                        {
+        //                            var legacyAvailableSpellSlots = (Dictionary<int, int>)AccessTools.Field(spellRepetoire.GetType(), "legacyAvailableSpellsSlots").GetValue(spellRepetoire);
+        //                            legacyAvailableSpellSlots[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i];
+        //                        }
+        //                        spellRepetoire.RepertoireRefreshed?.Invoke(spellRepetoire);
+        //                    }
+        //                }
+        //            }
+        //        }
 
         //Remove the ability to select spells of higher level than you should be able to when leveling up
         //This doesn't fix the 'Auto' choices however.
@@ -367,12 +367,12 @@ namespace SolastaMultiClass.Patches
                 if (str.StartsWith("03Class"))
                 {
                     str = tag.Substring(0, tag.Length - 2); //Remvoes any levels from the tag examples are 03ClassRanger2, 03ClassRanger20.  This is a bit lazy but no class will have a tag where the class name is only 1 character.  
-                    //Old Solasta code was str = "03Class"; which lead to getting the first spell feature from any class
+                                                            //Old Solasta code was str = "03Class"; which lead to getting the first spell feature from any class
                 }
                 else if (str.StartsWith("06Subclass"))
                 {
                     str = tag.Substring(0, tag.Length - 2); //Similar to above just with subclasses
-                    //Old Solasta code was str = "06Subclass"; which lead to getting the first spell feature from any subclass
+                                                            //Old Solasta code was str = "06Subclass"; which lead to getting the first spell feature from any subclass
                 }
                 Dictionary<string, List<FeatureDefinition>>.Enumerator enumerator = __instance.HeroCharacter.ActiveFeatures.GetEnumerator();
                 try
@@ -597,46 +597,46 @@ namespace SolastaMultiClass.Patches
         //TODO add Bard and other potential full casters - Note Warlock should not be included handle everything on their own since pact/short rest spell slots will not be shared in any fashion with other classes.
         private static readonly CharacterClassDefinition[] FullCasterList = new CharacterClassDefinition[]
         {
-            DatabaseHelper.CharacterClassDefinitions.Cleric,
-            DatabaseHelper.CharacterClassDefinitions.Wizard,
+                    DatabaseHelper.CharacterClassDefinitions.Cleric,
+                    DatabaseHelper.CharacterClassDefinitions.Wizard,
         };
 
         private static readonly CharacterClassDefinition[] HalfCasterList = new CharacterClassDefinition[]
         {
-            DatabaseHelper.CharacterClassDefinitions.Paladin,
-            DatabaseHelper.CharacterClassDefinitions.Ranger,
+                    DatabaseHelper.CharacterClassDefinitions.Paladin,
+                    DatabaseHelper.CharacterClassDefinitions.Ranger,
         };
 
         private static readonly CharacterSubclassDefinition[] OneThirdCasterList = new CharacterSubclassDefinition[]
         {
-            DatabaseHelper.CharacterSubclassDefinitions.MartialSpellblade,
-            DatabaseHelper.CharacterSubclassDefinitions.RoguishShadowCaster,
+                    DatabaseHelper.CharacterSubclassDefinitions.MartialSpellblade,
+                    DatabaseHelper.CharacterSubclassDefinitions.RoguishShadowCaster,
         };
 
         public static readonly List<SlotsByLevelDuplet> FullCastingSlots = new List<SlotsByLevelDuplet>()
-        {
-            //Add 10th level slots that are always 0 since Solasta seems to rely on IndexOf(0) for certain things
-            new SlotsByLevelDuplet() { Slots = new List<int> {2,0,0,0,0,0,0,0,0,0}, Level = 1 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {3,0,0,0,0,0,0,0,0,0}, Level = 2 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,2,0,0,0,0,0,0,0,0}, Level = 3 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,0,0,0,0,0,0,0,0}, Level = 4 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,2,0,0,0,0,0,0,0}, Level = 5 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,0,0,0,0,0,0,0}, Level = 6 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,1,0,0,0,0,0,0}, Level = 7 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,2,0,0,0,0,0,0}, Level = 8 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,1,0,0,0,0,0}, Level = 9 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,0,0,0,0,0}, Level = 10 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,0,0,0,0}, Level = 11 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,0,0,0,0}, Level = 12 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,0,0,0}, Level = 13 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,0,0,0}, Level = 14 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,1,0,0}, Level = 15 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,1,0,0}, Level = 16 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,1,1,0}, Level = 17 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,1,1,1,1,0}, Level = 18 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,2,1,1,1,0}, Level = 19 },
-            new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,2,2,1,1,0}, Level = 20 },
-        };
+                {
+                    //Add 10th level slots that are always 0 since Solasta seems to rely on IndexOf(0) for certain things
+                    new SlotsByLevelDuplet() { Slots = new List<int> {2,0,0,0,0,0,0,0,0,0}, Level = 1 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {3,0,0,0,0,0,0,0,0,0}, Level = 2 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,2,0,0,0,0,0,0,0,0}, Level = 3 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,0,0,0,0,0,0,0,0}, Level = 4 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,2,0,0,0,0,0,0,0}, Level = 5 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,0,0,0,0,0,0,0}, Level = 6 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,1,0,0,0,0,0,0}, Level = 7 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,2,0,0,0,0,0,0}, Level = 8 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,1,0,0,0,0,0}, Level = 9 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,0,0,0,0,0}, Level = 10 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,0,0,0,0}, Level = 11 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,0,0,0,0}, Level = 12 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,0,0,0}, Level = 13 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,0,0,0}, Level = 14 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,1,0,0}, Level = 15 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,1,0,0}, Level = 16 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,2,1,1,1,1,0}, Level = 17 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,1,1,1,1,0}, Level = 18 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,2,1,1,1,0}, Level = 19 },
+                    new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,2,2,1,1,0}, Level = 20 },
+                };
 
         public static List<RulesetCharacterHero> GetHeroesParty()
         {
@@ -650,31 +650,6 @@ namespace SolastaMultiClass.Patches
             }
             return inGameHeroesPool;
         }
-        //public static List<RulesetCharacterHero> GetFullHeroesPool(bool isDirty = false)
-        //{
-        //    if (isDirty)
-        //    {
-        //        HeroesPool.Clear();
-        //    }
-        //    if (HeroesPool.Count == 0)
-        //    {
-        //        var characterPoolService = ServiceRepository.GetService<ICharacterPoolService>();
-
-        //        if (characterPoolService != null)
-        //        {
-        //            HeroesPool.Clear();
-        //            foreach (var name in characterPoolService.Pool.Keys)
-        //            {
-        //                characterPoolService.LoadCharacter(
-        //                    characterPoolService.BuildCharacterFilename(name.Substring(0, name.Length - 4)),
-        //                    out RulesetCharacterHero hero,
-        //                    out RulesetCharacterHero.Snapshot snapshot);
-        //                HeroesPool.Add(hero);
-        //            }
-        //        }
-        //    }
-        //    return HeroesPool;
-        //}
 
         internal static List<RulesetCharacterHero> HeroesPool = new List<RulesetCharacterHero>();
     }
