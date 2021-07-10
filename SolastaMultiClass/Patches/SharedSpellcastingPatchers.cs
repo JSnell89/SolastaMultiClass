@@ -69,9 +69,9 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-               //Probably want this patch either way so not turned off by EnableSharedSpellCasting
-               //This fixes the case where if you multiclass a caster that selects spells at level up (e.g. Wizard) the Solasta engine will have you select spells even when you are leveling up another class (they don't get saved properly but seem to break some things)
-               //This also fixes selecting spells with these caster types when multiclassing back into them.  Note Wizard may have multiclass issues if it doesn't have a spellbook no matter what, it might be worth giving every char a spell book to prevent this.
+        // This fixes the case where if you multiclass a caster that selects spells at level up (e.g. Wizard)
+        // The Solasta engine will have you select spells even when you are leveling up another class (they don't get saved properly but seem to break some things)
+        // This also fixes selecting spells with these caster types when multiclassing back into them.
         [HarmonyPatch(typeof(CharacterBuildingManager), "UpgradeSpellPointPools")]
         internal static class CharacterBuildingManager_UpgradeSpellPointPools_Patch
         {
@@ -79,48 +79,47 @@ namespace SolastaMultiClass.Patches
             {
                 foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
                 {
-                    string empty = string.Empty;
+                    string poolName = string.Empty;
+                    CharacterClassDefinition characterClassDefinition;
+                    int num;
+
                     if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class)
                     {
-                        CharacterClassDefinition characterClassDefinition = null;
-                        int num = 0;
                         __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out num);
 
                         //Short circuit if the feature is for another class otherwise (change from native code)
                         if (spellRepertoire.SpellCastingClass != characterClassDefinition)
                             continue;
 
-                        empty = AttributeDefinitions.GetClassTag(characterClassDefinition, num);
+                        poolName = AttributeDefinitions.GetClassTag(characterClassDefinition, num);
                     }
                     else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass)
                     {
-                        CharacterClassDefinition characterClassDefinition1 = null;
-                        int num1 = 0;
-                        __instance.GetLastAssignedClassAndLevel(out characterClassDefinition1, out num1);
-                        CharacterSubclassDefinition item = __instance.HeroCharacter.ClassesAndSubclasses[characterClassDefinition1];
+                        __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out num);
+                        CharacterSubclassDefinition item = __instance.HeroCharacter.ClassesAndSubclasses[characterClassDefinition];
 
                         //Short circuit if the feature is for another subclass (change from native code)
-                        if (spellRepertoire.SpellCastingSubclass != characterClassDefinition1)
+                        if (spellRepertoire.SpellCastingSubclass != characterClassDefinition)
                             continue;
 
-                        empty = AttributeDefinitions.GetSubclassTag(characterClassDefinition1, num1, item);
+                        poolName = AttributeDefinitions.GetSubclassTag(characterClassDefinition, num, item);
                     }
                     else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Race)
                     {
-                        empty = "02Race";
+                        poolName = "02Race";
                     }
                     int maxPoints = 0;
-                    if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(empty))
+                    if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(poolName))
                     {
-                        maxPoints = __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[empty].MaxPoints;
+                        maxPoints = __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[poolName].MaxPoints;
                     }
 
                     //Yay reflection to call private methods/use private fields
-                    var charBMType = typeof(CharacterBuildingManager);
-                    var applyFeatureCastSpellMethod = charBMType.GetMethod("ApplyFeatureCastSpell", BindingFlags.NonPublic | BindingFlags.Instance);
-                    var setPointPoolMethod = charBMType.GetMethod("SetPointPool", BindingFlags.NonPublic | BindingFlags.Instance);
-                    var tempAcquiredCantripsNumberFieldInfo = charBMType.GetField("tempAcquiredCantripsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
-                    var tempAcquiredSpellsNumberFieldInfo = charBMType.GetField("tempAcquiredSpellsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var characterBuildingManagerType = typeof(CharacterBuildingManager);
+                    var applyFeatureCastSpellMethod = characterBuildingManagerType.GetMethod("ApplyFeatureCastSpell", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var setPointPoolMethod = characterBuildingManagerType.GetMethod("SetPointPool", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var tempAcquiredCantripsNumberFieldInfo = characterBuildingManagerType.GetField("tempAcquiredCantripsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var tempAcquiredSpellsNumberFieldInfo = characterBuildingManagerType.GetField("tempAcquiredSpellsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
 
                     tempAcquiredCantripsNumberFieldInfo.SetValue(__instance, 0);
                     tempAcquiredSpellsNumberFieldInfo.SetValue(__instance, 0);
@@ -131,28 +130,25 @@ namespace SolastaMultiClass.Patches
                     int tempCantrips = (int)tempAcquiredCantripsNumberFieldInfo.GetValue(__instance);
                     int tempSpells = (int)tempAcquiredSpellsNumberFieldInfo.GetValue(__instance);
 
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, empty, tempCantrips + maxPoints });
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, empty, tempSpells });
+                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, tempCantrips + maxPoints });
+                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, tempSpells });
                 }
 
                 return false;
             }
         }
 
-        [HarmonyPatch(typeof(RulesetSpellRepertoire), "get_MaxSpellLevelOfSpellCastingLevel")]
-        internal static class RulesetSpellRepertoire_get_MaxSpellLevelOfSpellCastingLevel_Patch
+        [HarmonyPatch(typeof(RulesetSpellRepertoire), "MaxSpellLevelOfSpellCastingLevel", MethodType.Getter)]
+        internal static class RulesetSpellRepertoire_MaxSpellLevelOfSpellCastingLevel_Getter_Patch
         {
             internal static void Postfix(RulesetSpellRepertoire __instance, ref int __result)
             {
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
-                // This only affects when loaded in game since looping through all created characters is quite slow.  This means that spell slots may be incorrect until the character is used/long rests in game though :(
-                var heroes = GetHeroesParty();
+                var heroWithSpellRepetoire = GetHero(__instance.CharacterName);
 
-                var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
-
-                //Don't bother doing fancy work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
+                // don't bother doing fancy work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
                 if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
                 {
                     int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
@@ -177,7 +173,7 @@ namespace SolastaMultiClass.Patches
                         Trace.LogWarning("Invalid duplet in RulesetSpellRepertoire.ComputeSpellSlots()");
                         return;
                     }
-                    int num = item.Slots.IndexOf(0);//Should revisit for Warlocks - something like: int num = item.Slots.FindLastIndex(i => i > 0) + 1;//Switch to Last non-zero index (plus 1 since arrays start a 0)
+                    int num = item.Slots.IndexOf(0); // should revisit for Warlocks - something like: int num = item.Slots.FindLastIndex(i => i > 0) + 1;//Switch to Last non-zero index (plus 1 since arrays start a 0)
                     if (num == -1)
                     {
                         num = (item.Slots.Count > 0 ? item.Slots.Count : __instance.SpellCastingFeature.SpellListDefinition.MaxSpellLevel);
@@ -195,15 +191,14 @@ namespace SolastaMultiClass.Patches
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
-                //Don't do anything for non-Long rest classes as they combine in different ways
+                // don't do anything for non-Long rest classes as they combine in different ways
                 if (__instance.SpellCastingFeature.SlotsRecharge != RuleDefinitions.RechargeRate.LongRest)
                     return;
 
-                //If combined with shared spell slot usage from the other patches we want every spell feature to have the number of spell slots for the total caster level of the character
-                var heroes = GetHeroesParty();
-                var heroWithSpellRepetoire = heroes?.FirstOrDefault(hero => string.Equals(hero.Name, __instance.CharacterName));
+                // if combined with shared spell slot usage from the other patches we want every spell feature to have the number of spell slots for the total caster level of the character
+                var heroWithSpellRepetoire = GetHero(__instance.CharacterName);
 
-                //Don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
+                // don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features)
                 if (heroWithSpellRepetoire == null || heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() < 2)
                     return;
 
@@ -219,7 +214,7 @@ namespace SolastaMultiClass.Patches
                 {
                     currentInstanceSpellsSlotCapacities[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i]; //The real change right here
                     
-                    //I believe this is just to properly handle saves between patches, theoretically it is needed for higher level slots for MC saves between patches as well
+                    // I believe this is just to properly handle saves between patches, theoretically it is needed for higher level slots for MC saves between patches as well
                     if (legacyAvailableSpellsSlots.ContainsKey(i + 1))
                     {
                         usedSpellsSlots.Add(i + 1, currentInstanceSpellsSlotCapacities[i + 1] - legacyAvailableSpellsSlots[i + 1]);
@@ -227,7 +222,7 @@ namespace SolastaMultiClass.Patches
                     }
                 }
 
-                //Seems to be new features that give extra spell slots
+                // seems to be new features that give extra spell slots
                 if (spellCastingAffinities != null && spellCastingAffinities.Count > 0)
                 {
                     foreach (FeatureDefinition spellCastingAffinity in spellCastingAffinities)
@@ -248,7 +243,7 @@ namespace SolastaMultiClass.Patches
                     }
                 }
 
-                //Now update all other long rest spellrepetoires to have the same spell slots that we just calculated.
+                // now update all other long rest spellrepetoires to have the same spell slots that we just calculated.
                 foreach (var spellRepetoire in heroWithSpellRepetoire.SpellRepertoires.Where(spellRep => spellRep.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest))
                 {
                     for (int i = 0; i < maxSpellLevel; i++)
@@ -268,9 +263,9 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        //Remove the ability to select spells of higher level than you should be able to when leveling up
-        //This doesn't fix the 'Auto' choices however.
-        //Essentially the only change that is needed to use class level instead of hero level but requires a whole bunch of postfix code to do so :)
+        // Removes the ability to select spells of higher level than you should be able to when leveling up
+        // This doesn't fix the 'Auto' choices however.
+        // Essentially the only change that is needed to use class level instead of hero level but requires a whole bunch of postfix code to do so :)
         [HarmonyPatch(typeof(CharacterStageSpellSelectionPanel), "Refresh")]
         internal static class CharacterStageSpellSelectionPanel_Refresh_Patch
         {
@@ -279,24 +274,23 @@ namespace SolastaMultiClass.Patches
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
-                var charBMType = typeof(CharacterStageSpellSelectionPanel);
-                var currentLearnStepFieldInfo = charBMType.GetField("currentLearnStep", BindingFlags.NonPublic | BindingFlags.Instance);
-                var allTagsFieldInfo = charBMType.GetField("allTags", BindingFlags.NonPublic | BindingFlags.Instance);
-                var spellsByLevelTableFieldInfo = charBMType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
+                var characterStageSpellSelectionPanelType = typeof(CharacterStageSpellSelectionPanel);
+                // var currentLearnStepFieldInfo = charBMType.GetField("currentLearnStep", BindingFlags.NonPublic | BindingFlags.Instance);
+                var allTagsFieldInfo = characterStageSpellSelectionPanelType.GetField("allTags", BindingFlags.NonPublic | BindingFlags.Instance);
+                var spellsByLevelTableFieldInfo = characterStageSpellSelectionPanelType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
 
-                int currentLearnStep = (int)currentLearnStepFieldInfo.GetValue(__instance);
+                // int currentLearnStep = (int)currentLearnStepFieldInfo.GetValue(__instance);
                 List<string> allTags = (List<string>)allTagsFieldInfo.GetValue(__instance);
 
                 if (allTags == null)
                     return;
 
                 string item = allTags[allTags.Count - 1];
-                CharacterClassDefinition characterClassDefinition = null;
-                __instance.CharacterBuildingService.GetLastAssignedClassAndLevel(out characterClassDefinition, out int unused);
+                __instance.CharacterBuildingService.GetLastAssignedClassAndLevel(out CharacterClassDefinition characterClassDefinition, out int _);
 
                 FeatureDefinitionCastSpell spellFeature = __instance.CharacterBuildingService.GetSpellFeature(item);
 
-                //Only need updates if for spell selection.  This fixes an issue where Clerics were getting level 1 spells as cantrips :).
+                // only need updates if for spell selection.  This fixes an issue where Clerics were getting level 1 spells as cantrips :).
                 if (spellFeature.SpellKnowledge != RuleDefinitions.SpellKnowledge.Selection && spellFeature.SpellKnowledge != RuleDefinitions.SpellKnowledge.Spellbook)
                     return;
 
@@ -310,14 +304,14 @@ namespace SolastaMultiClass.Patches
 
                 if (spellsByLevelRect != null && currentChildCount > highestSpellLevel + accountForCantripsInt)
                 {
-                    //Deactivate the extra spell UI that can show up do to the original method using Character level instead of Class level
+                    // deactivate the extra spell UI that can show up do to the original method using Character level instead of Class level
                     for (int i = highestSpellLevel + accountForCantripsInt; i < currentChildCount; i++)
                     {
                         var child = spellsByLevelRect.GetChild(i);
                         child?.gameObject?.SetActive(false);
                     }
 
-                    //TODO test if this is needed
+                    // TODO test if this is needed
                     LayoutRebuilder.ForceRebuildLayoutImmediate(spellsByLevelRect);
                 }
             }
@@ -333,13 +327,13 @@ namespace SolastaMultiClass.Patches
                 string str = tag;
                 if (str.StartsWith("03Class"))
                 {
-                    str = tag.Substring(0, tag.Length - 2); //Remvoes any levels from the tag examples are 03ClassRanger2, 03ClassRanger20.  This is a bit lazy but no class will have a tag where the class name is only 1 character.  
-                                                            //Old Solasta code was str = "03Class"; which lead to getting the first spell feature from any class
+                    str = tag.Substring(0, tag.Length - 2); // removes any levels from the tag examples are 03ClassRanger2, 03ClassRanger20.  This is a bit lazy but no class will have a tag where the class name is only 1 character.  
+                                                            // old Solasta code was str = "03Class"; which lead to getting the first spell feature from any class
                 }
                 else if (str.StartsWith("06Subclass"))
                 {
-                    str = tag.Substring(0, tag.Length - 2); //Similar to above just with subclasses
-                                                            //Old Solasta code was str = "06Subclass"; which lead to getting the first spell feature from any subclass
+                    str = tag.Substring(0, tag.Length - 2); // similar to above just with subclasses
+                                                            // old Solasta code was str = "06Subclass"; which lead to getting the first spell feature from any subclass
                 }
                 Dictionary<string, List<FeatureDefinition>>.Enumerator enumerator = __instance.HeroCharacter.ActiveFeatures.GetEnumerator();
                 try
@@ -396,7 +390,7 @@ namespace SolastaMultiClass.Patches
                 //This may not work for subclasses that have 'Prepared' spells, but I don't think any do.
                 CharacterClassDefinition characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
 
-                var hero = __instance.GuiCharacter.RulesetCharacterHero as RulesetCharacterHero; //Cast to RulesetCharacterHero so we can figure out the level of the current class
+                var hero = __instance.GuiCharacter.RulesetCharacterHero;
                 if (hero == null || characterClassDefinition == null)
                     return;
 
@@ -427,7 +421,7 @@ namespace SolastaMultiClass.Patches
                     {
                         var child = transforms.GetChild(k);
                         //Don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
-                        if (child.TryGetComponent(typeof(SlotStatusTable), out Component unused))
+                        if (child.TryGetComponent(typeof(SlotStatusTable), out Component _))
                             continue;
                         if (i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1 && !Main.Settings.TurnOffSpellPreparationRestrictions) //The toggle option needs to be here otherwise if you already had it on and opened a spell list it will mess things up potentially for all spellcasters
                             child.gameObject.SetActive(false);
@@ -446,8 +440,7 @@ namespace SolastaMultiClass.Patches
             foreach (var classAndLevel in classesAndLevels)
             {
                 int numLevelsToUseFromNextClass = classAndLevel.Value;
-                CharacterSubclassDefinition subclass = null;
-                classesAndSubclasses.TryGetValue(classAndLevel.Key, out subclass);
+                classesAndSubclasses.TryGetValue(classAndLevel.Key, out CharacterSubclassDefinition subclass);
                 eAHCasterType casterType = GetCasterTypeForSingleLevelOfClass(classAndLevel.Key, subclass);
 
                 //Only increment caster level when the class in question has actually gottent their spellcasting feature.  Artificer's get spell slots at level 1 just to complicate things :).
@@ -580,7 +573,7 @@ namespace SolastaMultiClass.Patches
                     DatabaseHelper.CharacterSubclassDefinitions.RoguishShadowCaster,
         };
 
-        public static readonly List<SlotsByLevelDuplet> FullCastingSlots = new List<SlotsByLevelDuplet>()
+        private static readonly List<SlotsByLevelDuplet> FullCastingSlots = new List<SlotsByLevelDuplet>()
                 {
                     //Add 10th level slots that are always 0 since Solasta seems to rely on IndexOf(0) for certain things
                     new SlotsByLevelDuplet() { Slots = new List<int> {2,0,0,0,0,0,0,0,0,0}, Level = 1 },
@@ -605,17 +598,17 @@ namespace SolastaMultiClass.Patches
                     new SlotsByLevelDuplet() { Slots = new List<int> {4,3,3,3,3,2,2,1,1,0}, Level = 20 },
                 };
 
-        public static List<RulesetCharacterHero> GetHeroesParty()
+        private static RulesetCharacterHero GetHero(string name)
         {
             var gameService = ServiceRepository.GetService<IGameService>();
-            var inGameHeroesPool = new List<RulesetCharacterHero>();
+            var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
 
             if (gameService?.Game != null)
             {
-                foreach (var gameCampaignCharacter in gameService.Game.GameCampaign.Party.CharactersList)
-                    inGameHeroesPool.Add((RulesetCharacterHero)gameCampaignCharacter.RulesetCharacter);
+                return (RulesetCharacterHero) gameService.Game.GameCampaign.Party.CharactersList.Find(x => x.RulesetCharacter.Name == name).RulesetCharacter;
             }
-            return inGameHeroesPool;
+
+            return characterBuildingService?.HeroCharacter;
         }
 
         internal static List<RulesetCharacterHero> HeroesPool = new List<RulesetCharacterHero>();
