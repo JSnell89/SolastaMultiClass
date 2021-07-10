@@ -224,12 +224,18 @@ namespace SolastaMultiClass.Patches
 
                     ___compatibleClasses.Clear();
                     ___compatibleClasses.AddRange(GetHeroAllowedClassDefinitions(hero));
+
+                    ___compatibleClasses.Sort((a, b) => a.Name.CompareTo(b.Name));
                     ___selectedClass = ___compatibleClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
 
-                    __instance.CommonData.AttackModesPanel?.Hide();
+                    __instance.CommonData.AttackModesPanel?.RefreshNow();
                     __instance.CommonData.PersonalityMapPanel?.RefreshNow();
                 }
-                ___compatibleClasses.Sort((a,b) => a.Name.CompareTo(b.Name));
+                else
+                {
+                    ___compatibleClasses.Sort((a, b) => a.Name.CompareTo(b.Name));
+                    ___selectedClass = -1;
+                }
             }
         }
 
