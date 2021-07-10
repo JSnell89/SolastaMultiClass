@@ -20,6 +20,7 @@ namespace SolastaMultiClass.Patches
         {
             selectedClass = characterClassDefinition;
             selectedClassFeaturesUnlock.Clear();
+
             if (characterClassDefinition != null)
             {
                 var classesAndLevels = hero.ClassesAndLevels;
@@ -49,7 +50,7 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterLevelUpScreen), "LoadStagePanels")]
         internal static class CharacterLevelUpScreen_LoadStagePanels_Patch
         {
-            internal static void Postfix(CharacterLevelUpScreen __instance, Dictionary<string, CharacterStagePanel> ___stagePanelsByName)
+            internal static void Postfix(CharacterLevelUpScreen __instance, ref Dictionary<string, CharacterStagePanel> ___stagePanelsByName)
             {
                 var screen = Gui.GuiService.GetScreen<CharacterCreationScreen>();
                 var stagePanelPrefabs = (GameObject[])AccessTools.Field(screen.GetType(), "stagePanelPrefabs").GetValue(screen);
@@ -71,11 +72,7 @@ namespace SolastaMultiClass.Patches
                         stagePanelsByName.Add("DeitySelection", deitySelectionPanel);
                     }
                 }
-                ___stagePanelsByName.Clear();
-                foreach (var stagePanelName in stagePanelsByName)
-                {
-                    ___stagePanelsByName.Add(stagePanelName.Key, stagePanelName.Value);
-                }
+                ___stagePanelsByName = stagePanelsByName;
             }
         }
 
@@ -232,7 +229,7 @@ namespace SolastaMultiClass.Patches
                     __instance.CommonData.AttackModesPanel?.Hide();
                     __instance.CommonData.PersonalityMapPanel?.RefreshNow();
                 }
-                ___compatibleClasses.Sort((IComparer<CharacterClassDefinition>)___compatibleClasses);
+                ___compatibleClasses.Sort((a,b) => a.Name.CompareTo(b.Name));
             }
         }
 
@@ -339,7 +336,7 @@ namespace SolastaMultiClass.Patches
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var setActiveFound = 0;
-                var setActiveMethod = typeof(UnityEngine.GameObject).GetMethod("SetActive");
+                var setActiveMethod = typeof(GameObject).GetMethod("SetActive");
                 var mySetActiveMethod = typeof(LevelUpSequencePatchers).GetMethod("MySetActive");
 
                 foreach (var instruction in instructions)
@@ -350,12 +347,8 @@ namespace SolastaMultiClass.Patches
                         {
                             yield return new CodeInstruction(OpCodes.Call, mySetActiveMethod);
                         }
-                        yield return instruction;
                     }
-                    else
-                    {
-                        yield return instruction;
-                    }
+                    yield return instruction;
                 }
             }
         }
