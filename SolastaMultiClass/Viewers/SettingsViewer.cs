@@ -22,29 +22,29 @@ namespace SolastaMultiClass.Viewers
                 Main.Settings.MaxAllowedClasses = maxAllowedClasses;
             }
 
-            toggle = Main.Settings.ForceMinInOutPreReqs;
+            toggle = Main.Settings.EnableMinInOutAttributes;
             if (UI.Toggle("Enable ability scores minimum in/out pre-requisites", ref toggle, 0, UI.AutoWidth())) 
             {
-                Main.Settings.ForceMinInOutPreReqs = toggle;
+                Main.Settings.EnableMinInOutAttributes = toggle;
+            }
+
+            toggle = Main.Settings.EnableNonStackingExtraAttacks;
+            if (UI.Toggle("Enable non-stacking extra attacks (only on newly acquired levels)", ref toggle, 0, UI.AutoWidth()))
+            {
+                Main.Settings.EnableNonStackingExtraAttacks = toggle;
             }
 
             toggle = Main.Settings.EnableSharedSpellCasting;
-            if (UI.Toggle("Enable shared spell casting", ref toggle, 0, UI.AutoWidth()))
+            if (UI.Toggle("Enable the shared spell casting system", ref toggle, 0, UI.AutoWidth()))
             {
                 Main.Settings.EnableSharedSpellCasting = toggle;
             }
 
-            toggle = Main.Settings.TurnOffSpellPreparationRestrictions;
-            if (UI.Toggle("Turn off multiclass spell preparing restrictions", ref toggle, 0, UI.AutoWidth()))
-            {
-                Main.Settings.TurnOffSpellPreparationRestrictions = toggle;
-            }
-
-            toggle = Main.Settings.AllowExtraAttacksToStack;
-            if (UI.Toggle("Allow extra attacks to stack (only on newly acquired levels)", ref toggle, 0, UI.AutoWidth()))
-            {
-                Main.Settings.AllowExtraAttacksToStack = toggle;
-            }
+            //toggle = Main.Settings.TurnOffSpellPreparationRestrictions;
+            //if (UI.Toggle("Turn off multiclass spell preparation restrictions", ref toggle, 0, UI.AutoWidth()))
+            //{
+            //    Main.Settings.TurnOffSpellPreparationRestrictions = toggle;
+            //}
 
             UI.Label("");
 

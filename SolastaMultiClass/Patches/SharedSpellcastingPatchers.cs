@@ -432,7 +432,7 @@ namespace SolastaMultiClass.Patches
                         //Don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
                         if (child.TryGetComponent(typeof(SlotStatusTable), out Component _))
                             continue;
-                        if (i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1 && !Main.Settings.TurnOffSpellPreparationRestrictions) //The toggle option needs to be here otherwise if you already had it on and opened a spell list it will mess things up potentially for all spellcasters
+                        if (i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1) // && !Main.Settings.TurnOffSpellPreparationRestrictions) //The toggle option needs to be here otherwise if you already had it on and opened a spell list it will mess things up potentially for all spellcasters
                             child.gameObject.SetActive(false);
                         else
                             child.gameObject.SetActive(true); //Need to set to true because when switching tabs the false from one spellcasting class is carried over.
