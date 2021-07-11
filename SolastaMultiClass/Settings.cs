@@ -1,11 +1,8 @@
-using System.Collections.Generic;
 using UnityModManagerNet;
 using SolastaMultiClass.Models;
 
 namespace SolastaMultiClass
 {
-
-
     public class Core
     {
 
@@ -18,18 +15,17 @@ namespace SolastaMultiClass
         public bool EnableSharedSpellCasting = true;
         public bool EnableNonStackingExtraAttacks = true;
 
-        public Dictionary<string, CasterType> ClassCasterType = new Dictionary<string, CasterType>()
+        public SerializableDictionary<string, CasterType> ClassCasterType = new SerializableDictionary<string, CasterType>()
         {
-            { "Bard", CasterType.Full },
-            { "BardClass", CasterType.Full }, // holic
             { "Cleric", CasterType.Full },
             { "Sorcerer", CasterType.Full },
             { "Wizard", CasterType.Full },
             { "Paladin", CasterType.Half },
             { "Ranger", CasterType.Half },
-            { "ClassTinkerer", CasterType.HalfCeiling }, // chris
-            { "BarbarianSubclassPrimalPathOfWarShaman", CasterType.OneThird }, // holic
-            { "MartialEldritchKnight", CasterType.OneThird }, // holic
+        };
+
+        public SerializableDictionary<string, CasterType> SubclassCasterType = new SerializableDictionary<string, CasterType>()
+        {
             { "MartialSpellblade", CasterType.OneThird },
             { "RoguishShadowCaster", CasterType.OneThird }
         };

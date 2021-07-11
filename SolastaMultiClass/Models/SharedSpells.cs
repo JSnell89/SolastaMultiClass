@@ -6,12 +6,12 @@ namespace SolastaMultiClass.Models
 {
     public enum CasterType
     {
-        None,
         OneThird,
         OneThirdCeiling,
         Half,
         HalfCeiling,
-        Full
+        Full,
+        None
     };
 
     public class CasterLevelContext
@@ -51,7 +51,17 @@ namespace SolastaMultiClass.Models
 
     class SharedSpells
     {
-        public static RulesetCharacterHero GetHero(string name)
+        internal static string[] CasterTypeNames = new string[6]
+        {
+            "One-Third",
+            "One-Third (c)",
+            "Half",
+            "Half (c)",
+            "Full",
+            "None"
+        };
+
+        internal static RulesetCharacterHero GetHero(string name)
         {
 
             var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
@@ -89,17 +99,14 @@ namespace SolastaMultiClass.Models
             return context.GetCasterLevel();
         }
 
+        // class caster type always take precedence over subclass caster type
         private static CasterType GetCasterTypeForSingleLevelOfClass(CharacterClassDefinition characterClassDefinition, CharacterSubclassDefinition characterSubclassDefinition)
         {
-            if (Main.Settings.ClassCasterType.ContainsKey(characterClassDefinition.Name))
+            if (Main.Settings.ClassCasterType.ContainsKey(characterClassDefinition.Name) && Main.Settings.ClassCasterType[characterClassDefinition.Name] != CasterType.None)
             {
                 return Main.Settings.ClassCasterType[characterClassDefinition.Name];
             }
-            if (Main.Settings.ClassCasterType.ContainsKey(characterSubclassDefinition.Name))
-            {
-                return Main.Settings.ClassCasterType[characterSubclassDefinition.Name];
-            }
-            return CasterType.None;
+            return Main.Settings.SubclassCasterType[characterSubclassDefinition.Name];
         }
 
         // add 10th level slots that are always 0 since game engine seems to rely on IndexOf(List.Count) for certain things
