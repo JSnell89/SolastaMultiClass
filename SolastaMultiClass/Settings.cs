@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using UnityModManagerNet;
+using SolastaMultiClass.Models;
 
 namespace SolastaMultiClass
 {
+
+
     public class Core
     {
 
@@ -16,18 +19,18 @@ namespace SolastaMultiClass
         //public bool TurnOffSpellPreparationRestrictions = false;
         public bool EnableNonStackingExtraAttacks = true;
 
-        public Dictionary<string, string> ClassCasterType = new Dictionary<string, string>()
+        public Dictionary<string, CasterType> ClassCasterType = new Dictionary<string, CasterType>()
         {
-            { "Bard", "Full" },
-            { "BardClass", "Full" },
-            { "Cleric", "Full" },
-            { "Sorcerer", "Full" },
-            { "Wizard", "Full" },
-            { "Paladin", "Half" },
-            { "Ranger", "Half" },
-            { "ClassTinkerer", "HalfCeiling" },
-            { "MartialSpellblade", "OneThird" },
-            { "RoguishShadowCaster", "OneThird" }
+            { "Bard", CasterType.Full },
+            { "BardClass", CasterType.Full },
+            { "Cleric", CasterType.Full },
+            { "Sorcerer", CasterType.Full },
+            { "Wizard", CasterType.Full },
+            { "Paladin", CasterType.Half },
+            { "Ranger", CasterType.Half },
+            //{ "ClassTinkerer", "HalfCeiling" },
+            { "MartialSpellblade", CasterType.OneThird },
+            { "RoguishShadowCaster", CasterType.OneThird }
         };
 
         public const InputCommands.Id PLAIN_LEFT = (InputCommands.Id)22220003;
