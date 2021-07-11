@@ -16,19 +16,20 @@ namespace SolastaMultiClass
         public int MaxAllowedClasses = 2;
         public bool EnableMinInOutAttributes = true;
         public bool EnableSharedSpellCasting = true;
-        //public bool TurnOffSpellPreparationRestrictions = false;
         public bool EnableNonStackingExtraAttacks = true;
 
         public Dictionary<string, CasterType> ClassCasterType = new Dictionary<string, CasterType>()
         {
             { "Bard", CasterType.Full },
-            { "BardClass", CasterType.Full },
+            { "BardClass", CasterType.Full }, // holic
             { "Cleric", CasterType.Full },
             { "Sorcerer", CasterType.Full },
             { "Wizard", CasterType.Full },
             { "Paladin", CasterType.Half },
             { "Ranger", CasterType.Half },
-            //{ "ClassTinkerer", "HalfCeiling" },
+            { "ClassTinkerer", CasterType.HalfCeiling }, // chris
+            { "BarbarianSubclassPrimalPathOfWarShaman", CasterType.OneThird }, // holic
+            { "MartialEldritchKnight", CasterType.OneThird }, // holic
             { "MartialSpellblade", CasterType.OneThird },
             { "RoguishShadowCaster", CasterType.OneThird }
         };
