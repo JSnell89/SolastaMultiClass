@@ -9,6 +9,7 @@ namespace SolastaMultiClass.Models
         None,
         Full,
         Half,
+        HalfRoundUp,
         OneThird
     };
 
@@ -25,6 +26,7 @@ namespace SolastaMultiClass.Models
                     { CasterType.None, 0 },
                     { CasterType.Full, 0 },
                     { CasterType.Half, 0 },
+                    { CasterType.HalfRoundUp, 0 },
                     { CasterType.OneThird, 0 },
                 };
             }
@@ -49,6 +51,8 @@ namespace SolastaMultiClass.Models
                     casterLevel += (int)Math.Ceiling(levels[CasterType.Half] / 2.0);
                 }
 
+                casterLevel += (int)Math.Ceiling(levels[CasterType.HalfRoundUp] / 2.0);
+
                 if (levels[CasterType.OneThird] == 3)
                 {
                     casterLevel += 1;
@@ -62,11 +66,12 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        internal static string[] CasterTypeNames = new string[4]
+        internal static string[] CasterTypeNames = new string[5]
         {
             "None",
             "Full",
             "Half",
+            "Half [round up]",
             "One-Third"
         };
 

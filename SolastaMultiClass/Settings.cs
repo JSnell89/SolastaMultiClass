@@ -24,7 +24,7 @@ namespace SolastaMultiClass
             { "Ranger", CasterType.Half },
             // modders' classes
             { "BardClass", CasterType.Full }, // holic92
-            { "ClassTinkerer", CasterType.Half }, // ChrisJohnDigital
+            { "ClassTinkerer", CasterType.HalfRoundUp }, // ChrisJohnDigital
         };
 
         public SerializableDictionary<string, CasterType> SubclassCasterType = new SerializableDictionary<string, CasterType>()
