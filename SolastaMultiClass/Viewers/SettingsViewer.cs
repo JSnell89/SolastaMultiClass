@@ -11,9 +11,9 @@ namespace SolastaMultiClass.Viewers
         {
             public string ClassName;
             public string ClassTitle;
-            public Dictionary<string, string> SubclassNames = new Dictionary<string, string>();
+            public SortedDictionary<string, string> SubclassNames = new SortedDictionary<string, string>();
 
-            public ClassCasterType(string className, string classTitle, Dictionary<string, string> subclassNames)
+            public ClassCasterType(string className, string classTitle, SortedDictionary<string, string> subclassNames)
             {
                 this.ClassName = className;
                 this.ClassTitle = classTitle;
@@ -29,10 +29,10 @@ namespace SolastaMultiClass.Viewers
 
         private static readonly List<ClassCasterType> classCasterTypes = new List<ClassCasterType>();
 
-        private static Dictionary<string, string> GetSubclassNames(CharacterClassDefinition characterClassDefinition)
+        private static SortedDictionary<string, string> GetSubclassNames(CharacterClassDefinition characterClassDefinition)
         {
             var characterSubclassDefinitionDB = DatabaseRepository.GetDatabase<CharacterSubclassDefinition>();
-            var subclassNames = new Dictionary<string, string>();
+            var subclassNames = new SortedDictionary<string, string>();
             var subclassChoices = characterClassDefinition.FeatureUnlocks.FindAll(x => x.FeatureDefinition is FeatureDefinitionSubclassChoice);
 
             foreach (var subclassChoice in subclassChoices)
@@ -58,7 +58,7 @@ namespace SolastaMultiClass.Viewers
                 {
                     UI.Label(classCasterType.ClassTitle, UI.Width(264));
                     int choice = (int)Main.Settings.ClassCasterType[classCasterType.ClassName];
-                    if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.AutoWidth()))
+                    if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.Width(996)))
                     {
                         Main.Settings.ClassCasterType[classCasterType.ClassName] = (CasterType)choice;
                     }
@@ -74,7 +74,7 @@ namespace SolastaMultiClass.Viewers
                             UI.Space(24);
                             UI.Label(subclassName.Value, UI.Width(240));
                             int choice = (int)Main.Settings.SubclassCasterType[subclassName.Key];
-                            if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.AutoWidth()))
+                            if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.Width(996)))
                             {
                                 Main.Settings.SubclassCasterType[subclassName.Key] = (CasterType)choice;
                             }
@@ -104,7 +104,7 @@ namespace SolastaMultiClass.Viewers
             }
 
             toggle = Main.Settings.EnableNonStackingExtraAttacks;
-            if (UI.Toggle("Enable non-stacking extra attacks (only on newly acquired levels)", ref toggle, 0, UI.AutoWidth()))
+            if (UI.Toggle("Disable stacking extra attacks (only on new levels)", ref toggle, 0, UI.AutoWidth()))
             {
                 Main.Settings.EnableNonStackingExtraAttacks = toggle;
             }
@@ -138,6 +138,7 @@ namespace SolastaMultiClass.Viewers
                         }
                         classCasterTypes.Add(new ClassCasterType(characterClassDefinition.name, characterClassDefinition.FormatTitle(), GetSubclassNames(characterClassDefinition)));
                     }
+                    classCasterTypes.Sort((a, b) => a.ClassTitle.CompareTo(b.ClassTitle));
                     hasUpdatedClassCasterTypes = true;
                 }
             }
