@@ -29,29 +29,20 @@ namespace SolastaMultiClass.Viewers
 
         private static readonly List<ClassCasterType> classCasterTypes = new List<ClassCasterType>();
 
-        private static SortedDictionary<string, string> GetSubclassNames(CharacterClassDefinition characterClassDefinition)
-        {
-            var characterSubclassDefinitionDB = DatabaseRepository.GetDatabase<CharacterSubclassDefinition>();
-            var subclassNames = new SortedDictionary<string, string>();
-            var subclassChoices = characterClassDefinition.FeatureUnlocks.FindAll(x => x.FeatureDefinition is FeatureDefinitionSubclassChoice);
-
-            foreach (var subclassChoice in subclassChoices)
-            {
-                foreach (var subClassName in (subclassChoice.FeatureDefinition as FeatureDefinitionSubclassChoice).Subclasses)
-                {
-                    var characterSubclassDefinition = characterSubclassDefinitionDB.GetElement(subClassName);
-                    if (!Main.Settings.SubclassCasterType.ContainsKey(subClassName))
-                    {
-                        Main.Settings.SubclassCasterType.Add(subClassName, CasterType.None);
-                    }
-                    subclassNames.Add(characterSubclassDefinition.FormatTitle(), subClassName);
-                }
-            }
-            return subclassNames;
-        }
-
         private static void DisplayClassCasterTypeSettings()
         {
+            UI.Label("");
+
+            if (classCasterTypes.Count == 0)
+            {
+                UI.Label("Loading...".yellow());
+                return;
+            }
+
+            UI.Label("Instructions:".yellow());
+            UI.Label(". select ".yellow() + "None".bold() + " for the class to have more control at the subclass level".yellow());
+            UI.Label("");
+
             foreach (var classCasterType in classCasterTypes)
             {
                 using (UI.HorizontalScope())
@@ -117,9 +108,50 @@ namespace SolastaMultiClass.Viewers
 
             if (Main.Settings.EnableSharedSpellCasting)
             {
-                UI.Label("");
                 DisplayClassCasterTypeSettings();
             }
+        }
+
+        private static SortedDictionary<string, string> GetSubclassNames(CharacterClassDefinition characterClassDefinition)
+        {
+            var characterSubclassDefinitionDB = DatabaseRepository.GetDatabase<CharacterSubclassDefinition>();
+            var subclassNames = new SortedDictionary<string, string>();
+
+            if (characterClassDefinition.Name == "Cleric")
+            {
+                foreach(var characterSubclassDefinition in characterSubclassDefinitionDB.GetAllElements())
+                {
+                    var subClassName = characterSubclassDefinition.Name;
+
+                    if (characterSubclassDefinition.Name.Contains("Domain")) 
+                    {
+                        if (!Main.Settings.SubclassCasterType.ContainsKey(subClassName))
+                        {
+                            Main.Settings.SubclassCasterType.Add(subClassName, CasterType.None);
+                        }
+                        subclassNames.Add(characterSubclassDefinition.FormatTitle(), subClassName);
+                    }
+                }
+            }
+            else
+            {
+                var subclassChoices = characterClassDefinition.FeatureUnlocks.FindAll(x => x.FeatureDefinition is FeatureDefinitionSubclassChoice);
+
+                foreach (var subclassChoice in subclassChoices)
+                {
+                    foreach (var subClassName in (subclassChoice.FeatureDefinition as FeatureDefinitionSubclassChoice).Subclasses)
+                    {
+                        var characterSubclassDefinition = characterSubclassDefinitionDB.GetElement(subClassName);
+
+                        if (!Main.Settings.SubclassCasterType.ContainsKey(subClassName))
+                        {
+                            Main.Settings.SubclassCasterType.Add(subClassName, CasterType.None);
+                        }
+                        subclassNames.Add(characterSubclassDefinition.FormatTitle(), subClassName);
+                    }
+                }
+            }
+            return subclassNames;
         }
 
         public static void UpdateClassCasterTypesAndSettings()
