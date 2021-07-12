@@ -22,9 +22,10 @@ namespace SolastaMultiClass.Models
             {
                 levels = new Dictionary<CasterType, int>
                 {
-                    { CasterType.OneThird, 0 },
+                    { CasterType.None, 0 },
+                    { CasterType.Full, 0 },
                     { CasterType.Half, 0 },
-                    { CasterType.Full, 0 }
+                    { CasterType.OneThird, 0 },
                 };
             }
 
@@ -93,14 +94,13 @@ namespace SolastaMultiClass.Models
             foreach (var classAndLevel in hero.ClassesAndLevels)
             {
                 hero.ClassesAndSubclasses.TryGetValue(classAndLevel.Key, out CharacterSubclassDefinition characterSubclassDefinition);
-                CasterType casterType = GetCasterTypeForSingleLevelOfClass(classAndLevel.Key, characterSubclassDefinition);
+                CasterType casterType = GetCasterTypeForClassOrSubclass(classAndLevel.Key, characterSubclassDefinition);
                 context.IncrementCasterLevel(casterType);
             }
             return context.GetCasterLevel();
         }
 
-        // class caster type always take precedence over subclass caster type
-        private static CasterType GetCasterTypeForSingleLevelOfClass(CharacterClassDefinition characterClassDefinition, CharacterSubclassDefinition characterSubclassDefinition)
+        private static CasterType GetCasterTypeForClassOrSubclass(CharacterClassDefinition characterClassDefinition, CharacterSubclassDefinition characterSubclassDefinition)
         {
             if (characterClassDefinition != null && Main.Settings.ClassCasterType[characterClassDefinition.Name] != CasterType.None)
             {
