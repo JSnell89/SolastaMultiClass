@@ -9,9 +9,7 @@ namespace SolastaMultiClass.Models
         None,
         Full,
         Half,
-        OneThird,
-        HalfCeiling,
-        OneThirdCeiling,
+        OneThird
     };
 
     class SharedSpellsRules
@@ -25,9 +23,7 @@ namespace SolastaMultiClass.Models
                 levels = new Dictionary<CasterType, int>
                 {
                     { CasterType.OneThird, 0 },
-                    { CasterType.OneThirdCeiling, 0 },
                     { CasterType.Half, 0 },
-                    { CasterType.HalfCeiling, 0 },
                     { CasterType.Full, 0 }
                 };
             }
@@ -41,24 +37,36 @@ namespace SolastaMultiClass.Models
             {
                 int casterLevel = 0;
 
-                casterLevel += (int)Math.Floor(levels[CasterType.OneThird] / 3.0);
-                casterLevel += (int)Math.Ceiling(levels[CasterType.OneThirdCeiling] / 3.0);
-                casterLevel += (int)Math.Floor(levels[CasterType.Half] / 2.0);
-                casterLevel += (int)Math.Ceiling(levels[CasterType.HalfCeiling] / 2.0);
                 casterLevel += levels[CasterType.Full];
+
+                if (levels[CasterType.Half] == 2)
+                {
+                    casterLevel += 1;
+                }
+                else if(levels[CasterType.Half] > 2)
+                {
+                    casterLevel += (int)Math.Ceiling(levels[CasterType.Half] / 2.0);
+                }
+
+                if (levels[CasterType.OneThird] == 3)
+                {
+                    casterLevel += 1;
+                }
+                else if (levels[CasterType.Half] > 3)
+                {
+                    casterLevel += (int)Math.Ceiling(levels[CasterType.Half] / 3.0);
+                }
 
                 return casterLevel;
             }
         }
 
-        internal static string[] CasterTypeNames = new string[6]
+        internal static string[] CasterTypeNames = new string[4]
         {
             "None",
             "Full",
             "Half",
-            "One-Third",
-            "Half [round up]",
-            "One-Third [round up]",
+            "One-Third"
         };
 
         internal static RulesetCharacterHero GetHero(string name)
@@ -78,22 +86,15 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static double GetCasterLevelForGivenLevel(Dictionary<CharacterClassDefinition, int> classesAndLevels, Dictionary<CharacterClassDefinition, CharacterSubclassDefinition> classesAndSubclasses)
+        public static int GetHeroSharedCasterLevel(RulesetCharacterHero hero)
         {
             var context = new CasterLevelContext();
 
-            foreach (var classAndLevel in classesAndLevels)
+            foreach (var classAndLevel in hero.ClassesAndLevels)
             {
-                int numLevelsToUseFromNextClass = classAndLevel.Value;
-                classesAndSubclasses.TryGetValue(classAndLevel.Key, out CharacterSubclassDefinition subclass);
-                CasterType casterType = GetCasterTypeForSingleLevelOfClass(classAndLevel.Key, subclass);
-
-                //Only increment caster level when the class in question has actually gotten their spellcasting feature.  Artificer's get spell slots at level 1 just to complicate things :).
-                if (casterType == CasterType.Full || casterType == CasterType.HalfCeiling || (numLevelsToUseFromNextClass >= 2 && casterType == CasterType.Half) || (numLevelsToUseFromNextClass >= 3 && casterType == CasterType.OneThird))
-                {
-                    for (int i = numLevelsToUseFromNextClass; i > 0; i--)
-                        context.IncrementCasterLevel(casterType);
-                }
+                hero.ClassesAndSubclasses.TryGetValue(classAndLevel.Key, out CharacterSubclassDefinition characterSubclassDefinition);
+                CasterType casterType = GetCasterTypeForSingleLevelOfClass(classAndLevel.Key, characterSubclassDefinition);
+                context.IncrementCasterLevel(casterType);
             }
             return context.GetCasterLevel();
         }
@@ -101,11 +102,15 @@ namespace SolastaMultiClass.Models
         // class caster type always take precedence over subclass caster type
         private static CasterType GetCasterTypeForSingleLevelOfClass(CharacterClassDefinition characterClassDefinition, CharacterSubclassDefinition characterSubclassDefinition)
         {
-            if (Main.Settings.ClassCasterType.ContainsKey(characterClassDefinition.Name) && Main.Settings.ClassCasterType[characterClassDefinition.Name] != CasterType.None)
+            if (characterClassDefinition != null && Main.Settings.ClassCasterType[characterClassDefinition.Name] != CasterType.None)
             {
                 return Main.Settings.ClassCasterType[characterClassDefinition.Name];
             }
-            return Main.Settings.SubclassCasterType[characterSubclassDefinition.Name];
+            if (characterSubclassDefinition != null)
+            {
+                return Main.Settings.SubclassCasterType[characterSubclassDefinition.Name];
+            }
+            return CasterType.None;
         }
 
         // add 10th level slots that are always 0 since game engine seems to rely on IndexOf(List.Count) for certain things

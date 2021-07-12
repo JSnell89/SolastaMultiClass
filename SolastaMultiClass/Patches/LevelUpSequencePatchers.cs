@@ -354,7 +354,7 @@ namespace SolastaMultiClass.Patches
                     ___compatibleClasses.Clear();
                     ___compatibleClasses.AddRange(GetHeroAllowedClassDefinitions(hero));
 
-                    ___compatibleClasses.Sort((a, b) => a.Name.CompareTo(b.Name));
+                    ___compatibleClasses.Sort((a, b) => a.FormatTitle().CompareTo(b.FormatTitle()));
                     ___selectedClass = ___compatibleClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
 
                     __instance.CommonData.AttackModesPanel?.RefreshNow();
@@ -362,7 +362,7 @@ namespace SolastaMultiClass.Patches
                 }
                 else
                 {
-                    ___compatibleClasses.Sort((a, b) => a.Name.CompareTo(b.Name));
+                    ___compatibleClasses.Sort((a, b) => a.FormatTitle().CompareTo(b.FormatTitle()));
                     ___selectedClass = -1;
                 }
             }

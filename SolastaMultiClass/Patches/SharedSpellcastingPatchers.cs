@@ -81,7 +81,7 @@ namespace SolastaMultiClass.Patches
                 // don't bother doing fancy work if there aren't multiple spell repertoires that are shared (multiple long rest spell features).
                 if (heroWithSpellRepetoire != null && heroWithSpellRepetoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() > 1)
                 {
-                    int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));//Multiclassing always rounds down caster level
+                    int casterLevel = GetHeroSharedCasterLevel(heroWithSpellRepetoire);
 
                     if (__instance.SpellCastingFeature == null)
                     {
@@ -133,7 +133,7 @@ namespace SolastaMultiClass.Patches
                     return;
 
                 int maxSpellLevel = __instance.MaxSpellLevelOfSpellCastingLevel;
-                int casterLevel = (int)Math.Floor(GetCasterLevelForGivenLevel(heroWithSpellRepetoire.ClassesAndLevels, heroWithSpellRepetoire.ClassesAndSubclasses));
+                int casterLevel = GetHeroSharedCasterLevel(heroWithSpellRepetoire);
 
                 var currentInstanceSpellsSlotCapacities = (Dictionary<int, int>)AccessTools.Field(__instance.GetType(), "spellsSlotCapacities").GetValue(__instance);
                 var legacyAvailableSpellsSlots = (Dictionary<int, int>)AccessTools.Field(__instance.GetType(), "legacyAvailableSpellsSlots").GetValue(__instance);
@@ -275,12 +275,9 @@ namespace SolastaMultiClass.Patches
                     sorceryPointsLabel.gameObject.SetActive(false);
                 }
 
-                var currentCharacterClassAsDictionary = new Dictionary<CharacterClassDefinition, int>() { { characterClassDefinition, hero.ClassesAndLevels[characterClassDefinition] } };
-                var currentCharacterSubclassAsDictionary = new Dictionary<CharacterClassDefinition, CharacterSubclassDefinition>() { { characterClassDefinition, hero.ClassesAndSubclasses.ContainsKey(characterClassDefinition) ? hero.ClassesAndSubclasses[characterClassDefinition] : null } };
+                int currentClassCasterPrepareSpellsLevel = GetHeroSharedCasterLevel(hero);
 
-                // Bit of an odd case here.  You actually want to prepare spells of the next caster level if you are part way into it.
-                // E.g. a Level 5 paladin should be able to prepare level 2 spells like a 3rd level full caster, even though they are only actually a level 2.5 caster.
-                int currentClassCasterPrepareSpellsLevel = (int)Math.Ceiling(GetCasterLevelForGivenLevel(currentCharacterClassAsDictionary, currentCharacterSubclassAsDictionary));
+                // NEED TO REVIEW THIS - ZAPPASTUFF
 
                 int maxLevelOfSpellcastingForClass = currentClassCasterPrepareSpellsLevel % 2 == 0 ? currentClassCasterPrepareSpellsLevel / 2 : (currentClassCasterPrepareSpellsLevel + 1) / 2;
 
@@ -301,10 +298,11 @@ namespace SolastaMultiClass.Patches
                     for (int k = 0; k < transforms.childCount; k++)
                     {
                         var child = transforms.GetChild(k);
+
                         //Don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
                         if (child.TryGetComponent(typeof(SlotStatusTable), out Component _))
                             continue;
-                        if (i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1) // && !Main.Settings.TurnOffSpellPreparationRestrictions) //The toggle option needs to be here otherwise if you already had it on and opened a spell list it will mess things up potentially for all spellcasters
+                        if (i > (maxLevelOfSpellcastingForClass + accountForCantripsInt) - 1) 
                             child.gameObject.SetActive(false);
                         else
                             child.gameObject.SetActive(true); //Need to set to true because when switching tabs the false from one spellcasting class is carried over.

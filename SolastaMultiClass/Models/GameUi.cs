@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using static SolastaMultiClass.Settings;
 
 namespace SolastaMultiClass.Models
@@ -42,22 +41,36 @@ namespace SolastaMultiClass.Models
             return allSubclassesLabel;
         }
 
-        public static string GetAllClassesLabel(GuiCharacter character)
+        public static string GetAllClassesLabel(GuiCharacter character, string defaultLabel = "")
         {
             var allClassesLabel = "";
             var snapshot = character?.Snapshot;
 
             if (snapshot != null)
             {
-                allClassesLabel = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetElement(snapshot.Classes[0]).FormatTitle();
+                if (snapshot.Classes.Length == 1)
+                {
+                    allClassesLabel = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetElement(snapshot.Classes[0]).FormatTitle();
+                }
+                else
+                {
+                    allClassesLabel = "Multiclass";
+                }
             }
             else
             {
                 var hero = character.RulesetCharacterHero;
-
-                foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+                 
+                if (hero.ClassesAndLevels.Count == 1)
                 {
-                    allClassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + "\n";
+                    allClassesLabel = defaultLabel;
+                }
+                else
+                {
+                    foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+                    {
+                        allClassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + "\n";
+                    }
                 }
             }
             return allClassesLabel;
@@ -91,7 +104,7 @@ namespace SolastaMultiClass.Models
 
         internal static string GetSelectedClassName()
         {
-            return selectedHero?.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
+            return selectedHero.ClassesAndLevels.Keys.ToList()[selectedClass].Name;
         }
 
         public static string GetSelectedClassSearchTerm(string contains)

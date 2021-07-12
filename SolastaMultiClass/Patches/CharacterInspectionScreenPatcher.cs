@@ -35,26 +35,36 @@ namespace SolastaMultiClass.Patches
                 {
                     case PLAIN_UP:
                     case PLAIN_DOWN:
-                        var classLabel = (GuiLabel)AccessTools.Field(___characterPlate.GetType(), "classLabel").GetValue(___characterPlate);
-                        if (displayClassesLabel)
+                        if (__instance?.InspectedCharacter?.RulesetCharacterHero?.ClassesAndLevels.Count > 1)
                         {
-                            classLabel.Text = Models.GameUi.GetAllSubclassesLabel(__instance.InspectedCharacter);
+                            var classLabel = (GuiLabel)AccessTools.Field(___characterPlate.GetType(), "classLabel").GetValue(___characterPlate);
+
+                            if (displayClassesLabel)
+                            {
+                                classLabel.Text = Models.GameUi.GetAllSubclassesLabel(__instance.InspectedCharacter);
+                            }
+                            else
+                            {
+                                classLabel.Text = Models.GameUi.GetAllClassesLabel(__instance.InspectedCharacter, classLabel.Text);
+                            }
+                            displayClassesLabel = !displayClassesLabel;
                         }
-                        else
-                        {
-                            classLabel.Text = Models.GameUi.GetAllClassesLabel(__instance.InspectedCharacter);
-                        }
-                        displayClassesLabel = !displayClassesLabel;
                         break;
 
                     case PLAIN_LEFT:
-                        InspectionPanelPickPreviousHeroClass();
-                        ___characterInformationPanel.RefreshNow();
+                        if (___characterInformationPanel.gameObject.activeSelf)
+                        {
+                            InspectionPanelPickPreviousHeroClass();
+                            ___characterInformationPanel.RefreshNow();
+                        }
                         break;
 
                     case PLAIN_RIGHT:
-                        InspectionPanelPickNextHeroClass();
-                        ___characterInformationPanel.RefreshNow();
+                        if (___characterInformationPanel.gameObject.activeSelf)
+                        {
+                            InspectionPanelPickNextHeroClass();
+                            ___characterInformationPanel.RefreshNow();
+                        }
                         break;
                 }
             }

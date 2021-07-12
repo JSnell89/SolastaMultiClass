@@ -10,7 +10,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterPlateDetailed __instance, GuiLabel ___classLabel)
             {
-                ___classLabel.Text = GetAllClassesLabel(__instance.GuiCharacter);
+                ___classLabel.Text = GetAllClassesLabel(__instance.GuiCharacter, ___classLabel.Text);
             }
         }
     }
