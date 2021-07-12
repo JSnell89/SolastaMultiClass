@@ -40,5 +40,7 @@ namespace SolastaMultiClass
 
         public const InputCommands.Id PLAIN_LEFT = (InputCommands.Id)22220003;
         public const InputCommands.Id PLAIN_RIGHT = (InputCommands.Id)22220004;
+        public const InputCommands.Id PLAIN_UP = (InputCommands.Id)22220005;
+        public const InputCommands.Id PLAIN_DOWN = (InputCommands.Id)22220006;
     }
 }

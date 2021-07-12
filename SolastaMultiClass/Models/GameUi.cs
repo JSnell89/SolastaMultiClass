@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using static SolastaMultiClass.Settings;
 
 namespace SolastaMultiClass.Models
@@ -24,20 +25,19 @@ namespace SolastaMultiClass.Models
         public static string GetAllSubclassesLabel(GuiCharacter character)
         {
             var allSubclassesLabel = "";
-            var snapshot = character?.Snapshot;
+            var hero = character.RulesetCharacterHero;
 
-            if (snapshot != null)
+            foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
+                //foreach (var characterSubclassDefinition in hero.ClassesAndSubclasses.Values)
             {
-                allSubclassesLabel = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetElement(snapshot.Subclasses[0]).FormatTitle();
-            }
-            else
-            {
-                var hero = character.RulesetCharacterHero;
-
-                foreach (var characterSubclassDefinition in hero.ClassesAndSubclasses.Values)
+                if (hero.ClassesAndSubclasses.ContainsKey(characterClassDefinition))
                 {
-                    allSubclassesLabel += characterSubclassDefinition.FormatTitle() + "\n";
+                    allSubclassesLabel += hero.ClassesAndSubclasses[characterClassDefinition].FormatTitle() + "\n";
                 }
+                else
+                {
+                    allSubclassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + "\n";
+                } 
             }
             return allSubclassesLabel;
         }
@@ -148,6 +148,8 @@ namespace SolastaMultiClass.Models
         {
             var inputService = ServiceRepository.GetService<IInputService>();
 
+            inputService.RegisterCommand(PLAIN_UP, 273, -1, -1, -1, -1, -1);
+            inputService.RegisterCommand(PLAIN_DOWN, 274, -1, -1, -1, -1, -1);
             inputService.RegisterCommand(PLAIN_RIGHT, 275, -1, -1, -1, -1, -1);
             inputService.RegisterCommand(PLAIN_LEFT, 276, -1, -1, -1, -1, -1);
         }

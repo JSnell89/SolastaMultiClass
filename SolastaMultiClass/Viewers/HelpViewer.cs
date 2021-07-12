@@ -16,22 +16,21 @@ namespace SolastaMultiClass.Viewers
             {
                 UI.Div();
                 UI.Label("Features:".yellow());
-                UI.Label(". supports official game classes, Holic92's " + "Barbarian".green() + " / " + "Bard".green() + " / " + "Monk".green() +", ChrisJohnDigital's " + "Tinkerer".green());
-                UI.Label(". can combine up to 3 different classes");
-                UI.Label(". only gains some of new classes starting proficiencies");
-                UI.Label(". enforces attributes prerequisites for in/out classes");
-                UI.Label(". " + "extra attacks".cyan() + " / " + "unarmored defenses".cyan() + " won't stack when granted by different classes");
-                UI.Label(". shared spell casting system");
-                UI.Label(". some of above rules can be customized in the Mod Settings panel");
+                UI.Label(". combines up to 3 different classes");
+                UI.Label(". enforces ability scores minimum in/out pre-requisites");
+                UI.Label(". only gains a subset of new classes starting proficiencies");
+                UI.Label(". " + "extra attacks".cyan() + " / " + "unarmored defenses".cyan() + " won't stack whenever combining Barbarian, Fighter, Monk, Paladin or Ranger");
+                UI.Label(". supports official game classes, subclasses and any unofficial ones by choosing their caster type in the settings panel");
+
+                UI.Label("");
+                UI.Label("Character Inspection Screen instructions:".yellow());
+                UI.Label(". press the " + "UP".yellow().bold() + " and " + "DOWN".yellow().bold() + " arrows to switch between different label styles");
+                UI.Label(". press the " + "LEFT".yellow().bold() + " and " + "RIGHT".yellow().bold() + " arrows to present other hero classes details");
 
                 UI.Label(""); 
-                UI.Label("Current Limitations:".yellow());
-                UI.Label(". available shared caster slots might display incorrectly on character pool. works in game");
-                UI.Label(". " + "Paladin".green() + " / " + "Cleric".green() + " " + "channel divinity".cyan() + " still stack");
-                    
-                UI.Label("");
-                UI.Label("Character Inspection Screen Instructions:".yellow());
-                UI.Label(". press the " + "LEFT".yellow().bold() + " and " +  "RIGHT".yellow().bold() + " arrows in the character tab to display other classes");
+                UI.Label("Current limitations:".yellow());
+                UI.Label(". available shared caster slots might display incorrectly on character pool only");
+                UI.Label(". " + "Paladin".green() + " / " + "Cleric".green() + " " + "channel divinity".cyan() + " still stacks");
             }
         }
 

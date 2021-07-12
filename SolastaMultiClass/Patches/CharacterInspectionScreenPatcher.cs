@@ -27,10 +27,26 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterInspectionScreen), "HandleInput")]
         internal static class CharacterInspectionScreen_HandleInput_Patch
         {
-            internal static void Postfix(InputCommands.Id command, CharacterInformationPanel ___characterInformationPanel)
+            internal static bool displayClassesLabel = true;
+
+            internal static void Postfix(InputCommands.Id command, CharacterInspectionScreen __instance, CharacterInformationPanel ___characterInformationPanel, CharacterPlateDetailed ___characterPlate)
             {
                 switch (command)
                 {
+                    case PLAIN_UP:
+                    case PLAIN_DOWN:
+                        var classLabel = (GuiLabel)AccessTools.Field(___characterPlate.GetType(), "classLabel").GetValue(___characterPlate);
+                        if (displayClassesLabel)
+                        {
+                            classLabel.Text = Models.GameUi.GetAllSubclassesLabel(__instance.InspectedCharacter);
+                        }
+                        else
+                        {
+                            classLabel.Text = Models.GameUi.GetAllClassesLabel(__instance.InspectedCharacter);
+                        }
+                        displayClassesLabel = !displayClassesLabel;
+                        break;
+
                     case PLAIN_LEFT:
                         InspectionPanelPickPreviousHeroClass();
                         ___characterInformationPanel.RefreshNow();
