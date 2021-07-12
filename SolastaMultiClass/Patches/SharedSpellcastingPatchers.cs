@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
-using static SolastaMultiClass.Models.SharedSpells;
+using static SolastaMultiClass.Models.SharedSpellsRules;
 
 namespace SolastaMultiClass.Patches
 {

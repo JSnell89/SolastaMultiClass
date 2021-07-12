@@ -14,43 +14,43 @@ namespace SolastaMultiClass.Models
         None
     };
 
-    public class CasterLevelContext
+    class SharedSpellsRules
     {
-        private readonly Dictionary<CasterType, int> levels;
-
-        public CasterLevelContext()
+        private class CasterLevelContext
         {
-            levels = new Dictionary<CasterType, int>
+            private readonly Dictionary<CasterType, int> levels;
+
+            public CasterLevelContext()
             {
-                { CasterType.OneThird, 0 },
-                { CasterType.OneThirdCeiling, 0 },
-                { CasterType.Half, 0 },
-                { CasterType.HalfCeiling, 0 },
-                { CasterType.Full, 0 }
-            };
+                levels = new Dictionary<CasterType, int>
+                {
+                    { CasterType.OneThird, 0 },
+                    { CasterType.OneThirdCeiling, 0 },
+                    { CasterType.Half, 0 },
+                    { CasterType.HalfCeiling, 0 },
+                    { CasterType.Full, 0 }
+                };
+            }
+
+            public void IncrementCasterLevel(CasterType casterType)
+            {
+                levels[casterType]++;
+            }
+
+            public int GetCasterLevel()
+            {
+                int casterLevel = 0;
+
+                casterLevel += (int)Math.Floor(levels[CasterType.OneThird] / 3.0);
+                casterLevel += (int)Math.Ceiling(levels[CasterType.OneThirdCeiling] / 3.0);
+                casterLevel += (int)Math.Floor(levels[CasterType.Half] / 2.0);
+                casterLevel += (int)Math.Ceiling(levels[CasterType.HalfCeiling] / 2.0);
+                casterLevel += levels[CasterType.Full];
+
+                return casterLevel;
+            }
         }
 
-        public void IncrementCasterLevel(CasterType casterType)
-        {
-            levels[casterType]++;
-        }
-
-        public int GetCasterLevel()
-        {
-            int casterLevel = 0;
-
-            casterLevel += (int)Math.Floor(levels[CasterType.OneThird] / 3.0);
-            casterLevel += (int)Math.Ceiling(levels[CasterType.OneThirdCeiling] / 3.0);
-            casterLevel += (int)Math.Floor(levels[CasterType.Half] / 2.0);
-            casterLevel += (int)Math.Ceiling(levels[CasterType.HalfCeiling] / 2.0);
-            casterLevel += levels[CasterType.Full];
-
-            return casterLevel;
-        }
-    }
-
-    class SharedSpells
-    {
         internal static string[] CasterTypeNames = new string[6]
         {
             "One-Third",
@@ -63,7 +63,6 @@ namespace SolastaMultiClass.Models
 
         internal static RulesetCharacterHero GetHero(string name)
         {
-
             var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
 
             if (characterBuildingService?.HeroCharacter != null)

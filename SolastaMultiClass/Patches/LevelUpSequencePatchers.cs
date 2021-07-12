@@ -4,7 +4,8 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
-using static SolastaMultiClass.Models.Rules;
+using static SolastaMultiClass.Models.InOutRules;
+using static SolastaMultiClass.Models.ProficienciesRules;
 using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Patches

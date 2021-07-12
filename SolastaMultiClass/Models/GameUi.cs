@@ -21,6 +21,27 @@ namespace SolastaMultiClass.Models
             selectedHero = null;
         }
 
+        public static string GetAllSubclassesLabel(GuiCharacter character)
+        {
+            var allSubclassesLabel = "";
+            var snapshot = character?.Snapshot;
+
+            if (snapshot != null)
+            {
+                allSubclassesLabel = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetElement(snapshot.Subclasses[0]).FormatTitle();
+            }
+            else
+            {
+                var hero = character.RulesetCharacterHero;
+
+                foreach (var characterSubclassDefinition in hero.ClassesAndSubclasses.Values)
+                {
+                    allSubclassesLabel += characterSubclassDefinition.FormatTitle() + "\n";
+                }
+            }
+            return allSubclassesLabel;
+        }
+
         public static string GetAllClassesLabel(GuiCharacter character)
         {
             var allClassesLabel = "";

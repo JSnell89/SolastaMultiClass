@@ -22,12 +22,20 @@ namespace SolastaMultiClass
             { "Wizard", CasterType.Full },
             { "Paladin", CasterType.Half },
             { "Ranger", CasterType.Half },
+            // modders' classes
+            { "BardClass", CasterType.Full }, // holic92
+            { "ClassTinkerer", CasterType.HalfCeiling }, // ChrisJohnDigital
         };
 
         public SerializableDictionary<string, CasterType> SubclassCasterType = new SerializableDictionary<string, CasterType>()
         {
             { "MartialSpellblade", CasterType.OneThird },
-            { "RoguishShadowCaster", CasterType.OneThird }
+            { "RoguishShadowCaster", CasterType.OneThird },
+            // modders' subclasses
+            { "BarbarianSubclassPrimalPathOfWarShaman", CasterType.OneThird }, // holic92
+            { "MartialEldritchKnight", CasterType.OneThird }, // holic92
+            { "CJDRogueConArtist", CasterType.OneThird }, // ChrisJohnDigital
+            { "CJDSpellShield", CasterType.OneThird }, // ChrisJohnDigital
         };
 
         public const InputCommands.Id PLAIN_LEFT = (InputCommands.Id)22220003;

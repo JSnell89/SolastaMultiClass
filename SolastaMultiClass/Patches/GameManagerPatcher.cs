@@ -9,8 +9,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix()
             {
-                Viewers.SettingsViewer.UpdateSettingsClassCasterType();
-                Viewers.SettingsViewer.UpdateSettingsSubclassCasterType();
+                Viewers.SettingsViewer.UpdateClassCasterTypesAndSettings();
 
                 Models.GameUi.RegisterCommands();
 

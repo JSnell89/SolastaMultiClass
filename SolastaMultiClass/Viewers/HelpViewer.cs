@@ -39,7 +39,7 @@ namespace SolastaMultiClass.Viewers
         {
             if (Main.Mod == null) return;
 
-            UI.Label("Welcome to Multi Class (EA VERSION)".yellow().bold());
+            UI.Label("Welcome to Multi Class".yellow().bold());
 
             DisplayHelp();
         }

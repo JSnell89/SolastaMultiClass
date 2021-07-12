@@ -7,98 +7,84 @@ namespace SolastaMultiClass.Viewers
 {
     public class SettingsViewer : IMenuSelectablePage
     {
+        private class ClassCasterType
+        {
+            public string ClassName;
+            public string ClassTitle;
+            public Dictionary<string, string> SubclassNames = new Dictionary<string, string>();
+
+            public ClassCasterType(string className, string classTitle, Dictionary<string, string> subclassNames)
+            {
+                this.ClassName = className;
+                this.ClassTitle = classTitle;
+                this.SubclassNames = subclassNames;
+            }
+        }
+
         public string Name => "Settings";
 
         public int Priority => 1;
 
-        private static bool hasUpdatedSettingsClassCasterType = false;
-        private static bool hasUpdatedSettingsSubclassCasterType = false;
+        private static bool hasUpdatedClassCasterTypes = false;
 
-        private static readonly Dictionary<string, string> classNames = new Dictionary<string, string>();
-        private static readonly Dictionary<string, string> subclassNames = new Dictionary<string, string>();
+        private static readonly List<ClassCasterType> classCasterTypes = new List<ClassCasterType>();
 
-        internal static void UpdateSettingsClassCasterType()
+        private static Dictionary<string, string> GetSubclassNames(CharacterClassDefinition characterClassDefinition)
         {
-            if (!hasUpdatedSettingsClassCasterType)
+            var characterSubclassDefinitionDB = DatabaseRepository.GetDatabase<CharacterSubclassDefinition>();
+            var subclassNames = new Dictionary<string, string>();
+            var subclassChoices = characterClassDefinition.FeatureUnlocks.FindAll(x => x.FeatureDefinition is FeatureDefinitionSubclassChoice);
+
+            foreach (var subclassChoice in subclassChoices)
             {
-                var characterClassDefinitionDB = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
-
-                if (characterClassDefinitionDB != null) 
+                foreach (var subClassName in (subclassChoice.FeatureDefinition as FeatureDefinitionSubclassChoice).Subclasses)
                 {
-                    foreach (var characterClassDefinition in characterClassDefinitionDB.GetAllElements())
+                    var characterSubclassDefinition = characterSubclassDefinitionDB.GetElement(subClassName);
+                    if (!Main.Settings.SubclassCasterType.ContainsKey(subClassName))
                     {
-                        if (!Main.Settings.ClassCasterType.ContainsKey(characterClassDefinition.Name))
-                        {
-                            Main.Settings.ClassCasterType.Add(characterClassDefinition.Name, CasterType.None);
-                        }
-                        classNames.Add(characterClassDefinition.name, characterClassDefinition.FormatTitle());
+                        Main.Settings.SubclassCasterType.Add(subClassName, CasterType.None);
                     }
-                    hasUpdatedSettingsClassCasterType = true;
-                }
-
-            }
-        }
-
-        internal static void UpdateSettingsSubclassCasterType()
-        {
-            if (!hasUpdatedSettingsSubclassCasterType)
-            {
-                var characterSubclassDefinitionDB = DatabaseRepository.GetDatabase<CharacterSubclassDefinition>();
-
-                if (characterSubclassDefinitionDB != null)
-                {
-                    foreach (var characterSubclassDefinition in characterSubclassDefinitionDB?.GetAllElements())
-                    {
-                        if (!Main.Settings.SubclassCasterType.ContainsKey(characterSubclassDefinition.Name))
-                        {
-                            Main.Settings.SubclassCasterType.Add(characterSubclassDefinition.Name, CasterType.None);
-                        }
-                        subclassNames.Add(characterSubclassDefinition.name, characterSubclassDefinition.FormatTitle());
-                    }
-                    hasUpdatedSettingsSubclassCasterType = true;
+                    subclassNames.Add(subClassName, characterSubclassDefinition.FormatTitle());
                 }
             }
+            return subclassNames;
         }
 
         private static void DisplayClassCasterTypeSettings()
         {
-            UI.Label("");
-            UI.Label("Caster Type Class Settings:".yellow());
-
-            foreach (var className in classNames)
+            foreach (var classCasterType in classCasterTypes)
             {
                 using (UI.HorizontalScope())
                 {
-                    UI.Label(className.Value, UI.Width(240));
-                    int choice = (int)Main.Settings.ClassCasterType[className.Key];
-                    if (UI.SelectionGrid(ref choice, SharedSpells.CasterTypeNames, SharedSpells.CasterTypeNames.Length, UI.AutoWidth()))
+                    UI.Label(classCasterType.ClassTitle, UI.Width(264));
+                    int choice = (int)Main.Settings.ClassCasterType[classCasterType.ClassName];
+                    if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.AutoWidth()))
                     {
-                        Main.Settings.ClassCasterType[className.Key] = (CasterType)choice;
+                        Main.Settings.ClassCasterType[classCasterType.ClassName] = (CasterType)choice;
+                    }
+                }
+                
+                // subclasses display
+                if (Main.Settings.ClassCasterType[classCasterType.ClassName] == CasterType.None)
+                {
+                    foreach (var subclassName in classCasterType.SubclassNames)
+                    {
+                        using (UI.HorizontalScope())
+                        {
+                            UI.Space(24);
+                            UI.Label(subclassName.Value, UI.Width(240));
+                            int choice = (int)Main.Settings.SubclassCasterType[subclassName.Key];
+                            if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.AutoWidth()))
+                            {
+                                Main.Settings.SubclassCasterType[subclassName.Key] = (CasterType)choice;
+                            }
+                        }
                     }
                 }
             }
         }
 
-        private static void DisplaySubclassCasterTypeSettings()
-        {
-            UI.Label("");
-            UI.Label("Caster Type Subclass Settings (fine tuning. only if class is set to None):".yellow());
-
-            foreach (var subclassName in subclassNames)
-            {
-                using (UI.HorizontalScope())
-                {
-                    UI.Label(subclassName.Value, UI.Width(240));
-                    int choice = (int)Main.Settings.SubclassCasterType[subclassName.Key];
-                    if (UI.SelectionGrid(ref choice, SharedSpells.CasterTypeNames, SharedSpells.CasterTypeNames.Length, UI.AutoWidth()))
-                    {
-                        Main.Settings.SubclassCasterType[subclassName.Key] = (CasterType)choice;
-                    }
-                }
-            }
-        }
-
-        private static void DisplaySettings()
+        private static void DisplayMainSettings()
         {
             bool toggle;
 
@@ -124,22 +110,46 @@ namespace SolastaMultiClass.Viewers
             }
 
             toggle = Main.Settings.EnableSharedSpellCasting;
-            if (UI.Toggle("Enable the shared spell casting system (fine tune progression below)", ref toggle, 0, UI.AutoWidth()))
+            if (UI.Toggle("Enable the shared spell casting system", ref toggle, 0, UI.AutoWidth()))
             {
                 Main.Settings.EnableSharedSpellCasting = toggle;
             }
 
-            DisplayClassCasterTypeSettings();
-            DisplaySubclassCasterTypeSettings();
+            if (Main.Settings.EnableSharedSpellCasting)
+            {
+                UI.Label("");
+                DisplayClassCasterTypeSettings();
+            }
+        }
+
+        public static void UpdateClassCasterTypesAndSettings()
+        {
+            if (!hasUpdatedClassCasterTypes)
+            {
+                var characterClassDefinitionDB = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
+
+                if (characterClassDefinitionDB != null)
+                {
+                    foreach (var characterClassDefinition in characterClassDefinitionDB.GetAllElements())
+                    {
+                        if (!Main.Settings.ClassCasterType.ContainsKey(characterClassDefinition.Name))
+                        {
+                            Main.Settings.ClassCasterType.Add(characterClassDefinition.Name, CasterType.None);
+                        }
+                        classCasterTypes.Add(new ClassCasterType(characterClassDefinition.name, characterClassDefinition.FormatTitle(), GetSubclassNames(characterClassDefinition)));
+                    }
+                    hasUpdatedClassCasterTypes = true;
+                }
+            }
         }
 
         public void OnGUI(UnityModManager.ModEntry modEntry)
         {
             if (Main.Mod == null) return;
 
-            UI.Label("Welcome to Multi Class (EA VERSION)".yellow().bold());
+            UI.Label("Welcome to Multi Class".yellow().bold());
 
-            DisplaySettings();
+            DisplayMainSettings();
         }
     }
 }
