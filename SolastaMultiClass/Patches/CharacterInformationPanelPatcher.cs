@@ -12,24 +12,6 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterInformationPanel), "EnumerateClassBadges")]
         internal static class CharacterInformationPanel_EnumerateClassBadges_Patch
         {
-            //internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            //{
-            //    var getTrainedFightingStylesMethod = typeof(RulesetCharacterHero).GetMethod("get_TrainedFightingStyles");
-            //    var getClassBadgesMethod = typeof(SolastaMultiClass.Models.GameUi).GetMethod("GetClassBadges");
-
-            //    foreach (var instruction in instructions)
-            //    {
-
-            //        if (instruction.Calls(getTrainedFightingStylesMethod))
-            //        {
-            //            yield return new CodeInstruction(OpCodes.Call, getClassBadgesMethod);
-            //        }
-            //        else
-            //        {
-            //            yield return instruction;
-            //        }
-            //    }
-            //}
             internal static bool Prefix(CharacterInformationPanel __instance, List<BaseDefinition> ___badgeDefinitions, RectTransform ___classBadgesTable, GameObject ___classBadgePrefab)
             {
                 ___badgeDefinitions.Clear();
