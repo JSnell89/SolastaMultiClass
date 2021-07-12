@@ -44,7 +44,7 @@ namespace SolastaMultiClass.Viewers
                     {
                         Main.Settings.SubclassCasterType.Add(subClassName, CasterType.None);
                     }
-                    subclassNames.Add(subClassName, characterSubclassDefinition.FormatTitle());
+                    subclassNames.Add(characterSubclassDefinition.FormatTitle(), subClassName);
                 }
             }
             return subclassNames;
@@ -72,11 +72,11 @@ namespace SolastaMultiClass.Viewers
                         using (UI.HorizontalScope())
                         {
                             UI.Space(24);
-                            UI.Label(subclassName.Value, UI.Width(240));
-                            int choice = (int)Main.Settings.SubclassCasterType[subclassName.Key];
+                            UI.Label(subclassName.Key, UI.Width(240));
+                            int choice = (int)Main.Settings.SubclassCasterType[subclassName.Value];
                             if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.Width(996)))
                             {
-                                Main.Settings.SubclassCasterType[subclassName.Key] = (CasterType)choice;
+                                Main.Settings.SubclassCasterType[subclassName.Value] = (CasterType)choice;
                             }
                         }
                     }
@@ -110,7 +110,7 @@ namespace SolastaMultiClass.Viewers
             }
 
             toggle = Main.Settings.EnableSharedSpellCasting;
-            if (UI.Toggle("Enable the shared spell casting system", ref toggle, 0, UI.AutoWidth()))
+            if (UI.Toggle("Enable shared spell casting slots (customize spell caster type below)", ref toggle, 0, UI.AutoWidth()))
             {
                 Main.Settings.EnableSharedSpellCasting = toggle;
             }

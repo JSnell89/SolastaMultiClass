@@ -16,7 +16,7 @@ namespace SolastaMultiClass.Viewers
             {
                 UI.Div();
                 UI.Label("Features:".yellow());
-                UI.Label(". supports official game classes, Holic92's " + "Barbarian".green() + " / " + "Bard".green() + " / " + "Monk".green() +", CJD's " + "Tinkerer".green());
+                UI.Label(". supports official game classes, Holic92's " + "Barbarian".green() + " / " + "Bard".green() + " / " + "Monk".green() +", ChrisJohnDigital's " + "Tinkerer".green());
                 UI.Label(". can combine up to 3 different classes");
                 UI.Label(". only gains some of new classes starting proficiencies");
                 UI.Label(". enforces attributes prerequisites for in/out classes");
@@ -26,8 +26,8 @@ namespace SolastaMultiClass.Viewers
 
                 UI.Label(""); 
                 UI.Label("Current Limitations:".yellow());
-                UI.Label(". inspecting the character might not show up correctly in the pool. Take a long rest to fix that");
-                UI.Label(". " + "Paladin".green() + " / " + "Cleric".green() + " " + "channel divinity".cyan() + " stack");
+                UI.Label(". available shared caster slots might display incorrectly on character pool. works in game");
+                UI.Label(". " + "Paladin".green() + " / " + "Cleric".green() + " " + "channel divinity".cyan() + " still stack");
                     
                 UI.Label("");
                 UI.Label("Character Inspection Screen Instructions:".yellow());

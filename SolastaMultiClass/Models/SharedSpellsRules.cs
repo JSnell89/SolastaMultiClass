@@ -7,11 +7,11 @@ namespace SolastaMultiClass.Models
     public enum CasterType
     {
         None,
-        OneThird,
-        OneThirdCeiling,
-        Half,
-        HalfCeiling,
         Full,
+        Half,
+        OneThird,
+        HalfCeiling,
+        OneThirdCeiling,
     };
 
     class SharedSpellsRules
@@ -54,11 +54,11 @@ namespace SolastaMultiClass.Models
         internal static string[] CasterTypeNames = new string[6]
         {
             "None",
-            "One-Third",
-            "One-Third [round up]",
-            "Half",
-            "Half [round up]",
             "Full",
+            "Half",
+            "One-Third",
+            "Half [round up]",
+            "One-Third [round up]",
         };
 
         internal static RulesetCharacterHero GetHero(string name)
