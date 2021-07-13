@@ -7,6 +7,7 @@ using HarmonyLib;
 using static SolastaMultiClass.Models.InOutRules;
 using static SolastaMultiClass.Models.ProficienciesRules;
 using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
+using UnityEngine.UI;
 
 namespace SolastaMultiClass.Patches
 {
@@ -116,7 +117,7 @@ namespace SolastaMultiClass.Patches
         }
 
         //
-        // CHARACTER BUILDING MANAGER - must blocks any call to it while leveling up and displaying the class selection panel
+        // CHARACTER BUILDING MANAGER
         //
 
         // This fixes the case where if you multiclass a caster that selects spells at level up (e.g. Wizard)
@@ -186,7 +187,6 @@ namespace SolastaMultiClass.Patches
                 return false;
             }
         }
-
 
         [HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
         internal static class CharacterBuildingManager_GetSpellFeature_Patch
@@ -573,6 +573,62 @@ namespace SolastaMultiClass.Patches
                 if (levelingUp && requiresDeity)
                 {
                     ___isRelevant = false;
+                }
+            }
+        }
+
+        //
+        // CHARACTER STAGE SPELL SELECTION PANEL
+        //
+
+        // removes the ability to select spells of higher level than you should be able to when leveling up. Essentially the only required change is to use class level instead of hero level
+        [HarmonyPatch(typeof(CharacterStageSpellSelectionPanel), "Refresh")]
+        internal static class CharacterStageSpellSelectionPanel_Refresh_Patch
+        {
+            internal static void Postfix(CharacterStageSpellSelectionPanel __instance)
+            {
+                if (!Main.Settings.EnableSharedSpellCasting)
+                    return;
+
+                var characterStageSpellSelectionPanelType = typeof(CharacterStageSpellSelectionPanel);
+                // var currentLearnStepFieldInfo = charBMType.GetField("currentLearnStep", BindingFlags.NonPublic | BindingFlags.Instance);
+                var allTagsFieldInfo = characterStageSpellSelectionPanelType.GetField("allTags", BindingFlags.NonPublic | BindingFlags.Instance);
+                var spellsByLevelTableFieldInfo = characterStageSpellSelectionPanelType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                // int currentLearnStep = (int)currentLearnStepFieldInfo.GetValue(__instance);
+                List<string> allTags = (List<string>)allTagsFieldInfo.GetValue(__instance);
+
+                if (allTags == null)
+                    return;
+
+                string item = allTags[allTags.Count - 1];
+                __instance.CharacterBuildingService.GetLastAssignedClassAndLevel(out CharacterClassDefinition characterClassDefinition, out int _);
+
+                FeatureDefinitionCastSpell spellFeature = __instance.CharacterBuildingService.GetSpellFeature(item);
+
+                // only need updates if for spell selection.  This fixes an issue where Clerics were getting level 1 spells as cantrips :).
+                if (spellFeature.SpellKnowledge != RuleDefinitions.SpellKnowledge.Selection && spellFeature.SpellKnowledge != RuleDefinitions.SpellKnowledge.Spellbook)
+                    return;
+
+                int count = __instance.CharacterBuildingService.HeroCharacter.ClassesAndLevels[characterClassDefinition]; //Changed to use class level instead of hero level
+                int highestSpellLevel = spellFeature.ComputeHighestSpellLevel(count);
+
+                int accountForCantripsInt = spellFeature.SpellListDefinition.HasCantrips ? 1 : 0;
+
+                UnityEngine.RectTransform spellsByLevelRect = (UnityEngine.RectTransform)spellsByLevelTableFieldInfo.GetValue(__instance);
+                int currentChildCount = spellsByLevelRect.childCount;
+
+                if (spellsByLevelRect != null && currentChildCount > highestSpellLevel + accountForCantripsInt)
+                {
+                    // deactivate the extra spell UI that can show up do to the original method using Character level instead of Class level
+                    for (int i = highestSpellLevel + accountForCantripsInt; i < currentChildCount; i++)
+                    {
+                        var child = spellsByLevelRect.GetChild(i);
+                        child?.gameObject?.SetActive(false);
+                    }
+
+                    // TODO test if this is needed
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(spellsByLevelRect);
                 }
             }
         }
