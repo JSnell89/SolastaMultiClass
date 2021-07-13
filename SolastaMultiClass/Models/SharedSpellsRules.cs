@@ -31,9 +31,9 @@ namespace SolastaMultiClass.Models
                 };
             }
 
-            public void IncrementCasterLevel(CasterType casterType)
+            public void IncrementCasterLevel(CasterType casterType, int increment)
             {
-                levels[casterType]++;
+                levels[casterType] += increment;
             }
 
             public int GetCasterLevel()
@@ -79,17 +79,23 @@ namespace SolastaMultiClass.Models
         {
             var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
 
+            // level up screen
             if (characterBuildingService?.HeroCharacter != null)
             {
                 return characterBuildingService.HeroCharacter;
             }
-            else
-            {
-                var gameService = ServiceRepository.GetService<IGameService>();
-                var gameCampaignCharacter = gameService?.Game?.GameCampaign?.Party?.CharactersList.Find(x => x.RulesetCharacter.Name == name);
 
+            // game location inspect
+            var gameService = ServiceRepository.GetService<IGameService>();
+            var gameCampaignCharacter = gameService?.Game?.GameCampaign?.Party?.CharactersList.Find(x => x.RulesetCharacter.Name == name);
+
+            if ((RulesetCharacterHero)gameCampaignCharacter?.RulesetCharacter != null) 
+            {
                 return (RulesetCharacterHero)gameCampaignCharacter?.RulesetCharacter;
             }
+
+            // character pool inspect
+            return Models.GameUi.GetHero;
         }
 
         public static int GetHeroSharedCasterLevel(RulesetCharacterHero hero)
@@ -100,7 +106,7 @@ namespace SolastaMultiClass.Models
             {
                 hero.ClassesAndSubclasses.TryGetValue(classAndLevel.Key, out CharacterSubclassDefinition characterSubclassDefinition);
                 CasterType casterType = GetCasterTypeForClassOrSubclass(classAndLevel.Key, characterSubclassDefinition);
-                context.IncrementCasterLevel(casterType);
+                context.IncrementCasterLevel(casterType, classAndLevel.Value);
             }
             return context.GetCasterLevel();
         }
