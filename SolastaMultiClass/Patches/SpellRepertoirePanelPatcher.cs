@@ -12,9 +12,6 @@ namespace SolastaMultiClass.Patches
     {
         internal static void Postfix(SpellRepertoirePanel __instance)
         {
-            if (!Main.Settings.EnableSharedSpellCasting)
-                return;
-
             // hides the sorcery points if required
             if (__instance.SpellRepertoire.SpellCastingFeature.SpellReadyness == RuleDefinitions.SpellReadyness.Prepared)
             {
