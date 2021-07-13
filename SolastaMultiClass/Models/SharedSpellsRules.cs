@@ -79,34 +79,40 @@ namespace SolastaMultiClass.Models
         {
             var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
 
-            // level up screen
+            // try to get hero from the inspection panel bound
+            if (GameUi.GetHero != null)
+            {
+                return GameUi.GetHero;
+            }
+
+            // otherwise it's most likely leveling up, get from there
             if (characterBuildingService?.HeroCharacter != null)
             {
                 return characterBuildingService.HeroCharacter;
             }
 
-            // game location inspect
+            // not even sure if below code will ever execute, need more QA
             var gameService = ServiceRepository.GetService<IGameService>();
             var gameCampaignCharacter = gameService?.Game?.GameCampaign?.Party?.CharactersList.Find(x => x.RulesetCharacter.Name == name);
 
-            if ((RulesetCharacterHero)gameCampaignCharacter?.RulesetCharacter != null) 
-            {
-                return (RulesetCharacterHero)gameCampaignCharacter?.RulesetCharacter;
-            }
-
-            // character pool inspect
-            return Models.GameUi.GetHero;
+            return (RulesetCharacterHero)gameCampaignCharacter?.RulesetCharacter;
         }
 
-        public static int GetHeroSharedCasterLevel(RulesetCharacterHero hero)
+        public static int GetHeroSharedCasterLevel(RulesetCharacterHero rulesetCharacterHero, CharacterClassDefinition filterCharacterClassDefinition = null)
         {
             var context = new CasterLevelContext();
 
-            foreach (var classAndLevel in hero.ClassesAndLevels)
+            foreach (var classAndLevel in rulesetCharacterHero.ClassesAndLevels)
             {
-                hero.ClassesAndSubclasses.TryGetValue(classAndLevel.Key, out CharacterSubclassDefinition characterSubclassDefinition);
-                CasterType casterType = GetCasterTypeForClassOrSubclass(classAndLevel.Key, characterSubclassDefinition);
-                context.IncrementCasterLevel(casterType, classAndLevel.Value);
+                var currentCharacterClassDefinition = classAndLevel.Key;
+
+                // only apply a filter if one exists
+                if (filterCharacterClassDefinition == null || filterCharacterClassDefinition == currentCharacterClassDefinition)
+                {
+                    rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition characterSubclassDefinition);
+                    CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, characterSubclassDefinition);
+                    context.IncrementCasterLevel(casterType, classAndLevel.Value);
+                }
             }
             return context.GetCasterLevel();
         }
