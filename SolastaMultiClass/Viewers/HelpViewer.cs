@@ -29,7 +29,6 @@ namespace SolastaMultiClass.Viewers
 
                 UI.Label(""); 
                 UI.Label("Current limitations:".yellow());
-                UI.Label(". available shared caster slots might display incorrectly on character pool only");
                 UI.Label(". " + "Paladin".green() + " / " + "Cleric".green() + " " + "channel divinity".cyan() + " still stacks");
             }
         }
