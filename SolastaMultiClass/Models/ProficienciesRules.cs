@@ -120,7 +120,7 @@ namespace SolastaMultiClass.Models
                 {"PointPoolWizardSkillPoints", null},
                 {"ProficiencyWizardSavingThrow", null}} },
 
-            {"Tinkerer", new Dictionary<string, string> {
+            {"ClassTinkerer", new Dictionary<string, string> {
                 {"ProficiencyWeaponTinkerer", null},
                 {"PointPoolTinkererSkillPoints", null},
                 {"ProficiencyTinkererSavingThrow", null}} }
