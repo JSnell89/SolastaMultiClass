@@ -8,9 +8,18 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(GuiCharacter), "MainClassDefinition", MethodType.Getter)]
         internal static class GuiCharacter_MainClassDefinition_Patch
         {
-            internal static void Postfix(GuiCharacter __instance, ref CharacterClassDefinition __result)
+            internal static void Postfix(ref CharacterClassDefinition __result)
             {
                 __result = GetSelectedClass( __result);
+            }
+        }
+
+        [HarmonyPatch(typeof(GuiCharacter), "LevelAndClassAndSubclass", MethodType.Getter)]
+        internal static class GuiCharacter_LevelAndClassAndSubclass_Patch
+        {
+            internal static void Postfix(GuiCharacter __instance, ref string __result)
+            {
+                __result = GetAllClassesLabel(__instance, __result).Replace("\n", " ");
             }
         }
     }
