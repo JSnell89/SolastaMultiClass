@@ -10,6 +10,8 @@ namespace SolastaMultiClass.Models
 
         private static RulesetCharacterHero selectedHero;
 
+        public static RulesetCharacterHero GetHero => selectedHero;
+
         public static void InspectionPanelBindHero(RulesetCharacterHero hero)
         {
             selectedHero = hero;
