@@ -53,7 +53,6 @@ namespace SolastaMultiClass.Models
                 case "AHWarlockClass": // AceHigh's Warlock
                 case "BardClass": // Holic92's Bard
                 case "Sorcerer":
-                case "Warlock":
                     return charisma >= 13;
 
                 case "Cleric":
