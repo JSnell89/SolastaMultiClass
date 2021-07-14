@@ -345,7 +345,7 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "OnBeginShow")]
         internal static class CharacterStageClassSelectionPanel_OnBeginShow_Patch
         {
-            internal static void Prefix(CharacterStageClassSelectionPanel __instance, ref int ___selectedClass, List<CharacterClassDefinition> ___compatibleClasses)
+            internal static void Prefix(CharacterStageClassSelectionPanel __instance, ref int ___selectedClass, List<CharacterClassDefinition> ___compatibleClasses, RectTransform ___classesTable)
             {
                 displayingClassPanel = true;
 
@@ -367,6 +367,8 @@ namespace SolastaMultiClass.Patches
                     ___compatibleClasses.Sort((a, b) => a.FormatTitle().CompareTo(b.FormatTitle()));
                     ___selectedClass = -1;
                 }
+
+                ___classesTable.pivot = new Vector2(0.5f, 1.0f);
             }
         }
 
