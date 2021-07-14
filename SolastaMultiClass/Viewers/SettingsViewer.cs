@@ -48,10 +48,14 @@ namespace SolastaMultiClass.Viewers
                 using (UI.HorizontalScope())
                 {
                     UI.Label(classCasterType.ClassTitle, UI.Width(264));
-                    int choice = (int)Main.Settings.ClassCasterType[classCasterType.ClassName];
-                    if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.Width(996)))
+
+                    if (!classCasterType.ClassName.Contains("Warlock"))
                     {
-                        Main.Settings.ClassCasterType[classCasterType.ClassName] = (CasterType)choice;
+                        int choice = (int)Main.Settings.ClassCasterType[classCasterType.ClassName];
+                        if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.Width(996)))
+                        {
+                            Main.Settings.ClassCasterType[classCasterType.ClassName] = (CasterType)choice;
+                        }
                     }
                 }
                 
@@ -64,10 +68,14 @@ namespace SolastaMultiClass.Viewers
                         {
                             UI.Space(24);
                             UI.Label(subclassName.Key, UI.Width(240));
-                            int choice = (int)Main.Settings.SubclassCasterType[subclassName.Value];
-                            if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.Width(996)))
+
+                            if (!classCasterType.ClassName.Contains("Warlock"))
                             {
-                                Main.Settings.SubclassCasterType[subclassName.Value] = (CasterType)choice;
+                                int choice = (int)Main.Settings.SubclassCasterType[subclassName.Value];
+                                if (UI.SelectionGrid(ref choice, SharedSpellsRules.CasterTypeNames, SharedSpellsRules.CasterTypeNames.Length, UI.Width(996)))
+                                {
+                                    Main.Settings.SubclassCasterType[subclassName.Value] = (CasterType)choice;
+                                }
                             }
                         }
                     }
