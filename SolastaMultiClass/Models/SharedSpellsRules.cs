@@ -15,7 +15,7 @@ namespace SolastaMultiClass.Models
 
     class SharedSpellsRules
     {
-        private class CasterLevelContext
+        internal class CasterLevelContext
         {
             private readonly Dictionary<CasterType, int> levels;
 
@@ -98,23 +98,43 @@ namespace SolastaMultiClass.Models
             return (RulesetCharacterHero)gameCampaignCharacter?.RulesetCharacter;
         }
 
-        public static int GetHeroSharedCasterLevel(RulesetCharacterHero rulesetCharacterHero, CharacterClassDefinition filterCharacterClassDefinition = null)
+        private static bool IsWarlock(CharacterClassDefinition characterClassDefinition)
         {
-            var context = new CasterLevelContext();
-
-            foreach (var classAndLevel in rulesetCharacterHero.ClassesAndLevels)
+            if (characterClassDefinition == null)
             {
-                var currentCharacterClassDefinition = classAndLevel.Key;
-
-                // only apply a filter if one exists
-                if (filterCharacterClassDefinition == null || filterCharacterClassDefinition == currentCharacterClassDefinition)
-                {
-                    rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition characterSubclassDefinition);
-                    CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, characterSubclassDefinition);
-                    context.IncrementCasterLevel(casterType, classAndLevel.Value);
-                }
+                return false;
             }
-            return context.GetCasterLevel();
+            else
+            {
+                return characterClassDefinition.Name.Contains("Warlock");
+            }
+        }
+
+        internal static int GetHeroSharedCasterLevel(RulesetCharacterHero rulesetCharacterHero, CharacterClassDefinition filterCharacterClassDefinition = null)
+        {
+            if (IsWarlock(filterCharacterClassDefinition))
+            {
+                // Warlock stops progressing Pact Magic Spell Levels at 10
+                return Math.Min(rulesetCharacterHero.ClassesAndLevels[filterCharacterClassDefinition], 10);
+            }
+            else
+            {
+                var context = new CasterLevelContext();
+
+                foreach (var classAndLevel in rulesetCharacterHero.ClassesAndLevels)
+                {
+                    var currentCharacterClassDefinition = classAndLevel.Key;
+
+                    // only apply a filter if one exists
+                    if (filterCharacterClassDefinition == null || filterCharacterClassDefinition == currentCharacterClassDefinition)
+                    {
+                        rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition characterSubclassDefinition);
+                        CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, characterSubclassDefinition);
+                        context.IncrementCasterLevel(casterType, classAndLevel.Value);
+                    }
+                }
+                return context.GetCasterLevel();
+            }
         }
 
         private static CasterType GetCasterTypeForClassOrSubclass(CharacterClassDefinition characterClassDefinition, CharacterSubclassDefinition characterSubclassDefinition)
