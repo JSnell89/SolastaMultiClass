@@ -19,9 +19,16 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(GuiCharacter __instance, ref string __result)
             {
-                var separator = " - ";
-                var label = GetAllClassesLabel(__instance, __result).Replace("\n", separator);
-                __result = label.Substring(0, label.Length - separator.Length);
+                __result = GetAllClassesLabel(__instance, __result, " - ");
+            }
+        }
+
+        [HarmonyPatch(typeof(GuiCharacter), "ClassAndLevel", MethodType.Getter)]
+        internal static class GuiCharacter_ClassAndLevel_Patch
+        {
+            internal static void Postfix(GuiCharacter __instance, ref string __result)
+            {
+                __result = GetAllClassesLabel(__instance, __result, " - ");
             }
         }
     }
