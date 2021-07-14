@@ -29,6 +29,7 @@ namespace SolastaMultiClass.Viewers
 
                 UI.Label(""); 
                 UI.Label("Current limitations:".yellow());
+                UI.Label(". don't auto select spells on level up. It might not correctly learn them");
                 UI.Label(". " + "Paladin".green() + " / " + "Cleric".green() + " " + "channel divinity".cyan() + " still stacks");
             }
         }
