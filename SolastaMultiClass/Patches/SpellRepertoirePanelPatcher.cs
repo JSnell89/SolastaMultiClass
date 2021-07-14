@@ -7,6 +7,7 @@ using static SolastaMultiClass.Models.SharedSpellsRules;
 
 namespace SolastaMultiClass.Patches
 {
+    // patches the panel to display higher level spell slots from shared slots table but hide the spell panels if class level not there yet
     [HarmonyPatch(typeof(SpellRepertoirePanel), "Bind")]
     internal static class SpellRepertoirePanel_Bind_Patch
     {
@@ -22,10 +23,9 @@ namespace SolastaMultiClass.Patches
             }
 
             // this may not work for subclasses that have 'Prepared' spells, but I don't think any do
-            CharacterClassDefinition characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
-
-            var hero = __instance.GuiCharacter.RulesetCharacterHero;
-            var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(GetHeroSharedCasterLevel(hero, characterClassDefinition) / 2.0);
+            var characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
+            var rulesetCharacterHero = __instance.GuiCharacter.RulesetCharacterHero;
+            var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition) / 2.0);
 
             var spellRepertoirePanelType = typeof(SpellRepertoirePanel);
             var spellsByLevelTableFieldInfo = spellRepertoirePanelType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -45,7 +45,6 @@ namespace SolastaMultiClass.Patches
                     // don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
                     if (child.TryGetComponent(typeof(SlotStatusTable), out Component _))
                         continue;
-
 
                     if (i > (maxLevelOfSpellCastingForClass + accountForCantrips) - 1)
                     {

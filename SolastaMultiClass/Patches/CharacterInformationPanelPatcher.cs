@@ -49,7 +49,7 @@ namespace SolastaMultiClass.Patches
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var containsMethod = typeof(string).GetMethod("Contains");
-                var getSelectedClassSearchTermMethod = typeof(SolastaMultiClass.Models.GameUi).GetMethod("GetSelectedClassSearchTerm");
+                var getSelectedClassSearchTermMethod = typeof(GameUi).GetMethod("GetSelectedClassSearchTerm");
                 var found = 0;
 
                 foreach (var instruction in instructions)

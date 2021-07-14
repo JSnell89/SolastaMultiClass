@@ -41,11 +41,11 @@ namespace SolastaMultiClass.Patches
 
                             if (displayClassesLabel)
                             {
-                                classLabel.Text = Models.GameUi.GetAllSubclassesLabel(__instance.InspectedCharacter);
+                                classLabel.Text = GetAllSubclassesLabel(__instance.InspectedCharacter);
                             }
                             else
                             {
-                                classLabel.Text = Models.GameUi.GetAllClassesLabel(__instance.InspectedCharacter, classLabel.Text);
+                                classLabel.Text = GetAllClassesLabel(__instance.InspectedCharacter, classLabel.Text);
                             }
                             displayClassesLabel = !displayClassesLabel;
                         }
