@@ -19,7 +19,9 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(GuiCharacter __instance, ref string __result)
             {
-                __result = GetAllClassesLabel(__instance, __result).Replace("\n", " ");
+                var separator = " - ";
+                var label = GetAllClassesLabel(__instance, __result).Replace("\n", separator);
+                __result = label.Substring(0, label.Length - separator.Length);
             }
         }
     }
