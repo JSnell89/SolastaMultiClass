@@ -43,7 +43,7 @@ namespace SolastaMultiClass.Models
             return allSubclassesLabel;
         }
 
-        public static string GetAllClassesLabel(GuiCharacter character, string defaultLabel = "")
+        public static string GetAllClassesLabel(GuiCharacter character, string defaultLabel = "", string separator = "\n")
         {
             var allClassesLabel = "";
             var snapshot = character?.Snapshot;
@@ -62,8 +62,8 @@ namespace SolastaMultiClass.Models
             else
             {
                 var hero = character.RulesetCharacterHero;
-                 
-                if (hero.ClassesAndLevels.Count == 1)
+                
+                if (hero.ClassesAndLevels.Count <= 1)
                 {
                     allClassesLabel = defaultLabel;
                 }
@@ -71,8 +71,9 @@ namespace SolastaMultiClass.Models
                 {
                     foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
                     {
-                        allClassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + "\n";
+                        allClassesLabel += characterClassDefinition.FormatTitle() + " / " + hero.ClassesAndLevels[characterClassDefinition] + separator;
                     }
+                    allClassesLabel = allClassesLabel.Substring(0, allClassesLabel.Length - separator.Length);
                 }
             }
             return allClassesLabel;
