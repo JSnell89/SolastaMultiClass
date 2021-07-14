@@ -123,7 +123,12 @@ namespace SolastaMultiClass.Models
             {"ClassTinkerer", new Dictionary<string, string> {
                 {"ProficiencyWeaponTinkerer", null},
                 {"PointPoolTinkererSkillPoints", null},
-                {"ProficiencyTinkererSavingThrow", null}} }
+                {"ProficiencyTinkererSavingThrow", null}} },
+
+            {"AHWarlockClass", new Dictionary<string, string> {
+                {"ProficiencyClericWeapon", null},
+                {"AHWarlockClassSkillPointPool", null},
+                {"ProficiencyPaladinSavingThrow", null} } },
         };
 
         private static readonly Dictionary<string, List<string>> extraAttacksToExclude = new Dictionary<string, List<string>>
