@@ -63,7 +63,7 @@ namespace SolastaMultiClass.Features
             });
 
         public static readonly FeatureDefinitionPointPool PointPoolRogueSkillPointsMulticlass =
-            CreateAndAddToDB(PointPoolRogueSkillPointsMulticlassName, PointPoolRogueSkillPointsMulticlassGuid, "Feature/&RogueSkillsTitle", new List<string> {
+            CreateAndAddToDB(PointPoolRogueSkillPointsMulticlassName, PointPoolRogueSkillPointsMulticlassGuid, "Feature/&RogueSkillPointsTitle", new List<string> {
                 "Acrobatics",
                 "Athletics",
                 "Deception",
