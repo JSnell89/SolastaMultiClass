@@ -7,7 +7,7 @@ using HarmonyLib;
 
 namespace SolastaMultiClass.Patches
 {
-    internal static class CharacterStagePanelPatcher
+    internal static class CharacterStageSelectionPanelPatchers
     {
         //
         // CHARACTER STAGE CLASS SELECTION PANEL
@@ -129,7 +129,7 @@ namespace SolastaMultiClass.Patches
             {
                 var setActiveFound = 0;
                 var setActiveMethod = typeof(GameObject).GetMethod("SetActive");
-                var mySetActiveMethod = typeof(CharacterStagePanelPatcher.CharacterStageClassSelectionPanel_Refresh_Patch).GetMethod("MySetActive");
+                var mySetActiveMethod = typeof(CharacterStageSelectionPanelPatchers.CharacterStageClassSelectionPanel_Refresh_Patch).GetMethod("MySetActive");
 
                 foreach (var instruction in instructions)
                 {
