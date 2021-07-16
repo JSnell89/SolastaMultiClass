@@ -89,18 +89,18 @@ namespace SolastaMultiClass.Models
                 return LevelUpContext.SelectedHero;
             }
 
+            // try to cover the special case when heroes are built silently from template definitions which won't trigger the level up context
             var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
 
-            // try to cover the special case when heroes are built silently from template definitions
             if (characterBuildingService?.HeroCharacter != null)
             {
                 return characterBuildingService.HeroCharacter;
             }
 
+            // last resource is the game campaign character
             var gameService = ServiceRepository.GetService<IGameService>();
             var gameCampaignCharacter = gameService?.Game?.GameCampaign?.Party?.CharactersList.Find(x => x.RulesetCharacter.Name == name);
 
-            // last resource
             return (RulesetCharacterHero)gameCampaignCharacter?.RulesetCharacter;
         }
 

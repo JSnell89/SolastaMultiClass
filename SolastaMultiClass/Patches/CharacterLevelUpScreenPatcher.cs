@@ -6,7 +6,7 @@ namespace SolastaMultiClass.Patches
 {
     internal static class CharacterLevelUpScreenPatcher
     {        
-        // add the class selection stage panel to the Level Up screen
+        // add the class selection stage panel to the level up screen
         [HarmonyPatch(typeof(CharacterLevelUpScreen), "LoadStagePanels")]
         internal static class CharacterLevelUpScreen_LoadStagePanels_Patch
         {
