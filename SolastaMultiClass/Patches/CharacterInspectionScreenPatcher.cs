@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using static SolastaMultiClass.Settings;
-using static SolastaMultiClass.Models.GameUi;
 
 namespace SolastaMultiClass.Patches
 {
@@ -11,7 +10,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Prefix(RulesetCharacterHero heroCharacter)
             {
-                InspectionPanelBindHero(heroCharacter);
+                Models.InspectionPanelContext.SelectedHero = heroCharacter;
             }
         }
 
@@ -20,7 +19,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix()
             {
-                InspectionPanelUnbindHero();
+                Models.InspectionPanelContext.SelectedHero = null;
             }
         }
 
@@ -41,11 +40,11 @@ namespace SolastaMultiClass.Patches
 
                             if (displayClassesLabel)
                             {
-                                classLabel.Text = GetAllSubclassesLabel(__instance.InspectedCharacter);
+                                classLabel.Text = Models.GameUi.GetAllSubclassesLabel(__instance.InspectedCharacter);
                             }
                             else
                             {
-                                classLabel.Text = GetAllClassesLabel(__instance.InspectedCharacter, classLabel.Text);
+                                classLabel.Text = Models.GameUi.GetAllClassesLabel(__instance.InspectedCharacter, classLabel.Text);
                             }
                             displayClassesLabel = !displayClassesLabel;
                         }
@@ -54,7 +53,7 @@ namespace SolastaMultiClass.Patches
                     case PLAIN_LEFT:
                         if (___characterInformationPanel.gameObject.activeSelf)
                         {
-                            InspectionPanelPickPreviousHeroClass();
+                            Models.InspectionPanelContext.InspectionPanelPickPreviousHeroClass();
                             ___characterInformationPanel.RefreshNow();
                         }
                         break;
@@ -62,7 +61,7 @@ namespace SolastaMultiClass.Patches
                     case PLAIN_RIGHT:
                         if (___characterInformationPanel.gameObject.activeSelf)
                         {
-                            InspectionPanelPickNextHeroClass();
+                            Models.InspectionPanelContext.InspectionPanelPickNextHeroClass();
                             ___characterInformationPanel.RefreshNow();
                         }
                         break;

@@ -11,7 +11,7 @@ namespace SolastaMultiClass.Patches
             {
                 Viewers.SettingsViewer.UpdateClassCasterTypesAndSettings();
 
-                Models.GameUi.RegisterCommands();
+                Models.InspectionPanelContext.RegisterCommands();
 
                 _ = Features.ArmorProficiencyMulticlassBuilder.BarbarianArmorProficiencyMulticlass;
                 _ = Features.ArmorProficiencyMulticlassBuilder.FighterArmorProficiencyMulticlass;

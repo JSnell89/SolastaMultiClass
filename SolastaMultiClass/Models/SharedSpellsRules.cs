@@ -80,12 +80,12 @@ namespace SolastaMultiClass.Models
             var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
 
             // try to get hero from the inspection panel bound
-            if (GameUi.GetHero != null)
+            if (InspectionPanelContext.SelectedHero != null)
             {
-                return GameUi.GetHero;
+                return InspectionPanelContext.SelectedHero;
             }
 
-            // otherwise it's most likely leveling up, get from there
+            // otherwise it's most likely building from templates, get from there
             if (characterBuildingService?.HeroCharacter != null)
             {
                 return characterBuildingService.HeroCharacter;
@@ -106,7 +106,7 @@ namespace SolastaMultiClass.Models
             }
             else
             {
-                return characterClassDefinition.Name.Contains("Warlock");
+                return characterClassDefinition.Name == "SolastaWarlockClass";
             }
         }
 

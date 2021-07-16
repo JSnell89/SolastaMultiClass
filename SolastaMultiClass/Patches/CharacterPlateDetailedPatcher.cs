@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using static SolastaMultiClass.Models.GameUi;
 
 namespace SolastaMultiClass.Patches
 {
@@ -10,7 +9,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(CharacterPlateDetailed __instance, GuiLabel ___classLabel)
             {
-                ___classLabel.Text = GetAllClassesLabel(__instance.GuiCharacter, ___classLabel.Text);
+                ___classLabel.Text = Models.GameUi.GetAllClassesLabel(__instance.GuiCharacter, ___classLabel.Text);
             }
         }
     }

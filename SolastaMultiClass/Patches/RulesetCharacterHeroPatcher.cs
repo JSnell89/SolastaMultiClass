@@ -7,7 +7,7 @@ namespace SolastaMultiClass.Patches
     {
         internal static void Prefix(RulesetCharacterHero __instance)
         {
-            Models.GameUi.InspectionPanelBindHero(__instance);
+            Models.InspectionPanelContext.SelectedHero = __instance;
         }
     }
 }

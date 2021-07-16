@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using static SolastaMultiClass.Models.GameUi;
 
 namespace SolastaMultiClass.Patches
 {
@@ -10,7 +9,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(ref CharacterClassDefinition __result)
             {
-                __result = GetSelectedClass( __result);
+                __result = Models.InspectionPanelContext.GetSelectedClass( __result);
             }
         }
 
@@ -19,7 +18,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(GuiCharacter __instance, ref string __result)
             {
-                __result = GetAllClassesLabel(__instance, __result, " - ");
+                __result = Models.GameUi.GetAllClassesLabel(__instance, __result, " - ");
             }
         }
 
@@ -28,7 +27,7 @@ namespace SolastaMultiClass.Patches
         {
             internal static void Postfix(GuiCharacter __instance, ref string __result)
             {
-                __result = GetAllClassesLabel(__instance, __result, " - ");
+                __result = Models.GameUi.GetAllClassesLabel(__instance, __result, " - ");
             }
         }
     }

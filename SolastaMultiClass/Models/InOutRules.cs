@@ -4,11 +4,11 @@ namespace SolastaMultiClass.Models
 {
     static class InOutRules
     {
-        public static List<CharacterClassDefinition> GetHeroAllowedClassDefinitions(RulesetCharacterHero hero)
+        public static void EnumerateHeroAllowedClassDefinitions(RulesetCharacterHero hero, List<CharacterClassDefinition> allowedClasses, ref int selectedClass)
         {
-            var allowedClasses = new List<CharacterClassDefinition>() { };
             var currentClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1];
 
+            allowedClasses.Clear();
             if (!ApproveMultiClassInOut(hero, currentClass) && Main.Settings.EnableMinInOutAttributes)
             {
                 allowedClasses.Add(currentClass);
@@ -33,7 +33,8 @@ namespace SolastaMultiClass.Models
                     }
                 }
             }
-            return allowedClasses;
+            allowedClasses.Sort((a, b) => a.FormatTitle().CompareTo(b.FormatTitle()));
+            selectedClass = allowedClasses.IndexOf(hero.ClassesHistory[hero.ClassesHistory.Count - 1]);
         }
 
         private static bool ApproveMultiClassInOut(RulesetCharacterHero hero, CharacterClassDefinition classDefinition)

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using HarmonyLib;
-using static SolastaMultiClass.Models.GameUi;
+using static SolastaMultiClass.Models.InspectionPanelContext;
 
 namespace SolastaMultiClass.Patches
 {
@@ -23,7 +23,7 @@ namespace SolastaMultiClass.Patches
                             ___hitDiceBox.ValueLabel.RectTransform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
                             break;
                     }
-                    ___hitDiceBox.ValueLabel.Text = GetAllClassesHitDiceLabel(___guiCharacter);
+                    ___hitDiceBox.ValueLabel.Text = Models.GameUi.GetAllClassesHitDiceLabel(___guiCharacter);
                 }
             }
         }
