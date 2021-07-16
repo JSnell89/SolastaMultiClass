@@ -154,7 +154,7 @@ namespace SolastaMultiClass.Models
 
         public static void UngrantSpellbookIfRequired()
         {
-            if (requiresSpellbook && !hasSpellbookGranted)
+            if (hasSpellbookGranted)
             {
                 var item = new RulesetItemSpellbook(SolastaModApi.DatabaseHelper.ItemDefinitions.Spellbook);
 

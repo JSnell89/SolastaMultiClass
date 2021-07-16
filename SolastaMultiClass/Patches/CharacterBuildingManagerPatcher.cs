@@ -17,34 +17,36 @@ namespace SolastaMultiClass.Patches
                 {
                     string poolName = string.Empty;
                     CharacterClassDefinition characterClassDefinition;
-                    int num;
+                    int classLevel;
 
                     if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class)
                     {
-                        __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out num);
+                        __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out classLevel);
 
-                        // short circuit if the feature is for another class otherwise (change from native code)
+                        // short circuit if the feature is for another class (change from native code)
                         if (spellRepertoire.SpellCastingClass != characterClassDefinition)
                             continue;
 
-                        poolName = AttributeDefinitions.GetClassTag(characterClassDefinition, num);
+                        poolName = AttributeDefinitions.GetClassTag(characterClassDefinition, classLevel);
                     }
                     else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass)
                     {
-                        __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out num);
-                        CharacterSubclassDefinition item = __instance.HeroCharacter.ClassesAndSubclasses[characterClassDefinition];
+                        __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out classLevel);
+                        CharacterSubclassDefinition characterSubclassDefinition = __instance.HeroCharacter.ClassesAndSubclasses[characterClassDefinition];
 
                         // short circuit if the feature is for another subclass (change from native code)
-                        if (spellRepertoire.SpellCastingSubclass != characterClassDefinition)
+                        if (spellRepertoire.SpellCastingSubclass != characterSubclassDefinition)
                             continue;
 
-                        poolName = AttributeDefinitions.GetSubclassTag(characterClassDefinition, num, item);
+                        poolName = AttributeDefinitions.GetSubclassTag(characterClassDefinition, classLevel, characterSubclassDefinition);
                     }
                     else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Race)
                     {
                         poolName = "02Race";
                     }
+
                     int maxPoints = 0;
+
                     if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(poolName))
                     {
                         maxPoints = __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[poolName].MaxPoints;
@@ -53,20 +55,24 @@ namespace SolastaMultiClass.Patches
                     var characterBuildingManagerType = typeof(CharacterBuildingManager);
                     var applyFeatureCastSpellMethod = characterBuildingManagerType.GetMethod("ApplyFeatureCastSpell", BindingFlags.NonPublic | BindingFlags.Instance);
                     var setPointPoolMethod = characterBuildingManagerType.GetMethod("SetPointPool", BindingFlags.NonPublic | BindingFlags.Instance);
+                    
                     var tempAcquiredCantripsNumberFieldInfo = characterBuildingManagerType.GetField("tempAcquiredCantripsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
                     var tempAcquiredSpellsNumberFieldInfo = characterBuildingManagerType.GetField("tempAcquiredSpellsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var tempUnlearnedSpellsNumberFieldInfo = characterBuildingManagerType.GetField("tempUnlearnedSpellsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
 
                     tempAcquiredCantripsNumberFieldInfo.SetValue(__instance, 0);
                     tempAcquiredSpellsNumberFieldInfo.SetValue(__instance, 0);
+                    tempUnlearnedSpellsNumberFieldInfo.SetValue(__instance, 0);
 
-                    //Make sure not to recurse indefinitely!  The call here is needed 
                     applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature });
 
-                    int tempCantrips = (int)tempAcquiredCantripsNumberFieldInfo.GetValue(__instance);
-                    int tempSpells = (int)tempAcquiredSpellsNumberFieldInfo.GetValue(__instance);
+                    var tempAcquiredCantripsNumber = (int)tempAcquiredCantripsNumberFieldInfo.GetValue(__instance);
+                    var tempAcquiredSpellsNumber = (int)tempAcquiredSpellsNumberFieldInfo.GetValue(__instance);
+                    var tempUnlearnedSpellsNumber = (int)tempUnlearnedSpellsNumberFieldInfo.GetValue(__instance);
 
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, tempCantrips + maxPoints });
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, tempSpells });
+                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, tempAcquiredCantripsNumber + maxPoints });
+                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, tempAcquiredSpellsNumber });
+                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.SpellUnlearn, poolName, tempUnlearnedSpellsNumber });
                 }
                 return false;
             }
@@ -77,57 +83,30 @@ namespace SolastaMultiClass.Patches
         {
             internal static bool Prefix(CharacterBuildingManager __instance, string tag, ref FeatureDefinitionCastSpell __result)
             {
-                FeatureDefinitionCastSpell featureDefinitionCastSpell = null;
                 string str = tag;
 
                 if (str.StartsWith("03Class"))
                 {
-                    str = tag.Substring(0, tag.Length - 2); // removes any levels from the tag examples are 03ClassRanger2, 03ClassRanger20. This is a bit lazy but no class will have a tag where the class name is only 1 character.  
-                                                            // old Solasta code was str = "03Class"; which lead to getting the first spell feature from any class
+                    str = str.Substring(0, str.Length - 2); // removes any levels from the tag otherwise it leads to getting the first spell feature from any class
                 }
                 else if (str.StartsWith("06Subclass"))
                 {
-                    str = tag.Substring(0, tag.Length - 2); // similar to above just with subclasses
-                                                            // old Solasta code was str = "06Subclass"; which lead to getting the first spell feature from any subclass
+                    str = str.Substring(0, str.Length - 2); // same as above for subclass
                 }
 
-                Dictionary<string, List<FeatureDefinition>>.Enumerator enumerator = __instance.HeroCharacter.ActiveFeatures.GetEnumerator();
-
-                try
+                __result = null;
+                foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in __instance.HeroCharacter.ActiveFeatures)
                 {
-                    while (enumerator.MoveNext())
+                    if (activeFeature.Key.StartsWith(str))
                     {
-                        KeyValuePair<string, List<FeatureDefinition>> current = enumerator.Current;
-                        if (!current.Key.StartsWith(str))
+                        foreach (FeatureDefinition featureDefinition in activeFeature.Value)
                         {
-                            continue;
-                        }
-                        List<FeatureDefinition>.Enumerator enumerator1 = current.Value.GetEnumerator();
-                        try
-                        {
-                            while (enumerator1.MoveNext())
-                            {
-                                FeatureDefinition featureDefinition = enumerator1.Current;
-                                if (!(featureDefinition is FeatureDefinitionCastSpell))
-                                {
-                                    continue;
-                                }
-                                featureDefinitionCastSpell = featureDefinition as FeatureDefinitionCastSpell;
-                                __result = featureDefinitionCastSpell;
-                                return false;
-                            }
-                        }
-                        finally
-                        {
-                            ((IDisposable)enumerator1).Dispose();
+                            if (featureDefinition is FeatureDefinitionCastSpell)
+                                __result = featureDefinition as FeatureDefinitionCastSpell;
                         }
                     }
                 }
-                finally
-                {
-                    ((IDisposable)enumerator).Dispose();
-                }
-                __result = featureDefinitionCastSpell;
+
                 return false;
             }
         }

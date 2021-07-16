@@ -2,9 +2,9 @@
 
 namespace SolastaMultiClass.Models
 {
-    static class InOutRules
+    internal static class InOutRules
     {
-        public static void EnumerateHeroAllowedClassDefinitions(RulesetCharacterHero hero, List<CharacterClassDefinition> allowedClasses, ref int selectedClass)
+        internal static void EnumerateHeroAllowedClassDefinitions(RulesetCharacterHero hero, List<CharacterClassDefinition> allowedClasses, ref int selectedClass)
         {
             var currentClass = hero.ClassesHistory[hero.ClassesHistory.Count - 1];
 

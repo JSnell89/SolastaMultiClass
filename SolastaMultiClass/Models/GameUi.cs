@@ -2,9 +2,9 @@
 
 namespace SolastaMultiClass.Models
 {
-    static class GameUi
+    internal static class GameUi
     {
-        public static string GetAllSubclassesLabel(GuiCharacter character)
+        internal static string GetAllSubclassesLabel(GuiCharacter character)
         {
             var allSubclassesLabel = "";
             var hero = character.RulesetCharacterHero;
@@ -23,7 +23,7 @@ namespace SolastaMultiClass.Models
             return allSubclassesLabel;
         }
 
-        public static string GetAllClassesLabel(GuiCharacter character, string defaultLabel = "", string separator = "\n")
+        internal static string GetAllClassesLabel(GuiCharacter character, string defaultLabel = "", string separator = "\n")
         {
             var allClassesLabel = "";
             var snapshot = character?.Snapshot;
@@ -59,7 +59,7 @@ namespace SolastaMultiClass.Models
             return allClassesLabel;
         }
 
-        public static string GetAllClassesHitDiceLabel(GuiCharacter character, string separator = " ")
+        internal static string GetAllClassesHitDiceLabel(GuiCharacter character, string separator = " ")
         {
             var hitDiceLabel = "";
             var hero = character?.RulesetCharacterHero;

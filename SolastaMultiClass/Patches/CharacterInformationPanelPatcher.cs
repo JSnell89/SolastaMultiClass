@@ -2,7 +2,6 @@
 using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
-using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Patches
 {
@@ -14,11 +13,11 @@ namespace SolastaMultiClass.Patches
             internal static bool Prefix(CharacterInformationPanel __instance, List<BaseDefinition> ___badgeDefinitions, RectTransform ___classBadgesTable, GameObject ___classBadgePrefab)
             {
                 ___badgeDefinitions.Clear();
-                var rulesetCharacterHero = __instance.InspectedCharacter.RulesetCharacterHero;
+                var rulesetCharacterHero = Models.InspectionPanelContext.SelectedHero;
                 foreach (KeyValuePair<CharacterClassDefinition, CharacterSubclassDefinition> classesAndSubclass in rulesetCharacterHero.ClassesAndSubclasses)
                     if (classesAndSubclass.Key == Models.InspectionPanelContext.GetSelectedClass())
                         ___badgeDefinitions.Add(classesAndSubclass.Value);
-                if (rulesetCharacterHero.DeityDefinition != null && (Models.InspectionPanelContext.GetSelectedClass() == Paladin || Models.InspectionPanelContext.GetSelectedClass() == Cleric))
+                if (Models.InspectionPanelContext.RequiresDeity)
                     ___badgeDefinitions.Add(rulesetCharacterHero.DeityDefinition);
                 foreach (var trainedFightingStyle in Models.InspectionPanelContext.GetTrainedFightingStyles(rulesetCharacterHero))
                     ___badgeDefinitions.Add(trainedFightingStyle);
