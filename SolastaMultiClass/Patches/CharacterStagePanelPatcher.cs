@@ -8,7 +8,7 @@ using HarmonyLib;
 namespace SolastaMultiClass.Patches
 {
     internal static class CharacterStagePanelPatcher
-    {        
+    {
         //
         // CHARACTER STAGE CLASS SELECTION PANEL
         // 

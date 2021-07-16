@@ -126,7 +126,7 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static List<FeatureUnlockByLevel> SelectClassFeaturesUnlock => selectedClassFeaturesUnlock;
+        public static List<FeatureUnlockByLevel> SelectedClassFeaturesUnlock => selectedClassFeaturesUnlock;
 
         public static bool DisplayingClassPanel
         {

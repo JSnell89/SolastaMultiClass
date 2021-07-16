@@ -30,7 +30,7 @@ namespace SolastaMultiClass.Patches
             var spellRepertoirePanelType = typeof(SpellRepertoirePanel);
             var spellsByLevelTableFieldInfo = spellRepertoirePanelType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            UnityEngine.RectTransform spellsByLevelRect = (UnityEngine.RectTransform)spellsByLevelTableFieldInfo.GetValue(__instance);
+            RectTransform spellsByLevelRect = (RectTransform)spellsByLevelTableFieldInfo.GetValue(__instance);
 
             int childCount = spellsByLevelRect.childCount;
             int accountForCantrips = __instance.SpellRepertoire.SpellCastingFeature.SpellListDefinition.HasCantrips ? 1 : 0;
