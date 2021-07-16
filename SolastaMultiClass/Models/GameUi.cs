@@ -10,7 +10,6 @@ namespace SolastaMultiClass.Models
             var hero = character.RulesetCharacterHero;
 
             foreach (var characterClassDefinition in hero.ClassesAndLevels.Keys)
-                //foreach (var characterSubclassDefinition in hero.ClassesAndSubclasses.Values)
             {
                 if (hero.ClassesAndSubclasses.ContainsKey(characterClassDefinition))
                 {
@@ -60,12 +59,11 @@ namespace SolastaMultiClass.Models
             return allClassesLabel;
         }
 
-        public static string GetAllClassesHitDiceLabel(GuiCharacter character)
+        public static string GetAllClassesHitDiceLabel(GuiCharacter character, string separator = " ")
         {
             var hitDiceLabel = "";
-            var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
             var hero = character?.RulesetCharacterHero;
-            var separator = " ";
+            var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
 
             if (hero != null)
             {

@@ -28,7 +28,7 @@
 //        [HarmonyPatch(typeof(CharacterStageFightingStyleSelectionPanel), "OnBeginShow")]
 //        internal static class CharacterStageFightingStyleSelectionPanel_OnBeginShow_Patch
 //        {
-//            internal static void Postfix(int ___selectedFightingStyle) 
+//            internal static void Postfix(int ___selectedFightingStyle)
 //            {
 //                previouslySelectedFightingStyle = ___selectedFightingStyle;
 //            }

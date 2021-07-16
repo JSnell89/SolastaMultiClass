@@ -3,7 +3,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
-using SolastaMultiClass.Models;
 
 namespace SolastaMultiClass.Patches
 {
@@ -17,11 +16,11 @@ namespace SolastaMultiClass.Patches
                 ___badgeDefinitions.Clear();
                 var rulesetCharacterHero = __instance.InspectedCharacter.RulesetCharacterHero;
                 foreach (KeyValuePair<CharacterClassDefinition, CharacterSubclassDefinition> classesAndSubclass in rulesetCharacterHero.ClassesAndSubclasses)
-                    if (classesAndSubclass.Key == InspectionPanelContext.GetSelectedClass())
+                    if (classesAndSubclass.Key == Models.InspectionPanelContext.GetSelectedClass())
                         ___badgeDefinitions.Add(classesAndSubclass.Value);
-                if (rulesetCharacterHero.DeityDefinition != null && (InspectionPanelContext.GetSelectedClass() == Paladin || InspectionPanelContext.GetSelectedClass() == Cleric))
+                if (rulesetCharacterHero.DeityDefinition != null && (Models.InspectionPanelContext.GetSelectedClass() == Paladin || Models.InspectionPanelContext.GetSelectedClass() == Cleric))
                     ___badgeDefinitions.Add(rulesetCharacterHero.DeityDefinition);
-                foreach (var trainedFightingStyle in InspectionPanelContext.GetTrainedFightingStyles(rulesetCharacterHero))
+                foreach (var trainedFightingStyle in Models.InspectionPanelContext.GetTrainedFightingStyles(rulesetCharacterHero))
                     ___badgeDefinitions.Add(trainedFightingStyle);
                 while (___classBadgesTable.childCount < ___badgeDefinitions.Count)
                     Gui.GetPrefabFromPool(___classBadgePrefab, (Transform)___classBadgesTable);
@@ -49,7 +48,7 @@ namespace SolastaMultiClass.Patches
             internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var containsMethod = typeof(string).GetMethod("Contains");
-                var getSelectedClassSearchTermMethod = typeof(InspectionPanelContext).GetMethod("GetSelectedClassSearchTerm");
+                var getSelectedClassSearchTermMethod = typeof(Models.InspectionPanelContext).GetMethod("GetSelectedClassSearchTerm");
                 var found = 0;
 
                 foreach (var instruction in instructions)

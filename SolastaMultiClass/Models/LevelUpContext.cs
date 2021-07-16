@@ -2,7 +2,6 @@
 using HarmonyLib;
 using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
-
 namespace SolastaMultiClass.Models
 {
     internal static class LevelUpContext

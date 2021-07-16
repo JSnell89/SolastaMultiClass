@@ -47,36 +47,36 @@ namespace SolastaMultiClass.Models
 
             switch (classDefinition.Name)
             {
-                case "AHBarbarianClass": // AceHigh's Barbarian
+                case "Barbarian":
                 case "BarbarianClass": // Holic92's Barbarian
                     return strength >= 13;
 
-                case "AHWarlockClass": // AceHigh's Warlock
                 case "BardClass": // Holic92's Bard
+                case "SolastaWarlockClass": // Holic92's Warlock
+                case "Bard":
                 case "Sorcerer":
+                case "Warlock":
                     return charisma >= 13;
 
                 case "Cleric":
+                case "Druid":
                     return wisdom >= 13;
 
                 case "Fighter":
                     return strength >= 13 || dexterity >= 13;
 
                 case "MonkClass": // Holic92's Monk
-                    return strength >= 13 && charisma >= 13;
+                case "Monk":
+                case "Ranger":
+                    return dexterity >= 13 && wisdom >= 13;
 
                 case "Paladin":
                     return strength >= 13 && charisma >= 13;
 
-                case "Ranger":
-                    return dexterity >= 13 && wisdom >= 13;
-
-                case "ClassTinkerer": // CJD's Tinkerer
-                    return intelligence >= 13;
-
                 case "Rogue":
                     return dexterity >= 13;
 
+                case "ClassTinkerer": // CJD's Tinkerer
                 case "Wizard":
                     return intelligence >= 13;
 
