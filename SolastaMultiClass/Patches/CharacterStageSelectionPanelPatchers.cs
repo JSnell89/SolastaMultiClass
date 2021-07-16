@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using UnityEngine.UI;
 using HarmonyLib;
 
 namespace SolastaMultiClass.Patches
@@ -215,6 +213,81 @@ namespace SolastaMultiClass.Patches
         }
 
         //
+        // CHARACTER STAGE FIGHTING STYLE SELECTION PANEL
+        //
+
+        public static int previouslySelectedFightingStyle = -1;
+        public static int newlySelectedFightingStyle = -1;
+
+        [HarmonyPatch(typeof(CharacterStageFightingStyleSelectionPanel), "OnBeginShow")]
+        internal static class CharacterStageFightingStyleSelectionPanel_OnBeginShow_Patch
+        {
+            internal static void Postfix(int ___selectedFightingStyle)
+            {
+                previouslySelectedFightingStyle = ___selectedFightingStyle;
+            }
+        }
+
+        [HarmonyPatch(typeof(CharacterStageFightingStyleSelectionPanel), "Refresh")]
+        internal static class CharacterStageFightingStyleSelectionPanel_Refresh_Patch
+        {
+            public static void UntrainPreviouslySelectedFightStyle(ICharacterBuildingService __instance)
+            {
+                if (previouslySelectedFightingStyle > 0)
+                {
+                    __instance.UntrainLastFightingStyle();
+                }
+                previouslySelectedFightingStyle = newlySelectedFightingStyle;
+            }
+
+            internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var untrainLastFightingStyleMethod = typeof(ICharacterBuildingService).GetMethod("UntrainLastFightingStyle");
+                var untrainPreviouslySelectedFightStyleMethod = typeof(CharacterStageFightingStyleSelectionPanel_Refresh_Patch).GetMethod("UntrainPreviouslySelectedFightStyle");
+
+                foreach (var instruction in instructions)
+                {
+                    if (instruction.Calls(untrainLastFightingStyleMethod))
+                    {
+                        yield return new CodeInstruction(OpCodes.Call, untrainPreviouslySelectedFightStyleMethod); // stack will have the game building service instance
+                    }
+                    else
+                    {
+                        yield return instruction;
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(CharacterStageFightingStyleSelectionPanel), "OnFightingStyleValueChangedCb")]
+        internal static class CharacterStageFightingStyleSelectionPanel_OnFightingStyleValueChangedCb_Patch
+        {
+            public static void AssignSelectedFightingStyle(CharacterStageFightingStyleSelectionPanel __instance, int selectedFightingStyle)
+            {
+                newlySelectedFightingStyle = selectedFightingStyle;
+                AccessTools.Field(__instance.GetType(), "selectedFightingStyle").SetValue(__instance, selectedFightingStyle);
+            }
+
+            internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var selectedFightingStyleField = AccessTools.Field(typeof(CharacterStageFightingStyleSelectionPanel), "selectedFightingStyle");
+                var AssignSelectedFightingStyleMethod = typeof(CharacterStageFightingStyleSelectionPanel_OnFightingStyleValueChangedCb_Patch).GetMethod("AssignSelectedFightingStyle");
+
+                foreach (var instruction in instructions)
+                {
+                    if (instruction.StoresField(selectedFightingStyleField))
+                    {
+                        yield return new CodeInstruction(OpCodes.Call, AssignSelectedFightingStyleMethod); // stack will have the instance and an int
+                    }
+                    else
+                    {
+                        yield return instruction;
+                    }
+                }
+            }
+        }
+
+        //
         // CHARACTER STAGE SPELL SELECTION PANEL
         //
 
@@ -222,47 +295,45 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterStageSpellSelectionPanel), "Refresh")]
         internal static class CharacterStageSpellSelectionPanel_Refresh_Patch
         {
-            internal static void Postfix(CharacterStageSpellSelectionPanel __instance)
+            internal static void Postfix(CharacterStageSpellSelectionPanel __instance, List<string> ___allTags, RectTransform ___spellsByLevelTable, RectTransform ___levelButtonsTable)
             {
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
-                var characterStageSpellSelectionPanelType = typeof(CharacterStageSpellSelectionPanel);
-                var spellsByLevelTableFieldInfo = characterStageSpellSelectionPanelType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
-                var allTagsFieldInfo = characterStageSpellSelectionPanelType.GetField("allTags", BindingFlags.NonPublic | BindingFlags.Instance);
-                var allTags = (List<string>)allTagsFieldInfo.GetValue(__instance);
-
-                if (allTags == null)
+                if (___allTags == null)
                     return;
 
-                string item = allTags[allTags.Count - 1];
+                var tag = ___allTags[___allTags.Count - 1];
+                var featureDefinitionCastSpell = __instance.CharacterBuildingService.GetSpellFeature(tag);
+
+                // only need updates if spells are selected
+                if (featureDefinitionCastSpell.SpellKnowledge != RuleDefinitions.SpellKnowledge.Selection && featureDefinitionCastSpell.SpellKnowledge != RuleDefinitions.SpellKnowledge.Spellbook)
+                    return;
+
+                // changes to use class level instead of hero level
                 __instance.CharacterBuildingService.GetLastAssignedClassAndLevel(out CharacterClassDefinition characterClassDefinition, out int _);
+                int classLevel = __instance.CharacterBuildingService.HeroCharacter.ClassesAndLevels[characterClassDefinition];
+                int highestSpellLevel = featureDefinitionCastSpell.ComputeHighestSpellLevel(classLevel);
+                int accountForCantripsInt = featureDefinitionCastSpell.SpellListDefinition.HasCantrips ? 1 : 0;
 
-                FeatureDefinitionCastSpell spellFeature = __instance.CharacterBuildingService.GetSpellFeature(item);
-
-                // only need updates if for spell selection. this fixes an issue where Clerics were getting level 1 spells as cantrips
-                if (spellFeature.SpellKnowledge != RuleDefinitions.SpellKnowledge.Selection && spellFeature.SpellKnowledge != RuleDefinitions.SpellKnowledge.Spellbook)
-                    return;
-
-                int count = __instance.CharacterBuildingService.HeroCharacter.ClassesAndLevels[characterClassDefinition]; // changed to use class level instead of hero level
-                int highestSpellLevel = spellFeature.ComputeHighestSpellLevel(count);
-
-                int accountForCantripsInt = spellFeature.SpellListDefinition.HasCantrips ? 1 : 0;
-
-                UnityEngine.RectTransform spellsByLevelRect = (UnityEngine.RectTransform)spellsByLevelTableFieldInfo.GetValue(__instance);
-                int currentChildCount = spellsByLevelRect.childCount;
-
-                if (spellsByLevelRect != null && currentChildCount > highestSpellLevel + accountForCantripsInt)
+                // patches the spell level buttons to be hidden if no spells available at that level
+                if (___levelButtonsTable != null && ___levelButtonsTable.childCount > highestSpellLevel + accountForCantripsInt)
                 {
-                    // deactivate the extra spell UI that can show up due to the original method using Character level instead of Class level
-                    for (int i = highestSpellLevel + accountForCantripsInt; i < currentChildCount; i++)
+                    for (int i = highestSpellLevel + accountForCantripsInt; i < ___levelButtonsTable.childCount; i++)
                     {
-                        var child = spellsByLevelRect.GetChild(i);
-                        child?.gameObject?.SetActive(false);
+                        var child = ___levelButtonsTable.GetChild(i);
+                        child.gameObject.SetActive(false);
                     }
+                }
 
-                    // TODO: test if this is needed
-                    LayoutRebuilder.ForceRebuildLayoutImmediate(spellsByLevelRect);
+                // patches the spell panel to be hidden if no spells available at that level
+                if (___spellsByLevelTable != null && ___spellsByLevelTable.childCount > highestSpellLevel + accountForCantripsInt)
+                {  
+                    for (int i = highestSpellLevel + accountForCantripsInt; i < ___spellsByLevelTable.childCount; i++)
+                    {
+                        var child = ___spellsByLevelTable.GetChild(i);
+                        child.gameObject.SetActive(false);
+                    }
                 }
             }
         }

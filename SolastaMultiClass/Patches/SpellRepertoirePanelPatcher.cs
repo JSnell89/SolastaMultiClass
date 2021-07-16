@@ -1,45 +1,56 @@
 ﻿using HarmonyLib;
 using System;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using static SolastaMultiClass.Models.SharedSpellsRules;
 
 namespace SolastaMultiClass.Patches
 {
-    // patches the panel to display higher level spell slots from shared slots table but hide the spell panels if class level not there yet
     [HarmonyPatch(typeof(SpellRepertoirePanel), "Bind")]
     internal static class SpellRepertoirePanel_Bind_Patch
     {
-        internal static void Postfix(SpellRepertoirePanel __instance)
+        internal static void Postfix(
+            SpellRepertoirePanel __instance, 
+            RectTransform ___sorceryPointsBox, 
+            GuiLabel ___sorceryPointsLabel, 
+            RectTransform ___spellsByLevelTable, 
+            RectTransform ___levelButtonsTable)
         {
             // hides the sorcery points UI if not a sorcerer caster
-            var sorceryPointsBox = (RectTransform)AccessTools.Field(__instance.GetType(), "sorceryPointsBox").GetValue(__instance);
-            var sorceryPointsLabel = (GuiLabel)AccessTools.Field(__instance.GetType(), "sorceryPointsLabel").GetValue(__instance);
             var active = __instance.SpellRepertoire.SpellCastingClass.Name == "Sorcerer";
 
-            sorceryPointsBox.gameObject.SetActive(active);
-            sorceryPointsLabel.gameObject.SetActive(active);
+            ___sorceryPointsBox.gameObject.SetActive(active);
+            ___sorceryPointsLabel.gameObject.SetActive(active);
 
-            // this may not work for subclasses that have prepared spells but I don't think any do
+            // determine the display context
             var characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
             var rulesetCharacterHero = __instance.GuiCharacter.RulesetCharacterHero;
             var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition) / 2.0);
-            var spellRepertoirePanelType = typeof(SpellRepertoirePanel);
-            var spellsByLevelTableFieldInfo = spellRepertoirePanelType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            RectTransform spellsByLevelRect = (RectTransform)spellsByLevelTableFieldInfo.GetValue(__instance);
-
-            int childCount = spellsByLevelRect.childCount;
             int accountForCantrips = __instance.SpellRepertoire.SpellCastingFeature.SpellListDefinition.HasCantrips ? 1 : 0;
 
-            for (int i = 0; i < childCount; i++)
+            // patches the spell level buttons to be hidden if no spells available at that level
+            for (int i = 0; i < ___levelButtonsTable.childCount; i++)
             {
-                Transform transforms = spellsByLevelRect.GetChild(i);
+                Transform child = ___levelButtonsTable.GetChild(i);
+
+                if (i > (maxLevelOfSpellCastingForClass + accountForCantrips) - 1)
+                {
+                    child.gameObject.SetActive(false);
+                }
+                else
+                {
+                    child.gameObject.SetActive(true);
+                }
+            }
+
+            // patches the panel to display higher level spell slots from shared slots table but hide the spell panels if class level not there yet
+            for (int i = 0; i < ___spellsByLevelTable.childCount; i++)
+            {
+                Transform transforms = ___spellsByLevelTable.GetChild(i);
                 for (int k = 0; k < transforms.childCount; k++)
                 {
                     var child = transforms.GetChild(k);
-
+                    
                     // don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
                     if (child.TryGetComponent(typeof(SlotStatusTable), out Component _))
                         continue;
@@ -54,7 +65,6 @@ namespace SolastaMultiClass.Patches
                     }
                 }
             }
-            LayoutRebuilder.ForceRebuildLayoutImmediate(spellsByLevelRect);
         }
     }
 }
