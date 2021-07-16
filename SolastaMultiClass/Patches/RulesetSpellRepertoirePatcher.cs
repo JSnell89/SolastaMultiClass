@@ -15,36 +15,23 @@ namespace SolastaMultiClass.Patches
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
+                int casterLevel;
+
                 var heroWithSpellRepertoire = GetHero(__instance.CharacterName);
 
-                // don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features)
-                if (heroWithSpellRepertoire == null || heroWithSpellRepertoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() < 2)
+                if (heroWithSpellRepertoire == null) 
                     return;
 
-                int casterLevel = GetHeroSharedCasterLevel(heroWithSpellRepertoire);
-
-                if (__instance.SpellCastingFeature == null)
+                if (__instance.SpellCastingClass != null && __instance.SpellCastingClass.Name.Contains("Warlock"))
                 {
-                    Trace.LogWarning("Invalid SpellCastingFeature in RulesetSpellRepertoire.ComputeSpellSlots()");
-                    return;
+                    casterLevel = GetHeroSharedCasterLevel(heroWithSpellRepertoire, __instance.SpellCastingClass);
                 }
-                if (__instance.SpellCastingLevel < 1 || __instance.SpellCastingFeature != null && __instance.SpellCastingLevel > __instance.SpellCastingFeature.SlotsPerLevels.Count - 1)
+                else
                 {
-                    Trace.LogWarning("Invalid spellcasting level in RulesetSpellRepertoire.ComputeSpellSlots()");
-                    return;
+                    casterLevel = GetHeroSharedCasterLevel(heroWithSpellRepertoire);
                 }
-                if (__instance.SpellCastingFeature == null)
-                {
-                    return;
-                }
-
+                
                 FeatureDefinitionCastSpell.SlotsByLevelDuplet item = FullCastingSlots[casterLevel - 1];
-
-                if (item == null || item.Slots == null || item.Slots.Count == 0)
-                {
-                    Trace.LogWarning("Invalid duplet in RulesetSpellRepertoire.ComputeSpellSlots()");
-                    return;
-                }
 
                 int num = item.Slots.IndexOf(0);
 
@@ -71,6 +58,8 @@ namespace SolastaMultiClass.Patches
                     return;
 
                 var heroWithSpellRepertoire = GetHero(__instance.CharacterName);
+
+                // TODO: Add Warlock logic from here
 
                 // don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features)
                 if (heroWithSpellRepertoire == null || heroWithSpellRepertoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() < 2)

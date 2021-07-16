@@ -59,11 +59,12 @@ namespace SolastaMultiClass.Models
             return allClassesLabel;
         }
 
-        internal static string GetAllClassesHitDiceLabel(GuiCharacter character, string separator = " ")
+        internal static string GetAllClassesHitDiceLabel(GuiCharacter character)
         {
             var hitDiceLabel = "";
             var hero = character?.RulesetCharacterHero;
             var dieTypesCount = new Dictionary<RuleDefinitions.DieType, int>() { };
+            var separator = " ";
 
             if (hero != null)
             {

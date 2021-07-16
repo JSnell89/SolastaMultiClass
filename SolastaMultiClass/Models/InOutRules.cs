@@ -52,7 +52,7 @@ namespace SolastaMultiClass.Models
                     return strength >= 13;
 
                 case "BardClass": // Holic92's Bard
-                case "SolastaWarlockClass": // Holic92's Warlock
+                case "WarlockClass": // Holic92's Warlock
                 case "Bard":
                 case "Sorcerer":
                 case "Warlock":

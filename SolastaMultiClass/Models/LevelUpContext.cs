@@ -72,7 +72,7 @@ namespace SolastaMultiClass.Models
                 {"MonkSkillProficiency", null},
                 {"MonkSavingthrowProficiency", null} } },
 
-            {"SolastaWarlockClass", new Dictionary<string, string> {
+            {"WarlockClass", new Dictionary<string, string> {
                 {"WarlockWeaponProficiency", null},
                 {"WarlockSkillProficiency", null},
                 {"WarlockSavingthrowProficiency", null} } },

@@ -13,8 +13,8 @@ namespace SolastaMultiClass.Patches
     {
         internal static void Postfix(SpellRepertoirePanel __instance)
         {
-            // hides the sorcery points if required
-            if (__instance.SpellRepertoire.SpellCastingFeature.SpellReadyness == RuleDefinitions.SpellReadyness.Prepared)
+            // hides the sorcery points UI if not a sorcerer caster
+            if (__instance.SpellRepertoire.SpellCastingClass.Name != "Sorcerer")
             {
                 var sorceryPointsBox = (RectTransform)AccessTools.Field(__instance.GetType(), "sorceryPointsBox").GetValue(__instance);
                 var sorceryPointsLabel = (GuiLabel)AccessTools.Field(__instance.GetType(), "sorceryPointsLabel").GetValue(__instance);
@@ -22,7 +22,7 @@ namespace SolastaMultiClass.Patches
                 sorceryPointsLabel.gameObject.SetActive(false);
             }
 
-            // this may not work for subclasses that have 'Prepared' spells, but I don't think any do
+            // this may not work for subclasses that have prepared spells but I don't think any do
             var characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
             var rulesetCharacterHero = __instance.GuiCharacter.RulesetCharacterHero;
             var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition) / 2.0);
@@ -56,7 +56,6 @@ namespace SolastaMultiClass.Patches
                     }
                 }
             }
-
             LayoutRebuilder.ForceRebuildLayoutImmediate(spellsByLevelRect);
         }
     }

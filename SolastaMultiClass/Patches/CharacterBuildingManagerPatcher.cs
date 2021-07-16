@@ -1,17 +1,90 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 
 namespace SolastaMultiClass.Patches
 {
     internal static class CharacterBuildingManagerPatcher
-    {        
-        // ensure the level up process doesn't offer spells from a class not leveling up
+    {
+        // ensures the level up process only considers the leveling up class when enumerating known spells
+        [HarmonyPatch(typeof(CharacterBuildingManager), "EnumerateKnownAndAcquiredSpells")]
+        internal static class CharacterBuildingManager_EnumerateKnownAndAcquiredSpells_Patch
+        {
+            internal static bool Prefix(
+                string tagToIgnore,
+                CharacterBuildingManager __instance,
+                List<FeatureDefinition> ___matchingFeatures,
+                Dictionary<string, List<SpellDefinition>> ___bonusCantrips,
+                Dictionary<string, List<SpellDefinition>> ___acquiredCantrips,
+                Dictionary<string, List<SpellDefinition>> ___acquiredSpells,
+                ref List<SpellDefinition> __result)
+            {
+                ___matchingFeatures.Clear();
+                List<SpellDefinition> spellDefinitionList = new List<SpellDefinition>();
+                foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
+                {
+                    // short circuit here to only consider the actual class leveling up
+                    if (spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass) continue;
+
+                    foreach (SpellDefinition knownCantrip in spellRepertoire.KnownCantrips)
+                    {
+                        if (!spellDefinitionList.Contains(knownCantrip))
+                            spellDefinitionList.Add(knownCantrip);
+                    }
+                    foreach (SpellDefinition knownSpell in spellRepertoire.KnownSpells)
+                    {
+                        if (!spellDefinitionList.Contains(knownSpell))
+                            spellDefinitionList.Add(knownSpell);
+                    }
+                    spellDefinitionList.AddRange((IEnumerable<SpellDefinition>)spellRepertoire.EnumerateAvailableScribedSpells());
+                }
+                foreach (KeyValuePair<string, List<SpellDefinition>> bonusCantrip in ___bonusCantrips)
+                {
+                    if (bonusCantrip.Key != tagToIgnore)
+                    {
+                        foreach (SpellDefinition spellDefinition in bonusCantrip.Value)
+                        {
+                            if (!spellDefinitionList.Contains(spellDefinition))
+                                spellDefinitionList.Add(spellDefinition);
+                        }
+                    }
+                }
+                foreach (KeyValuePair<string, List<SpellDefinition>> acquiredCantrip in ___acquiredCantrips)
+                {
+                    if (acquiredCantrip.Key != tagToIgnore)
+                    {
+                        foreach (SpellDefinition spellDefinition in acquiredCantrip.Value)
+                        {
+                            if (!spellDefinitionList.Contains(spellDefinition))
+                                spellDefinitionList.Add(spellDefinition);
+                        }
+                    }
+                }
+                foreach (KeyValuePair<string, List<SpellDefinition>> acquiredSpell in ___acquiredSpells)
+                {
+                    if (acquiredSpell.Key != tagToIgnore)
+                    {
+                        foreach (SpellDefinition spellDefinition in acquiredSpell.Value)
+                        {
+                            if (!spellDefinitionList.Contains(spellDefinition))
+                                spellDefinitionList.Add(spellDefinition);
+                        }
+                    }
+                }
+                __result = spellDefinitionList;
+                return false;
+            }
+        }
+
+        // ensures the level up process only offers spells from the leveling up class
         [HarmonyPatch(typeof(CharacterBuildingManager), "UpgradeSpellPointPools")]
         internal static class CharacterBuildingManager_UpgradeSpellPointPools_Patch
         {
-            internal static bool Prefix(CharacterBuildingManager __instance)
+            internal static bool Prefix(
+                CharacterBuildingManager __instance,
+                ref int ___tempAcquiredCantripsNumber,
+                ref int ___tempAcquiredSpellsNumber,
+                ref int ___tempUnlearnedSpellsNumber)
             {
                 foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
                 {
@@ -56,28 +129,20 @@ namespace SolastaMultiClass.Patches
                     var applyFeatureCastSpellMethod = characterBuildingManagerType.GetMethod("ApplyFeatureCastSpell", BindingFlags.NonPublic | BindingFlags.Instance);
                     var setPointPoolMethod = characterBuildingManagerType.GetMethod("SetPointPool", BindingFlags.NonPublic | BindingFlags.Instance);
                     
-                    var tempAcquiredCantripsNumberFieldInfo = characterBuildingManagerType.GetField("tempAcquiredCantripsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
-                    var tempAcquiredSpellsNumberFieldInfo = characterBuildingManagerType.GetField("tempAcquiredSpellsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
-                    var tempUnlearnedSpellsNumberFieldInfo = characterBuildingManagerType.GetField("tempUnlearnedSpellsNumber", BindingFlags.NonPublic | BindingFlags.Instance);
-
-                    tempAcquiredCantripsNumberFieldInfo.SetValue(__instance, 0);
-                    tempAcquiredSpellsNumberFieldInfo.SetValue(__instance, 0);
-                    tempUnlearnedSpellsNumberFieldInfo.SetValue(__instance, 0);
+                    ___tempAcquiredCantripsNumber = 0;
+                    ___tempAcquiredSpellsNumber = 0;
+                    ___tempUnlearnedSpellsNumber = 0;
 
                     applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature });
-
-                    var tempAcquiredCantripsNumber = (int)tempAcquiredCantripsNumberFieldInfo.GetValue(__instance);
-                    var tempAcquiredSpellsNumber = (int)tempAcquiredSpellsNumberFieldInfo.GetValue(__instance);
-                    var tempUnlearnedSpellsNumber = (int)tempUnlearnedSpellsNumberFieldInfo.GetValue(__instance);
-
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, tempAcquiredCantripsNumber + maxPoints });
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, tempAcquiredSpellsNumber });
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.SpellUnlearn, poolName, tempUnlearnedSpellsNumber });
+                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, ___tempAcquiredCantripsNumber + maxPoints });
+                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, ___tempAcquiredSpellsNumber });
+                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.SpellUnlearn, poolName, ___tempUnlearnedSpellsNumber });
                 }
                 return false;
             }
         }
 
+        // ???
         [HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
         internal static class CharacterBuildingManager_GetSpellFeature_Patch
         {
@@ -106,7 +171,6 @@ namespace SolastaMultiClass.Patches
                         }
                     }
                 }
-
                 return false;
             }
         }

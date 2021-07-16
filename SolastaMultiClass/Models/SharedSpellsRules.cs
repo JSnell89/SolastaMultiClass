@@ -79,19 +79,25 @@ namespace SolastaMultiClass.Models
         {
             var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
 
-            // try to get hero from the inspection panel bound
+            // try to get the hero from the inspection panel context
             if (InspectionPanelContext.SelectedHero != null)
             {
                 return InspectionPanelContext.SelectedHero;
             }
 
-            // otherwise it's most likely building from templates, get from there
+            // try to get the hero from the level up context
+            if (LevelUpContext.SelectedHero != null)
+            {
+                return LevelUpContext.SelectedHero;
+            }
+
+            // try to cover the special case when heroes are built silently from template definitions
             if (characterBuildingService?.HeroCharacter != null)
             {
                 return characterBuildingService.HeroCharacter;
             }
 
-            // not even sure if below code will ever execute, need more QA
+            // last resource
             var gameService = ServiceRepository.GetService<IGameService>();
             var gameCampaignCharacter = gameService?.Game?.GameCampaign?.Party?.CharactersList.Find(x => x.RulesetCharacter.Name == name);
 
@@ -106,7 +112,7 @@ namespace SolastaMultiClass.Models
             }
             else
             {
-                return characterClassDefinition.Name == "SolastaWarlockClass";
+                return characterClassDefinition.Name.Contains("Warlock");
             }
         }
 
@@ -121,18 +127,22 @@ namespace SolastaMultiClass.Models
             {
                 var context = new CasterLevelContext();
 
-                foreach (var classAndLevel in rulesetCharacterHero.ClassesAndLevels)
+                if (rulesetCharacterHero != null && rulesetCharacterHero.ClassesAndLevels != null)
                 {
-                    var currentCharacterClassDefinition = classAndLevel.Key;
-
-                    // only apply a filter if one exists
-                    if (filterCharacterClassDefinition == null || filterCharacterClassDefinition == currentCharacterClassDefinition)
+                    foreach (var classAndLevel in rulesetCharacterHero.ClassesAndLevels)
                     {
-                        rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition characterSubclassDefinition);
-                        CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, characterSubclassDefinition);
-                        context.IncrementCasterLevel(casterType, classAndLevel.Value);
+                        var currentCharacterClassDefinition = classAndLevel.Key;
+
+                        // only apply a filter if one exists
+                        if (filterCharacterClassDefinition == null || filterCharacterClassDefinition == currentCharacterClassDefinition)
+                        {
+                            rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition characterSubclassDefinition);
+                            CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, characterSubclassDefinition);
+                            context.IncrementCasterLevel(casterType, classAndLevel.Value);
+                        }
                     }
                 }
+
                 return context.GetCasterLevel();
             }
         }
