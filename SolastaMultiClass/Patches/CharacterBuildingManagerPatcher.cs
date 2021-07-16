@@ -143,37 +143,37 @@ namespace SolastaMultiClass.Patches
         }
 
         // ???
-        [HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
-        internal static class CharacterBuildingManager_GetSpellFeature_Patch
-        {
-            internal static bool Prefix(CharacterBuildingManager __instance, string tag, ref FeatureDefinitionCastSpell __result)
-            {
-                string str = tag;
+        //[HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
+        //internal static class CharacterBuildingManager_GetSpellFeature_Patch
+        //{
+        //    internal static bool Prefix(CharacterBuildingManager __instance, string tag, ref FeatureDefinitionCastSpell __result)
+        //    {
+        //        string str = tag;
 
-                if (str.StartsWith("03Class"))
-                {
-                    str = str.Substring(0, str.Length - 2); // removes any levels from the tag otherwise it leads to getting the first spell feature from any class
-                }
-                else if (str.StartsWith("06Subclass"))
-                {
-                    str = str.Substring(0, str.Length - 2); // same as above for subclass
-                }
+        //        if (str.StartsWith("03Class"))
+        //        {
+        //            str = str.Substring(0, str.Length - 2); // removes any levels from the tag otherwise it leads to getting the first spell feature from any class
+        //        }
+        //        else if (str.StartsWith("06Subclass"))
+        //        {
+        //            str = str.Substring(0, str.Length - 2); // same as above for subclass
+        //        }
 
-                __result = null;
-                foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in __instance.HeroCharacter.ActiveFeatures)
-                {
-                    if (activeFeature.Key.StartsWith(str))
-                    {
-                        foreach (FeatureDefinition featureDefinition in activeFeature.Value)
-                        {
-                            if (featureDefinition is FeatureDefinitionCastSpell)
-                                __result = featureDefinition as FeatureDefinitionCastSpell;
-                        }
-                    }
-                }
-                return false;
-            }
-        }
+        //        __result = null;
+        //        foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in __instance.HeroCharacter.ActiveFeatures)
+        //        {
+        //            if (activeFeature.Key.StartsWith(str))
+        //            {
+        //                foreach (FeatureDefinition featureDefinition in activeFeature.Value)
+        //                {
+        //                    if (featureDefinition is FeatureDefinitionCastSpell)
+        //                        __result = featureDefinition as FeatureDefinitionCastSpell;
+        //                }
+        //            }
+        //        }
+        //        return false;
+        //    }
+        //}
 
         // captures the desired class and ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "AssignClassLevel")]
