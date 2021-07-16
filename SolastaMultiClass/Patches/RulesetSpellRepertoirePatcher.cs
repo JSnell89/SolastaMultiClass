@@ -107,15 +107,15 @@ namespace SolastaMultiClass.Patches
                 }
 
                 // now updates all other long rest spell repertoires to have the same spell slots that we just calculated
-                foreach (var spellRepertoire in heroWithSpellRepertoire.SpellRepertoires.Where(spellRep => spellRep.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest))
-                {
-                    for (int i = 0; i < maxSpellLevel; i++)
-                    {
-                        var spellSlots = (Dictionary<int, int>)AccessTools.Field(spellRepertoire.GetType(), "spellsSlotCapacities").GetValue(spellRepertoire);
-                        spellSlots[i + 1] = currentInstanceSpellsSlotCapacities[i + 1];
-                    }
-                    spellRepertoire.RepertoireRefreshed?.Invoke(spellRepertoire);
-                }
+                //foreach (var spellRepertoire in heroWithSpellRepertoire.SpellRepertoires.Where(spellRep => spellRep.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest))
+                //{
+                //    for (int i = 0; i < maxSpellLevel; i++)
+                //    {
+                //        var spellSlots = (Dictionary<int, int>)AccessTools.Field(spellRepertoire.GetType(), "spellsSlotCapacities").GetValue(spellRepertoire);
+                //        spellSlots[i + 1] = currentInstanceSpellsSlotCapacities[i + 1];
+                //    }
+                //    spellRepertoire.RepertoireRefreshed?.Invoke(spellRepertoire);
+                //}
 
                 RulesetSpellRepertoire.RepertoireRefreshedHandler repertoireRefreshed = __instance.RepertoireRefreshed;
 
