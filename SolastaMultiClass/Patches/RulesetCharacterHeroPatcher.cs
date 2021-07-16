@@ -9,5 +9,10 @@ namespace SolastaMultiClass.Patches
         {
             Models.InspectionPanelContext.SelectedHero = __instance;
         }
+
+        internal static void Postfix(RulesetCharacterHero __instance)
+        {
+           //Models.InspectionPanelContext.SelectedHero = __instance;
+        }
     }
 }

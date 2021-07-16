@@ -19,6 +19,7 @@ namespace SolastaMultiClass.Patches
 
                 _ = Features.SkillProficiencyMulticlassBuilder.BardClassSkillProficiencyMulticlass;
                 _ = Features.SkillProficiencyMulticlassBuilder.PointPoolRangerSkillPointsMulticlass;
+                _ = Features.SkillProficiencyMulticlassBuilder.PointPoolRogueSkillPointsMulticlass;
             }
         }
     }

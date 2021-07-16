@@ -38,7 +38,7 @@ namespace SolastaMultiClass.Models
 
             {"Rogue", new Dictionary<string, string> {
                 {"ProficiencyRogueWeapon", null},
-                {"PointPoolRogueSkillPoints", null},
+                {"PointPoolRogueSkillPoints", "PointPoolRogueSkillPointsMulticlass"},
                 {"ProficiencyRogueSavingThrow", null} } },
 
             {"Sorcerer", new Dictionary<string, string> {

@@ -15,12 +15,12 @@ namespace SolastaMultiClass.Patches
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
 
-                int casterLevel;
-
                 var heroWithSpellRepertoire = GetHero(__instance.CharacterName);
 
                 if (heroWithSpellRepertoire == null) 
                     return;
+
+                int casterLevel;
 
                 if (__instance.SpellCastingClass != null && __instance.SpellCastingClass.Name.Contains("Warlock"))
                 {

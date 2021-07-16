@@ -77,8 +77,6 @@ namespace SolastaMultiClass.Models
 
         internal static RulesetCharacterHero GetHero(string name)
         {
-            var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
-
             // try to get the hero from the inspection panel context
             if (InspectionPanelContext.SelectedHero != null)
             {
@@ -91,16 +89,18 @@ namespace SolastaMultiClass.Models
                 return LevelUpContext.SelectedHero;
             }
 
+            var characterBuildingService = ServiceRepository.GetService<ICharacterBuildingService>();
+
             // try to cover the special case when heroes are built silently from template definitions
             if (characterBuildingService?.HeroCharacter != null)
             {
                 return characterBuildingService.HeroCharacter;
             }
 
-            // last resource
             var gameService = ServiceRepository.GetService<IGameService>();
             var gameCampaignCharacter = gameService?.Game?.GameCampaign?.Party?.CharactersList.Find(x => x.RulesetCharacter.Name == name);
 
+            // last resource
             return (RulesetCharacterHero)gameCampaignCharacter?.RulesetCharacter;
         }
 
@@ -142,7 +142,6 @@ namespace SolastaMultiClass.Models
                         }
                     }
                 }
-
                 return context.GetCasterLevel();
             }
         }

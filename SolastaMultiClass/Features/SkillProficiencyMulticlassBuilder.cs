@@ -13,6 +13,9 @@ namespace SolastaMultiClass.Features
         const string PointPoolRangerSkillPointsMulticlassName = "PointPoolRangerSkillPointsMulticlass";
         const string PointPoolRangerSkillPointsMulticlassGuid = "096e4e01b52b490e807cf8d458845aa5";
 
+        const string PointPoolRogueSkillPointsMulticlassName = "PointPoolRogueSkillPointsMulticlass";
+        const string PointPoolRogueSkillPointsMulticlassGuid = "451259da8c5c41f4b1b363f00b01be4e";
+
         protected SkillProficiencyMulticlassBuilder(string name, string guid, string title, List<string> restrictedChoices) : base(PointPoolRangerSkillPoints, name, guid)
         {
             Definition.SetPoolAmount(1);
@@ -56,6 +59,21 @@ namespace SolastaMultiClass.Features
                 "Nature",
                 "Perception",
                 "Survival",
+                "Stealth"
+            });
+
+        public static readonly FeatureDefinitionPointPool PointPoolRogueSkillPointsMulticlass =
+            CreateAndAddToDB(PointPoolRogueSkillPointsMulticlassName, PointPoolRogueSkillPointsMulticlassGuid, "Feature/&RogueSkillsTitle", new List<string> {
+                "Acrobatics",
+                "Athletics",
+                "Deception",
+                "Insight",
+                "Intimidation",
+                "Investigation",
+                "Perception",
+                "Performance",
+                "Persuasion",
+                "SleightOfHand",
                 "Stealth"
             });
     }

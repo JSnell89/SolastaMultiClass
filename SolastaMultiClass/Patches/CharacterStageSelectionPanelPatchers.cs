@@ -120,7 +120,7 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterStageClassSelectionPanel), "Refresh")]
         internal static class CharacterStageClassSelectionPanel_Refresh_Patch
         {
-            public static bool MySetActive(bool show)
+            public static bool SetActive(bool show) // need to keep this parameter here otherwise will FUP the stack
             {
                 return !(Models.LevelUpContext.LevelingUp && Models.LevelUpContext.DisplayingClassPanel);
             }
@@ -129,7 +129,7 @@ namespace SolastaMultiClass.Patches
             {
                 var setActiveFound = 0;
                 var setActiveMethod = typeof(GameObject).GetMethod("SetActive");
-                var mySetActiveMethod = typeof(CharacterStageSelectionPanelPatchers.CharacterStageClassSelectionPanel_Refresh_Patch).GetMethod("MySetActive");
+                var mySetActiveMethod = typeof(CharacterStageSelectionPanelPatchers.CharacterStageClassSelectionPanel_Refresh_Patch).GetMethod("SetActive");
 
                 foreach (var instruction in instructions)
                 {
