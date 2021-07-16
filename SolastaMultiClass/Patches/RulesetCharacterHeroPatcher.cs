@@ -12,7 +12,7 @@
 
 //        internal static void Postfix(RulesetCharacterHero __instance)
 //        {
-//            //Models.InspectionPanelContext.SelectedHero = __instance;
+//            Models.InspectionPanelContext.SelectedHero = null;
 //        }
 //    }
 //}

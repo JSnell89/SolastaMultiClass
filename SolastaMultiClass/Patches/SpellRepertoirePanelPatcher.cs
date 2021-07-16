@@ -14,19 +14,17 @@ namespace SolastaMultiClass.Patches
         internal static void Postfix(SpellRepertoirePanel __instance)
         {
             // hides the sorcery points UI if not a sorcerer caster
-            if (__instance.SpellRepertoire.SpellCastingClass.Name != "Sorcerer")
-            {
-                var sorceryPointsBox = (RectTransform)AccessTools.Field(__instance.GetType(), "sorceryPointsBox").GetValue(__instance);
-                var sorceryPointsLabel = (GuiLabel)AccessTools.Field(__instance.GetType(), "sorceryPointsLabel").GetValue(__instance);
-                sorceryPointsBox.gameObject.SetActive(false);
-                sorceryPointsLabel.gameObject.SetActive(false);
-            }
+            var sorceryPointsBox = (RectTransform)AccessTools.Field(__instance.GetType(), "sorceryPointsBox").GetValue(__instance);
+            var sorceryPointsLabel = (GuiLabel)AccessTools.Field(__instance.GetType(), "sorceryPointsLabel").GetValue(__instance);
+            var active = __instance.SpellRepertoire.SpellCastingClass.Name == "Sorcerer";
+
+            sorceryPointsBox.gameObject.SetActive(active);
+            sorceryPointsLabel.gameObject.SetActive(active);
 
             // this may not work for subclasses that have prepared spells but I don't think any do
             var characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
             var rulesetCharacterHero = __instance.GuiCharacter.RulesetCharacterHero;
             var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition) / 2.0);
-
             var spellRepertoirePanelType = typeof(SpellRepertoirePanel);
             var spellsByLevelTableFieldInfo = spellRepertoirePanelType.GetField("spellsByLevelTable", BindingFlags.NonPublic | BindingFlags.Instance);
 
