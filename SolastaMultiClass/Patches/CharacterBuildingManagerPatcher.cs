@@ -150,20 +150,24 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        // removes any levels from the tag otherwise it leads to getting the first spell feature from any class
+        // removes any levels from the tag otherwise it'll have a hard time finding it if multiclassed
         [HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
         internal static class CharacterBuildingManager_GetSpellFeature_Patch
         {
-            internal static bool Prefix(CharacterBuildingManager __instance, string tag, ref FeatureDefinitionCastSpell __result)
+            internal static bool Prefix(string tag, ref FeatureDefinitionCastSpell __result)
             {
-                if (Models.LevelUpContext.SelectedSubclass == null)
+                if (Models.LevelUpContext.LevelingUp)
                 {
-                    if (tag.StartsWith("03Class") || tag.StartsWith("06Subclass"))
+                    if (tag.StartsWith("03Class"))
                     {
-                        tag = tag.TrimEnd(new char[10] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' });
+                        tag = "03Class" + Models.LevelUpContext.SelectedClass.Name;
+                    }
+                    if (tag.StartsWith("06Subclass"))
+                    {
+                        tag = "06Subclass" + Models.LevelUpContext.SelectedClass.Name;
                     }
                     __result = null;
-                    foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in __instance.HeroCharacter.ActiveFeatures)
+                    foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in Models.LevelUpContext.SelectedHero.ActiveFeatures)
                     {
                         if (activeFeature.Key.StartsWith(tag))
                         {
@@ -174,9 +178,8 @@ namespace SolastaMultiClass.Patches
                             }
                         }
                     }
-                    return false;
                 }
-                return true;
+                return !Models.LevelUpContext.LevelingUp;
             }
         }
 
