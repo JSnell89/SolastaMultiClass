@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using UnityEngine;
-using static SolastaMultiClass.Models.SharedSpellsRules;
+using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Patches
 {
@@ -15,17 +15,11 @@ namespace SolastaMultiClass.Patches
             RectTransform ___spellsByLevelTable, 
             RectTransform ___levelButtonsTable)
         {
-            // hides the sorcery points UI if not a sorcerer caster
-            var active = __instance.SpellRepertoire.SpellCastingClass?.Name == "Sorcerer";
-
-            ___sorceryPointsBox.gameObject.SetActive(active);
-            ___sorceryPointsLabel.gameObject.SetActive(active);
-
             // determine the display context
             var rulesetCharacterHero = __instance.GuiCharacter.RulesetCharacterHero;
             var characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
             var characterSubclassDefinition = __instance.SpellRepertoire.SpellCastingSubclass;
-            var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition, characterSubclassDefinition) / 2.0);
+            var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(Models.SharedSpellsRules.GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition, characterSubclassDefinition) / 2.0);
             int accountForCantrips = __instance.SpellRepertoire.SpellCastingFeature.SpellListDefinition.HasCantrips ? 1 : 0;
 
             // patches the spell level buttons to be hidden if no spells available at that level
@@ -51,6 +45,13 @@ namespace SolastaMultiClass.Patches
                     }
                 }
             }
+
+            // hides the sorcery points UI if not a sorcerer caster
+            var active = __instance.SpellRepertoire?.SpellCastingClass == Sorcerer &&
+                rulesetCharacterHero.ClassesAndLevels.ContainsKey(Sorcerer) && rulesetCharacterHero.ClassesAndLevels[Sorcerer] >= 2;
+
+            ___sorceryPointsBox.gameObject.SetActive(active);
+            ___sorceryPointsLabel.gameObject.SetActive(active);
         }
     }
 }
