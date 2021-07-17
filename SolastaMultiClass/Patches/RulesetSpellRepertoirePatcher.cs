@@ -48,7 +48,12 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(RulesetSpellRepertoire), "ComputeSpellSlots")]
         internal static class RulesetSpellRepertoire_ComputeSpellSlots_Patch
         {
-            internal static void Postfix(RulesetSpellRepertoire __instance, List<FeatureDefinition> spellCastingAffinities)
+            internal static void Postfix(
+                RulesetSpellRepertoire __instance, 
+                List<FeatureDefinition> spellCastingAffinities, 
+                Dictionary<int, int> ___spellsSlotCapacities, 
+                Dictionary<int, int> ___legacyAvailableSpellsSlots, 
+                Dictionary<int, int> ___usedSpellsSlots)
             {
                 if (!Main.Settings.EnableSharedSpellCasting)
                     return;
@@ -59,8 +64,6 @@ namespace SolastaMultiClass.Patches
 
                 var heroWithSpellRepertoire = GetHero(__instance.CharacterName);
 
-                // TODO: Add Warlock logic from here
-
                 // don't bother doing extra work if there aren't multiple spell repertoires that are shared (multiple long rest spell features)
                 if (heroWithSpellRepertoire == null || heroWithSpellRepertoire.SpellRepertoires.Where(sr => sr.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest).Count() < 2)
                     return;
@@ -68,61 +71,37 @@ namespace SolastaMultiClass.Patches
                 int maxSpellLevel = __instance.MaxSpellLevelOfSpellCastingLevel;
                 int casterLevel = GetHeroSharedCasterLevel(heroWithSpellRepertoire);
 
-                var currentInstanceSpellsSlotCapacities = (Dictionary<int, int>)AccessTools.Field(__instance.GetType(), "spellsSlotCapacities").GetValue(__instance);
-                var legacyAvailableSpellsSlots = (Dictionary<int, int>)AccessTools.Field(__instance.GetType(), "legacyAvailableSpellsSlots").GetValue(__instance);
-                var usedSpellsSlots = (Dictionary<int, int>)AccessTools.Field(__instance.GetType(), "usedSpellsSlots").GetValue(__instance);
-                currentInstanceSpellsSlotCapacities.Clear();
-
+                ___spellsSlotCapacities.Clear();
                 for (int i = 0; i < maxSpellLevel; i++)
                 {
-                    currentInstanceSpellsSlotCapacities[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i]; //The real change right here
+                    // the important change right here
+                    ___spellsSlotCapacities[i + 1] = FullCastingSlots[casterLevel - 1].Slots[i]; 
 
                     // I believe this is just to properly handle saves between patches, theoretically it is needed for higher level slots for MC saves between patches as well
-                    if (legacyAvailableSpellsSlots.ContainsKey(i + 1))
+                    if (___legacyAvailableSpellsSlots.ContainsKey(i + 1))
                     {
-                        usedSpellsSlots.Add(i + 1, currentInstanceSpellsSlotCapacities[i + 1] - legacyAvailableSpellsSlots[i + 1]);
-                        legacyAvailableSpellsSlots.Remove(i + 1);
+                        ___usedSpellsSlots.Add(i + 1, ___spellsSlotCapacities[i + 1] - ___legacyAvailableSpellsSlots[i + 1]);
+                        ___legacyAvailableSpellsSlots.Remove(i + 1);
                     }
                 }
 
-                // seems to be new features that give extra spell slots
+                // new features give the extra spell slots
                 if (spellCastingAffinities != null && spellCastingAffinities.Count > 0)
                 {
                     foreach (FeatureDefinition spellCastingAffinity in spellCastingAffinities)
                     {
                         foreach (AdditionalSlotsDuplet additionalSlot in ((ISpellCastingAffinityProvider)spellCastingAffinity).AdditionalSlots)
                         {
-                            if (!currentInstanceSpellsSlotCapacities.ContainsKey(additionalSlot.SlotLevel))
+                            if (!___spellsSlotCapacities.ContainsKey(additionalSlot.SlotLevel))
                             {
-                                currentInstanceSpellsSlotCapacities[additionalSlot.SlotLevel] = additionalSlot.SlotsNumber;
+                                ___spellsSlotCapacities[additionalSlot.SlotLevel] = 0;
                             }
-                            else
-                            {
-                                Dictionary<int, int> item = currentInstanceSpellsSlotCapacities;
-                                int slotLevel = additionalSlot.SlotLevel;
-                                item[slotLevel] = item[slotLevel] + additionalSlot.SlotsNumber;
-                            }
+                            ___spellsSlotCapacities[additionalSlot.SlotLevel] += additionalSlot.SlotsNumber;
                         }
                     }
                 }
 
-                // now updates all other long rest spell repertoires to have the same spell slots that we just calculated
-                //foreach (var spellRepertoire in heroWithSpellRepertoire.SpellRepertoires.Where(spellRep => spellRep.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest))
-                //{
-                //    for (int i = 0; i < maxSpellLevel; i++)
-                //    {
-                //        var spellSlots = (Dictionary<int, int>)AccessTools.Field(spellRepertoire.GetType(), "spellsSlotCapacities").GetValue(spellRepertoire);
-                //        spellSlots[i + 1] = currentInstanceSpellsSlotCapacities[i + 1];
-                //    }
-                //    spellRepertoire.RepertoireRefreshed?.Invoke(spellRepertoire);
-                //}
-
-                RulesetSpellRepertoire.RepertoireRefreshedHandler repertoireRefreshed = __instance.RepertoireRefreshed;
-
-                if (__instance.RepertoireRefreshed != null)
-                {
-                    repertoireRefreshed(__instance);
-                }
+                __instance.RepertoireRefreshed?.Invoke(__instance);
             }
         }
     }
