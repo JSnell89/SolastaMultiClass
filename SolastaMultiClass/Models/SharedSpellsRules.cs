@@ -112,28 +112,32 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        internal static int GetHeroSharedCasterLevel(RulesetCharacterHero rulesetCharacterHero, CharacterClassDefinition filterCharacterClassDefinition = null)
+        internal static int GetHeroSharedCasterLevel(
+            RulesetCharacterHero rulesetCharacterHero, 
+            CharacterClassDefinition filterCharacterClassDefinition = null, 
+            CharacterSubclassDefinition filterCharacterSublassDefinition = null)
         {
             if (IsWarlock(filterCharacterClassDefinition))
             {
-                // Warlock stops progressing Pact Magic Spell Levels at 10
                 return Math.Min(rulesetCharacterHero.ClassesAndLevels[filterCharacterClassDefinition], 10);
             }
             else
             {
                 var context = new CasterLevelContext();
 
-                if (rulesetCharacterHero != null && rulesetCharacterHero.ClassesAndLevels != null)
+                if (rulesetCharacterHero?.ClassesAndLevels != null)
                 {
                     foreach (var classAndLevel in rulesetCharacterHero.ClassesAndLevels)
                     {
                         var currentCharacterClassDefinition = classAndLevel.Key;
 
-                        // only apply a filter if one exists
-                        if (filterCharacterClassDefinition == null || filterCharacterClassDefinition == currentCharacterClassDefinition)
+                        rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition currentCharacterSubclassDefinition);
+                        
+                        if (filterCharacterClassDefinition == null && filterCharacterSublassDefinition == null ||
+                            filterCharacterClassDefinition != null && filterCharacterClassDefinition == currentCharacterClassDefinition ||
+                            filterCharacterSublassDefinition != null && filterCharacterSublassDefinition == currentCharacterSubclassDefinition)
                         {
-                            rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition characterSubclassDefinition);
-                            CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, characterSubclassDefinition);
+                            CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, currentCharacterSubclassDefinition);
                             context.IncrementCasterLevel(casterType, classAndLevel.Value);
                         }
                     }

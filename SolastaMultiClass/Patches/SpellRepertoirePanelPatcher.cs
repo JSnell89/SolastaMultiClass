@@ -23,9 +23,10 @@ namespace SolastaMultiClass.Patches
             ___sorceryPointsLabel.gameObject.SetActive(active);
 
             // determine the display context
-            var characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
             var rulesetCharacterHero = __instance.GuiCharacter.RulesetCharacterHero;
-            var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition) / 2.0);
+            var characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
+            var characterSubclassDefinition = __instance.SpellRepertoire.SpellCastingSubclass;
+            var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition, characterSubclassDefinition) / 2.0);
             int accountForCantrips = __instance.SpellRepertoire.SpellCastingFeature.SpellListDefinition.HasCantrips ? 1 : 0;
 
             // patches the spell level buttons to be hidden if no spells available at that level
