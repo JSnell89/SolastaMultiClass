@@ -17,7 +17,7 @@ namespace SolastaMultiClass.Patches
             RectTransform ___levelButtonsTable)
         {
             // hides the sorcery points UI if not a sorcerer caster
-            var active = __instance.SpellRepertoire.SpellCastingClass.Name == "Sorcerer";
+            var active = __instance.SpellRepertoire.SpellCastingClass?.Name == "Sorcerer";
 
             ___sorceryPointsBox.gameObject.SetActive(active);
             ___sorceryPointsLabel.gameObject.SetActive(active);

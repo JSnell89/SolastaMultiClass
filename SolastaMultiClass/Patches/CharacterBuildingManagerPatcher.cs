@@ -105,8 +105,12 @@ namespace SolastaMultiClass.Patches
                     else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass)
                     {
                         __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out classLevel);
-                        CharacterSubclassDefinition characterSubclassDefinition = __instance.HeroCharacter.ClassesAndSubclasses[characterClassDefinition];
 
+                        if (!__instance.HeroCharacter.ClassesAndSubclasses.ContainsKey(characterClassDefinition))
+                            continue;
+
+                        CharacterSubclassDefinition characterSubclassDefinition = __instance.HeroCharacter.ClassesAndSubclasses[characterClassDefinition];
+                        
                         // short circuit if the feature is for another subclass (change from native code)
                         if (spellRepertoire.SpellCastingSubclass != characterSubclassDefinition)
                             continue;

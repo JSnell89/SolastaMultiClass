@@ -34,8 +34,8 @@ namespace SolastaMultiClass
             // modders' subclasses
             { "BarbarianSubclassPrimalPathOfWarShaman", CasterType.OneThird }, // holic92
             { "MartialEldritchKnight", CasterType.OneThird }, // holic92
-            { "CJDRogueConArtist", CasterType.OneThird }, // ChrisJohnDigital
-            { "CJDSpellShield", CasterType.OneThird }, // ChrisJohnDigital
+            { "RoguishConArtist", CasterType.OneThird }, // ChrisJohnDigital
+            { "FighterSpellShield", CasterType.OneThird }, // ChrisJohnDigital
         };
 
         public const InputCommands.Id PLAIN_LEFT = (InputCommands.Id)22220003;

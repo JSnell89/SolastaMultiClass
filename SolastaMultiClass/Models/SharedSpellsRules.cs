@@ -53,13 +53,9 @@ namespace SolastaMultiClass.Models
 
                 casterLevel += (int)Math.Ceiling(levels[CasterType.HalfRoundUp] / 2.0);
 
-                if (levels[CasterType.OneThird] == 3)
+                if (levels[CasterType.OneThird] >= 3)
                 {
-                    casterLevel += 1;
-                }
-                else if (levels[CasterType.Half] > 3)
-                {
-                    casterLevel += (int)Math.Ceiling(levels[CasterType.Half] / 3.0);
+                    casterLevel += (int)Math.Floor(levels[CasterType.OneThird] / 3.0);
                 }
 
                 return casterLevel;
