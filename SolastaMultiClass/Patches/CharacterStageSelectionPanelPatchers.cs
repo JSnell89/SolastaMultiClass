@@ -3,6 +3,8 @@ using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
 using UnityEngine.UI;
+using System;
+using System.Linq;
 
 namespace SolastaMultiClass.Patches
 {
@@ -349,6 +351,125 @@ namespace SolastaMultiClass.Patches
                     }
                 }
                 LayoutRebuilder.ForceRebuildLayoutImmediate(___spellsByLevelTable);
+            }
+        }
+
+
+        [HarmonyPatch(typeof(SpellsByLevelGroup), "BindLearning")]
+        internal static class SpellsByLevelGroup_BindLearning_Patch
+        {
+            internal static void Postfix(SpellsByLevelGroup __instance, ICharacterBuildingService characterBuildingService, SpellListDefinition spellListDefinition, List<string> restrictedSchools, int spellLevel, SpellBox.SpellBoxChangedHandler spellBoxChanged, List<SpellDefinition> knownSpells, List<SpellDefinition> unlearnedSpells, string spellTag, bool canAcquireSpells, bool unlearn)
+            {
+                __instance.SpellLevel = spellLevel;
+                List<FeatureDefinition> features = (List<FeatureDefinition>)AccessTools.Field(__instance.GetType(), "features").GetValue(__instance);
+                List<SpellDefinition> autoPreparedSpells = (List<SpellDefinition>)AccessTools.Field(__instance.GetType(), "autoPreparedSpells").GetValue(__instance);
+                SlotStatusTable slotStatusTable = (SlotStatusTable)AccessTools.Field(__instance.GetType(), "slotStatusTable").GetValue(__instance);
+
+                //Solasta engine code
+                List<SpellDefinition> spellDefinitions = new List<SpellDefinition>();
+                foreach (SpellDefinition spell in spellListDefinition.SpellsByLevel[(spellListDefinition.HasCantrips ? spellLevel : spellLevel - 1)].Spells)
+                {
+                    if (restrictedSchools.Count != 0 && !restrictedSchools.Contains(spell.SchoolOfMagic))
+                    {
+                        continue;
+                    }
+                    spellDefinitions.Add(spell);
+                }
+                foreach (SpellDefinition spellDefinition in characterBuildingService.EnumerateKnownAndAcquiredSpells(string.Empty))
+                {
+                    if (spellDefinition.SpellLevel != spellLevel || spellDefinitions.Contains(spellDefinition))
+                    {
+                        continue;
+                    }
+                    spellDefinitions.Add(spellDefinition);
+                }
+
+                //Actual patch change, remove any features that aren't part of the class/subclass combo that just leveled up.
+                //Would use Level up context to get the class/subclass but it seems to be behind at this point.
+                CharacterClassDefinition characterClass = null;
+                int lastClassLevel = -1;
+                Models.LevelUpContext.GetLastAssignedClassAndLevel(characterBuildingService, out characterClass, out lastClassLevel);
+                characterBuildingService.HeroCharacter.EnumerateFeaturesToBrowse<FeatureDefinitionMagicAffinity>(features, null); 
+                List<FeatureDefinition> characterClassAndSubclassFeatures = characterClass.FeatureUnlocks.FindAll(fubl => fubl.Level <= lastClassLevel).Select(fubl => fubl.FeatureDefinition).ToList();
+                CharacterSubclassDefinition subclass = null;
+                Models.LevelUpContext.SelectedHero.ClassesAndSubclasses.TryGetValue(characterClass, out subclass);
+
+                if(subclass != null)
+                    characterClassAndSubclassFeatures.AddRange(subclass.FeatureUnlocks.FindAll(fubl => fubl.Level <= lastClassLevel).Select(fubl => fubl.FeatureDefinition));
+                features.RemoveAll(f => !characterClassAndSubclassFeatures.Contains(f));
+
+                //Solasta engine code
+                foreach (FeatureDefinitionMagicAffinity feature in features)
+                {
+                    if (feature.ExtendedSpellList == null)
+                    {
+                        continue;
+                    }
+                    foreach (SpellDefinition spell1 in feature.ExtendedSpellList.SpellsByLevel[(spellListDefinition.HasCantrips ? spellLevel : spellLevel - 1)].Spells)
+                    {
+                        if (spellDefinitions.Contains(spell1) || restrictedSchools.Count != 0 && !restrictedSchools.Contains(spell1.SchoolOfMagic))
+                        {
+                            continue;
+                        }
+                        spellDefinitions.Add(spell1);
+                    }
+                }
+                autoPreparedSpells.Clear();
+                string empty = string.Empty;
+                if (__instance.SpellLevel > 0)
+                {
+                    characterBuildingService.HeroCharacter.EnumerateFeaturesToBrowse<FeatureDefinitionAutoPreparedSpells>(features, null);
+                    List<FeatureDefinition>.Enumerator enumerator = features.GetEnumerator();
+                    try
+                    {
+                        if (enumerator.MoveNext())
+                        {
+                            FeatureDefinitionAutoPreparedSpells current = (FeatureDefinitionAutoPreparedSpells)enumerator.Current;
+                            empty = current.AutoPreparedTag;
+                            foreach (FeatureDefinitionAutoPreparedSpells.AutoPreparedSpellsGroup autoPreparedSpellsGroup in current.AutoPreparedSpellsGroups)
+                            {
+                                foreach (SpellDefinition spellsList in autoPreparedSpellsGroup.SpellsList)
+                                {
+                                    if (spellsList.SpellLevel != __instance.SpellLevel)
+                                    {
+                                        continue;
+                                    }
+                                    autoPreparedSpells.Add(spellsList);
+                                }
+                            }
+                            foreach (SpellDefinition autoPreparedSpell in autoPreparedSpells)
+                            {
+                                if (spellDefinitions.Contains(autoPreparedSpell))
+                                {
+                                    continue;
+                                }
+                                spellDefinitions.Add(autoPreparedSpell);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        ((IDisposable)enumerator).Dispose();
+                    }
+                }
+                IGamingPlatformService service = ServiceRepository.GetService<IGamingPlatformService>();
+                for (int i = spellDefinitions.Count - 1; i >= 0; i--)
+                {
+                    if (!service.IsContentPackAvailable(spellDefinitions[i].ContentPack))
+                    {
+                        spellDefinitions.RemoveAt(i);
+                    }
+                }
+                __instance.CommonBind(null, (unlearn ? SpellBox.BindMode.Unlearn : SpellBox.BindMode.Learning), spellBoxChanged, spellDefinitions, null, autoPreparedSpells, unlearnedSpells, empty);
+                if (!unlearn)
+                {
+                    __instance.RefreshLearning(characterBuildingService, knownSpells, unlearnedSpells, spellTag, canAcquireSpells);
+                }
+                else
+                {
+                    __instance.RefreshUnlearning(characterBuildingService, knownSpells, unlearnedSpells, spellTag, (!canAcquireSpells ? false : spellLevel > 0));
+                }
+                slotStatusTable.Bind(null, spellLevel, null, false);
             }
         }
     }
