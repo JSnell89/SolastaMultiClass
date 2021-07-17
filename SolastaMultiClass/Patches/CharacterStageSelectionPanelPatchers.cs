@@ -2,6 +2,7 @@
 using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
+using UnityEngine.UI;
 
 namespace SolastaMultiClass.Patches
 {
@@ -347,6 +348,7 @@ namespace SolastaMultiClass.Patches
                         child.gameObject.SetActive(false);
                     }
                 }
+                LayoutRebuilder.ForceRebuildLayoutImmediate(___spellsByLevelTable);
             }
         }
     }

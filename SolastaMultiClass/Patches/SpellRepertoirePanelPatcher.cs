@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 using static SolastaModApi.DatabaseHelper.CharacterClassDefinitions;
 
 namespace SolastaMultiClass.Patches
@@ -45,6 +46,7 @@ namespace SolastaMultiClass.Patches
                     }
                 }
             }
+            LayoutRebuilder.ForceRebuildLayoutImmediate(___spellsByLevelTable);
 
             // hides the sorcery points UI if not a sorcerer caster
             var active = __instance.SpellRepertoire?.SpellCastingClass == Sorcerer &&

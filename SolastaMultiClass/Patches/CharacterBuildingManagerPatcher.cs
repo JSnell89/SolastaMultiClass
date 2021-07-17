@@ -150,29 +150,33 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        // // removes any levels from the tag otherwise it leads to getting the first spell feature from any class
+        // removes any levels from the tag otherwise it leads to getting the first spell feature from any class
         [HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
         internal static class CharacterBuildingManager_GetSpellFeature_Patch
         {
             internal static bool Prefix(CharacterBuildingManager __instance, string tag, ref FeatureDefinitionCastSpell __result)
             {
-                if (tag.StartsWith("03Class") || tag.StartsWith("06Subclass"))
+                if (Models.LevelUpContext.SelectedSubclass == null)
                 {
-                    tag = tag.TrimEnd(new char[10] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' });
-                }
-                __result = null;
-                foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in __instance.HeroCharacter.ActiveFeatures)
-                {
-                    if (activeFeature.Key.StartsWith(tag))
+                    if (tag.StartsWith("03Class") || tag.StartsWith("06Subclass"))
                     {
-                        foreach (FeatureDefinition featureDefinition in activeFeature.Value)
+                        tag = tag.TrimEnd(new char[10] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' });
+                    }
+                    __result = null;
+                    foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in __instance.HeroCharacter.ActiveFeatures)
+                    {
+                        if (activeFeature.Key.StartsWith(tag))
                         {
-                            if (featureDefinition is FeatureDefinitionCastSpell)
-                                __result = featureDefinition as FeatureDefinitionCastSpell;
+                            foreach (FeatureDefinition featureDefinition in activeFeature.Value)
+                            {
+                                if (featureDefinition is FeatureDefinitionCastSpell)
+                                    __result = featureDefinition as FeatureDefinitionCastSpell;
+                            }
                         }
                     }
+                    return false;
                 }
-                return false;
+                return true;
             }
         }
 

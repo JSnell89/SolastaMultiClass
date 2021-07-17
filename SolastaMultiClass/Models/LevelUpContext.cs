@@ -95,6 +95,7 @@ namespace SolastaMultiClass.Models
             { 
                 selectedHero = value;
                 selectedClass = null;
+                selectedSubclass = null;
                 levelingUp = value != null;
                 hasSpellbookGranted = false;
                 requiresSpellbook = false;
