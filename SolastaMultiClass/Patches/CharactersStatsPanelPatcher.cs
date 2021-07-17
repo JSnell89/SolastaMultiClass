@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using HarmonyLib;
-using static SolastaMultiClass.Models.InspectionPanelContext;
 
 namespace SolastaMultiClass.Patches
 {

@@ -324,24 +324,26 @@ namespace SolastaMultiClass.Patches
                 __instance.CharacterBuildingService.GetLastAssignedClassAndLevel(out CharacterClassDefinition characterClassDefinition, out int _);
                 int classLevel = __instance.CharacterBuildingService.HeroCharacter.ClassesAndLevels[characterClassDefinition];
                 int highestSpellLevel = featureDefinitionCastSpell.ComputeHighestSpellLevel(classLevel);
-                int accountForCantripsInt = featureDefinitionCastSpell.SpellListDefinition.HasCantrips ? 1 : 0;
+                int accountForCantrips = featureDefinitionCastSpell.SpellListDefinition.HasCantrips ? 1 : 0;
 
                 // patches the spell level buttons to be hidden if no spells available at that level
-                if (___levelButtonsTable != null && ___levelButtonsTable.childCount > highestSpellLevel + accountForCantripsInt)
+                if (___levelButtonsTable != null && ___levelButtonsTable.childCount > highestSpellLevel + accountForCantrips)
                 {
-                    for (int i = highestSpellLevel + accountForCantripsInt; i < ___levelButtonsTable.childCount; i++)
+                    for (int i = highestSpellLevel + accountForCantrips; i < ___levelButtonsTable.childCount; i++)
                     {
-                        var child = ___levelButtonsTable.GetChild(i);
+                        Transform child = ___levelButtonsTable.GetChild(i);
+
                         child.gameObject.SetActive(false);
                     }
                 }
 
                 // patches the spell panel to be hidden if no spells available at that level
-                if (___spellsByLevelTable != null && ___spellsByLevelTable.childCount > highestSpellLevel + accountForCantripsInt)
+                if (___spellsByLevelTable != null && ___spellsByLevelTable.childCount > highestSpellLevel + accountForCantrips)
                 {  
-                    for (int i = highestSpellLevel + accountForCantripsInt; i < ___spellsByLevelTable.childCount; i++)
+                    for (int i = highestSpellLevel + accountForCantrips; i < ___spellsByLevelTable.childCount; i++)
                     {
-                        var child = ___spellsByLevelTable.GetChild(i);
+                        Transform child = ___spellsByLevelTable.GetChild(i);
+
                         child.gameObject.SetActive(false);
                     }
                 }

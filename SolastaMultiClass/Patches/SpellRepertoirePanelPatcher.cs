@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using System;
 using UnityEngine;
-using UnityEngine.UI;
 using static SolastaMultiClass.Models.SharedSpellsRules;
 
 namespace SolastaMultiClass.Patches
@@ -34,35 +33,21 @@ namespace SolastaMultiClass.Patches
             {
                 Transform child = ___levelButtonsTable.GetChild(i);
 
-                if (i > (maxLevelOfSpellCastingForClass + accountForCantrips) - 1)
-                {
-                    child.gameObject.SetActive(false);
-                }
-                else
-                {
-                    child.gameObject.SetActive(true);
-                }
+                child.gameObject.SetActive(i <= (maxLevelOfSpellCastingForClass + accountForCantrips) - 1);
             }
 
             // patches the panel to display higher level spell slots from shared slots table but hide the spell panels if class level not there yet
             for (int i = 0; i < ___spellsByLevelTable.childCount; i++)
             {
-                Transform transforms = ___spellsByLevelTable.GetChild(i);
-                for (int k = 0; k < transforms.childCount; k++)
+                Transform child = ___spellsByLevelTable.GetChild(i);
+                for (int k = 0; k < child.childCount; k++)
                 {
-                    var child = transforms.GetChild(k);
+                    Transform grandChild = child.GetChild(k);
                     
-                    // don't hide the spell slot status so people can see how many slots they have even if they don't have spells of that level
-                    if (child.TryGetComponent(typeof(SlotStatusTable), out Component _))
-                        continue;
-
-                    if (i > (maxLevelOfSpellCastingForClass + accountForCantrips) - 1)
+                    // don't hide the spell slot status so people can see how many slots they have
+                    if (!grandChild.TryGetComponent(typeof(SlotStatusTable), out Component _))
                     {
-                        child.gameObject.SetActive(false);
-                    }
-                    else
-                    {
-                        child.gameObject.SetActive(true);
+                        grandChild.gameObject.SetActive(i <= (maxLevelOfSpellCastingForClass + accountForCantrips) - 1);
                     }
                 }
             }

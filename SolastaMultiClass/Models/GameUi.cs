@@ -79,7 +79,6 @@ namespace SolastaMultiClass.Models
                 foreach (var dieType in dieTypesCount.Keys)
                 {
                     hitDiceLabel += dieTypesCount[dieType].ToString() + Gui.GetDieSymbol(dieType) + separator;
-                    separator = separator == " " ? "\n" : " ";
                 }
             }
             return hitDiceLabel;
