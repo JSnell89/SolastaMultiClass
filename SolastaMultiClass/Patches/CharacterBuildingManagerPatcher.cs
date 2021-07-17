@@ -24,7 +24,7 @@ namespace SolastaMultiClass.Patches
                 foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
                 {
                     // short circuit here to only consider the actual class leveling up
-                    if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class && 
+                    if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class &&
                         spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass ||
                         spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass &&
                         spellRepertoire.SpellCastingSubclass != Models.LevelUpContext.SelectedSubclass)
@@ -150,38 +150,31 @@ namespace SolastaMultiClass.Patches
             }
         }
 
-        // ???
-        //[HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
-        //internal static class CharacterBuildingManager_GetSpellFeature_Patch
-        //{
-        //    internal static bool Prefix(CharacterBuildingManager __instance, string tag, ref FeatureDefinitionCastSpell __result)
-        //    {
-        //        string str = tag;
-
-        //        if (str.StartsWith("03Class"))
-        //        {
-        //            str = str.Substring(0, str.Length - 2); // removes any levels from the tag otherwise it leads to getting the first spell feature from any class
-        //        }
-        //        else if (str.StartsWith("06Subclass"))
-        //        {
-        //            str = str.Substring(0, str.Length - 2); // same as above for subclass
-        //        }
-
-        //        __result = null;
-        //        foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in __instance.HeroCharacter.ActiveFeatures)
-        //        {
-        //            if (activeFeature.Key.StartsWith(str))
-        //            {
-        //                foreach (FeatureDefinition featureDefinition in activeFeature.Value)
-        //                {
-        //                    if (featureDefinition is FeatureDefinitionCastSpell)
-        //                        __result = featureDefinition as FeatureDefinitionCastSpell;
-        //                }
-        //            }
-        //        }
-        //        return false;
-        //    }
-        //}
+        // // removes any levels from the tag otherwise it leads to getting the first spell feature from any class
+        [HarmonyPatch(typeof(CharacterBuildingManager), "GetSpellFeature")]
+        internal static class CharacterBuildingManager_GetSpellFeature_Patch
+        {
+            internal static bool Prefix(CharacterBuildingManager __instance, string tag, ref FeatureDefinitionCastSpell __result)
+            {
+                if (tag.StartsWith("03Class") || tag.StartsWith("06Subclass"))
+                {
+                    tag = tag.TrimEnd(new char[10] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' });
+                }
+                __result = null;
+                foreach (KeyValuePair<string, List<FeatureDefinition>> activeFeature in __instance.HeroCharacter.ActiveFeatures)
+                {
+                    if (activeFeature.Key.StartsWith(tag))
+                    {
+                        foreach (FeatureDefinition featureDefinition in activeFeature.Value)
+                        {
+                            if (featureDefinition is FeatureDefinitionCastSpell)
+                                __result = featureDefinition as FeatureDefinitionCastSpell;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
 
         // captures the desired class and ensures this doesn't get executed in the class panel level up screen
         [HarmonyPatch(typeof(CharacterBuildingManager), "AssignClassLevel")]
