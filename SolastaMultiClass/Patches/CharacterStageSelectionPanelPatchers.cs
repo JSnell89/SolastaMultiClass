@@ -295,9 +295,9 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterStageSpellSelectionPanel), "OnLearnAuto")]
         internal static class CharacterStageSpellSelectionPanel_OnLearnAuto_Patch
         {
-            internal static bool Prefix()
+            internal static bool Prefix(CharacterStageSpellSelectionPanel __instance, List<string> ___allTags,  int ___currentLearnStep)
             {
-                return !(Models.LevelUpContext.SelectedHero.ClassesAndLevels.Count > 1);
+                return !(__instance.IsSpellStep(___currentLearnStep) && Models.LevelUpContext.SelectedHero?.ClassesAndLevels?.Count > 1);
             }
         }
 
