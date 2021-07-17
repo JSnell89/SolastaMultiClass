@@ -31,7 +31,7 @@ namespace SolastaMultiClass.Viewers
                 UI.Label("Current limitations:".yellow());
                 UI.Label(". auto learn spells is disabled on multiclass heroes");
                 UI.Label(". " + "Paladin".green() + " / " + "Cleric".green() + " " + "channel divinity".cyan() + " still stacks");
-                UI.Label(". " + "Warlock".green() + " pact magic slots and shared slot system work independent from each other (no Smites using Warlock slots, sorry)");
+                UI.Label(". " + "Warlock".green() + " pact magic slots and shared slot system work independently from each other");
             }
         }
 
