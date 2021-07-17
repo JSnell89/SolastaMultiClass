@@ -121,7 +121,7 @@ namespace SolastaMultiClass.Models
 
                     hasSpellbookGranted = false;
                     requiresSpellbook = !selectedHero.ClassesAndLevels.ContainsKey(Wizard) && selectedClass == Wizard;
-                    requiresDeity = selectedHero.DeityDefinition == null && selectedClass.RequiresDeity && !(classesAndLevels.ContainsKey(Cleric) || classesAndLevels.ContainsKey(Paladin));
+                    requiresDeity = (selectedClass == Cleric && !classesAndLevels.ContainsKey(Cleric)) || (selectedClass == Paladin && selectedHero.DeityDefinition == null);
                 }
             }
         }
