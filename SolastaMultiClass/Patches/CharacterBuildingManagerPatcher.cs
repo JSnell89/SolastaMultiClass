@@ -24,7 +24,11 @@ namespace SolastaMultiClass.Patches
                 foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
                 {
                     // short circuit here to only consider the actual class leveling up
-                    if (spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass) continue;
+                    if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class && 
+                        spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass ||
+                        spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass &&
+                        spellRepertoire.SpellCastingSubclass != Models.LevelUpContext.SelectedSubclass)
+                        continue;
 
                     foreach (SpellDefinition knownCantrip in spellRepertoire.KnownCantrips)
                     {

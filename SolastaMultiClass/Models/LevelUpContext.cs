@@ -85,6 +85,7 @@ namespace SolastaMultiClass.Models
         private static bool hasSpellbookGranted = false;
         private static RulesetCharacterHero selectedHero = null;
         private static CharacterClassDefinition selectedClass = null;
+        private static CharacterSubclassDefinition selectedSubclass = null;
         private static readonly List<FeatureUnlockByLevel> selectedClassFeaturesUnlock = new List<FeatureUnlockByLevel>();
 
         public static RulesetCharacterHero SelectedHero 
@@ -107,10 +108,12 @@ namespace SolastaMultiClass.Models
             set 
             {
                 selectedClass = value;
+                selectedSubclass = null;
                 if (selectedClass != null)
                 {
                     var classesAndLevels = selectedHero.ClassesAndLevels;
 
+                    selectedHero.ClassesAndSubclasses.TryGetValue(selectedClass, out selectedSubclass);
                     selectedClassFeaturesUnlock.Clear();
                     foreach (var featureUnlock in selectedClass.FeatureUnlocks)
                     {
@@ -125,6 +128,8 @@ namespace SolastaMultiClass.Models
                 }
             }
         }
+
+        public static CharacterSubclassDefinition SelectedSubclass => selectedSubclass;
 
         public static List<FeatureUnlockByLevel> SelectedClassFeaturesUnlock => selectedClassFeaturesUnlock;
 

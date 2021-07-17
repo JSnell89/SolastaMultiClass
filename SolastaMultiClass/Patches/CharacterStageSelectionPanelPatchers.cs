@@ -291,6 +291,16 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE SPELL SELECTION PANEL
         //
 
+        // disables auto learn spell on multiclass heroes
+        [HarmonyPatch(typeof(CharacterStageSpellSelectionPanel), "OnLearnAuto")]
+        internal static class CharacterStageSpellSelectionPanel_OnLearnAuto_Patch
+        {
+            internal static bool Prefix()
+            {
+                return !(Models.LevelUpContext.SelectedHero.ClassesAndLevels.Count > 1);
+            }
+        }
+
         // removes the ability to select spells of higher level than you should be able to when leveling up
         [HarmonyPatch(typeof(CharacterStageSpellSelectionPanel), "Refresh")]
         internal static class CharacterStageSpellSelectionPanel_Refresh_Patch
