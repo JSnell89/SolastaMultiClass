@@ -35,12 +35,12 @@ namespace SolastaMultiClass.Patches
             for (int i = 0; i < ___spellsByLevelTable.childCount; i++)
             {
                 Transform child = ___spellsByLevelTable.GetChild(i);
+
                 for (int k = 0; k < child.childCount; k++)
                 {
                     Transform grandChild = child.GetChild(k);
                     
-                    // don't hide the spell slot status so people can see how many slots they have
-                    if (!grandChild.TryGetComponent(typeof(SlotStatusTable), out Component _))
+                    if (!grandChild.TryGetComponent(typeof(SlotStatusTable), out Component _))  // don't hide the spell slot status so people can see how many slots they have
                     {
                         grandChild.gameObject.SetActive(i <= (maxLevelOfSpellCastingForClass + accountForCantrips) - 1);
                     }
@@ -49,8 +49,7 @@ namespace SolastaMultiClass.Patches
             LayoutRebuilder.ForceRebuildLayoutImmediate(___spellsByLevelTable);
 
             // hides the sorcery points UI if not a sorcerer caster
-            var active = __instance.SpellRepertoire?.SpellCastingClass == Sorcerer &&
-                rulesetCharacterHero.ClassesAndLevels.ContainsKey(Sorcerer) && rulesetCharacterHero.ClassesAndLevels[Sorcerer] >= 2;
+            var active = __instance.SpellRepertoire?.SpellCastingClass == Sorcerer && rulesetCharacterHero.ClassesAndLevels.ContainsKey(Sorcerer) && rulesetCharacterHero.ClassesAndLevels[Sorcerer] >= 2;
 
             ___sorceryPointsBox.gameObject.SetActive(active);
             ___sorceryPointsLabel.gameObject.SetActive(active);

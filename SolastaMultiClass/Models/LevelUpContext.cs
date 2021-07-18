@@ -87,8 +87,9 @@ namespace SolastaMultiClass.Models
         private static CharacterClassDefinition selectedClass = null;
         private static CharacterSubclassDefinition selectedSubclass = null;
         private static readonly List<FeatureUnlockByLevel> selectedClassFeaturesUnlock = new List<FeatureUnlockByLevel>();
+        private static readonly List<RulesetItemSpellbook> rulesetItemSpellbooks = new List<RulesetItemSpellbook>();
 
-        public static RulesetCharacterHero SelectedHero 
+        internal static RulesetCharacterHero SelectedHero 
         {
             get => selectedHero;
             set 
@@ -100,10 +101,12 @@ namespace SolastaMultiClass.Models
                 hasSpellbookGranted = false;
                 requiresSpellbook = false;
                 requiresDeity = false;
+                rulesetItemSpellbooks.Clear();
+                selectedHero?.CharacterInventory?.BrowseAllCarriedItems<RulesetItemSpellbook>(rulesetItemSpellbooks);
             }
         }
 
-        public static CharacterClassDefinition SelectedClass
+        internal static CharacterClassDefinition SelectedClass
         {
             get => selectedClass;
             set 
@@ -130,7 +133,7 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static int SelectedHeroLevel
+        internal static int SelectedHeroLevel
         {
             get
             {
@@ -144,7 +147,7 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static int SelectedClassLevel
+        internal static int SelectedClassLevel
         {
             get
             {
@@ -158,11 +161,11 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static CharacterSubclassDefinition SelectedSubclass => selectedSubclass;
+        internal static CharacterSubclassDefinition SelectedSubclass => selectedSubclass;
 
-        public static List<FeatureUnlockByLevel> SelectedClassFeaturesUnlock => selectedClassFeaturesUnlock;
+        internal static List<FeatureUnlockByLevel> SelectedClassFeaturesUnlock => selectedClassFeaturesUnlock;
 
-        public static bool DisplayingClassPanel
+        internal static bool DisplayingClassPanel
         {
             get => displayingClassPanel;
             set
@@ -171,36 +174,39 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static bool LevelingUp => levelingUp;
+        internal static bool LevelingUp => levelingUp;
 
-        public static bool RequiresDeity => requiresDeity;
+        internal static bool RequiresDeity => requiresDeity;
 
-        public static bool HasCantrips()
+        internal static bool SelectedClassHasCantrips
         {
-            FeatureDefinitionCastSpell featureDefinitionCastSpell;
-            bool hasCantrips = false;
-            int level = SelectedHero.ClassesHistory.Count + (!LevelingUp ? 1 : 0);
+            get
+            {
+                FeatureDefinitionCastSpell featureDefinitionCastSpell;
+                bool hasCantrips = false;
+                int level = SelectedHero.ClassesHistory.Count + (!LevelingUp ? 1 : 0);
 
-            if (SelectedClass != null)
-            {
-                featureDefinitionCastSpell = (FeatureDefinitionCastSpell)SelectedClass.FeatureUnlocks.Find(x => x.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
-                if (featureDefinitionCastSpell != null)
+                if (SelectedClass != null)
                 {
-                    hasCantrips = featureDefinitionCastSpell.HasCantrips(level);
+                    featureDefinitionCastSpell = (FeatureDefinitionCastSpell)SelectedClass.FeatureUnlocks.Find(x => x.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
+                    if (featureDefinitionCastSpell != null)
+                    {
+                        hasCantrips = featureDefinitionCastSpell.HasCantrips(level);
+                    }
                 }
-            }
-            if (!hasCantrips && SelectedSubclass != null)
-            {
-                featureDefinitionCastSpell = (FeatureDefinitionCastSpell)SelectedSubclass.FeatureUnlocks.Find(x => x.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
-                if (featureDefinitionCastSpell != null)
+                if (!hasCantrips && SelectedSubclass != null)
                 {
-                    hasCantrips = featureDefinitionCastSpell.HasCantrips(level);
+                    featureDefinitionCastSpell = (FeatureDefinitionCastSpell)SelectedSubclass.FeatureUnlocks.Find(x => x.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
+                    if (featureDefinitionCastSpell != null)
+                    {
+                        hasCantrips = featureDefinitionCastSpell.HasCantrips(level);
+                    }
                 }
+                return hasCantrips;
             }
-            return hasCantrips;
         }
 
-        public static bool IsRepertoireFromSelectedClass(RulesetSpellRepertoire rulesetSpellRepertoire)
+        internal static bool IsRepertoireFromSelectedClass(RulesetSpellRepertoire rulesetSpellRepertoire)
         {
             return
                 rulesetSpellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class &&
@@ -209,7 +215,7 @@ namespace SolastaMultiClass.Models
                 rulesetSpellRepertoire.SpellCastingSubclass == Models.LevelUpContext.SelectedSubclass;
         }
 
-        public static void GrantSpellbookIfRequired()
+        internal static void GrantSpellbookIfRequired()
         {
             if (requiresSpellbook && !hasSpellbookGranted)
             {
@@ -220,14 +226,36 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static void UngrantSpellbookIfRequired()
+        internal static void UngrantSpellbookIfRequired()
         {
-            if (hasSpellbookGranted)
+            if (selectedHero != null && hasSpellbookGranted)
             {
                 var item = new RulesetItemSpellbook(SolastaModApi.DatabaseHelper.ItemDefinitions.Spellbook);
 
                 selectedHero.LoseItem(item);
                 hasSpellbookGranted = false;
+            }
+        }
+
+        internal static void CollectSpellbooks()
+        {
+            if (selectedClass != Wizard)
+            {
+                foreach (var rulesetItemSpellbook in rulesetItemSpellbooks)
+                {
+                    selectedHero.LoseItem(rulesetItemSpellbook);
+                }
+            }
+        }
+
+        internal static void RestoreCollectedSpellbooks()
+        {
+            if (selectedClass != Wizard)
+            {
+                foreach (var rulesetItemSpellbook in rulesetItemSpellbooks)
+                {
+                    selectedHero.GrantItem(rulesetItemSpellbook, false);
+                }
             }
         }
 
@@ -247,7 +275,7 @@ namespace SolastaMultiClass.Models
             return hasExtraAttack;
         }
 
-        public static void FixExtraAttacks()
+        private static void FixExtraAttacks()
         {
             if (!Main.Settings.EnableNonStackingExtraAttacks) return;
 
@@ -265,7 +293,7 @@ namespace SolastaMultiClass.Models
             }
         }
 
-        public static void FixMulticlassProficiencies()
+        private static void FixMulticlassProficiencies()
         {
             var featuresDb = DatabaseRepository.GetDatabase<FeatureDefinition>();
 
@@ -292,18 +320,14 @@ namespace SolastaMultiClass.Models
         // used on a transpiler
         public static int GetClassLevel(RulesetCharacterHero hero)
         {
-            if (selectedClass == null || !selectedHero.ClassesAndLevels.ContainsKey(selectedClass))
-            {
-                return 1;
-            }
-            return selectedHero.ClassesAndLevels[selectedClass];
+            return selectedClass == null || !selectedHero.ClassesAndLevels.ContainsKey(selectedClass) ? 1 : selectedHero.ClassesAndLevels[selectedClass];
         }
 
         // used on a transpiler
         public static void GetLastAssignedClassAndLevel(ICharacterBuildingService characterBuildingService, out CharacterClassDefinition lastClassDefinition, out int level)
         {
+
             displayingClassPanel = false;
-            GrantSpellbookIfRequired();
             lastClassDefinition = SelectedClass;
             level = SelectedHero.ClassesHistory.Count;
         }
