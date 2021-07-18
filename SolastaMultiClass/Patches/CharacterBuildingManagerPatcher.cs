@@ -6,6 +6,28 @@ namespace SolastaMultiClass.Patches
 {
     internal static class CharacterBuildingManagerPatcher
     {
+        // allows Wizard to live pacifically with other spell caster classes
+        [HarmonyPatch(typeof(CharacterBuildingManager), "FinalizeCharacter")]
+        internal static class CharacterBuildingManager_OnFinishCb_Patch
+        {
+            internal static void Prefix()
+            {
+                if (Models.LevelUpContext.LevelingUp)
+                {
+                    Models.LevelUpContext.GrantSpellbookIfRequired();
+                    Models.LevelUpContext.CollectSpellbooks();
+                }
+            }
+
+            internal static void Postfix()
+            {
+                if (Models.LevelUpContext.LevelingUp)
+                {
+                    Models.LevelUpContext.RestoreCollectedSpellbooks();
+                }
+            }
+        }
+
         // ensures the level up process only considers the leveling up class when enumerating known spells
         [HarmonyPatch(typeof(CharacterBuildingManager), "EnumerateKnownAndAcquiredSpells")]
         internal static class CharacterBuildingManager_EnumerateKnownAndAcquiredSpells_Patch
@@ -134,7 +156,7 @@ namespace SolastaMultiClass.Patches
                         applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature });
 
                         // PATCH: don't set pool if selected class doesn't have cantrips
-                        if (!Models.LevelUpContext.HasCantrips())
+                        if (!Models.LevelUpContext.SelectedClassHasCantrips)
                         {
                             ___tempAcquiredCantripsNumber = 0;
                         } 
@@ -142,7 +164,6 @@ namespace SolastaMultiClass.Patches
                         {
                             maxPoints = __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[poolName].MaxPoints;
                         }
-
                         setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, ___tempAcquiredCantripsNumber + maxPoints });
                         setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, ___tempAcquiredSpellsNumber });
                         setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.SpellUnlearn, poolName, ___tempUnlearnedSpellsNumber });
