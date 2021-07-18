@@ -30,10 +30,7 @@ namespace SolastaMultiClass.Viewers
                 UI.Label(""); 
                 UI.Label("Current limitations:".yellow());
                 UI.Label(". independent pact magic and shared slot system");
-                UI.Label(". no auto learn spells on multiclassed heroes");
-                UI.Label(". scribbed spells cannot be learned from any other class");
                 UI.Label(". channel divinity stacks");
-
             }
         }
 

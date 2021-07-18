@@ -20,7 +20,7 @@ namespace SolastaMultiClass.Patches
             var rulesetCharacterHero = __instance.GuiCharacter.RulesetCharacterHero;
             var characterClassDefinition = __instance.SpellRepertoire.SpellCastingClass;
             var characterSubclassDefinition = __instance.SpellRepertoire.SpellCastingSubclass;
-            var maxLevelOfSpellCastingForClass = (int)Math.Ceiling(Models.SharedSpellsRules.GetHeroSharedCasterLevel(rulesetCharacterHero, characterClassDefinition, characterSubclassDefinition) / 2.0);
+            var maxLevelOfSpellCastingForClass = (int)Math.Floor((Models.SharedSpellsRules.GetClassCasterLevel(rulesetCharacterHero, characterClassDefinition, characterSubclassDefinition) + 1) / 2.0);
             int accountForCantrips = __instance.SpellRepertoire.SpellCastingFeature.SpellListDefinition.HasCantrips ? 1 : 0;
 
             // patches the spell level buttons to be hidden if no spells available at that level
