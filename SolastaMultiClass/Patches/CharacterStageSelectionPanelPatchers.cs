@@ -292,21 +292,6 @@ namespace SolastaMultiClass.Patches
         // CHARACTER STAGE SPELL SELECTION PANEL
         //
 
-        //// UpdateRelevance() => this.IsRelevant = this.CharacterBuildingService.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) || this.CharacterBuildingService.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Spell);
-
-        //[HarmonyPatch(typeof(CharacterStageSpellSelectionPanel), "UpdateRelevance")]
-        //internal static class CharacterStageSpellSelectionPanel_UpdateRelevance_Patch
-        //{
-        //    internal static bool Prefix(CharacterStageSpellSelectionPanel __instance, ref bool ___isRelevant)
-        //    {
-        //        if (Models.LevelUpContext.LevelingUp)
-        //        {
-        //            ___isRelevant = Models.LevelUpContext.HasCantrips() || __instance.CharacterBuildingService.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Spell);
-        //        }
-        //        return !Models.LevelUpContext.LevelingUp;
-        //    }
-        //}
-
         // disables auto learn spell on multiclass heroes
         [HarmonyPatch(typeof(CharacterStageSpellSelectionPanel), "OnLearnAuto")]
         internal static class CharacterStageSpellSelectionPanel_OnLearnAuto_Patch

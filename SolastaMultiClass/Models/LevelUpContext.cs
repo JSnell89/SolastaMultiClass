@@ -179,17 +179,23 @@ namespace SolastaMultiClass.Models
         {
             FeatureDefinitionCastSpell featureDefinitionCastSpell;
             bool hasCantrips = false;
-            int level = SelectedHero.ClassesHistory.Count + 1;
+            int level = SelectedHero.ClassesHistory.Count + (!LevelingUp ? 1 : 0);
 
             if (SelectedClass != null)
             {
                 featureDefinitionCastSpell = (FeatureDefinitionCastSpell)SelectedClass.FeatureUnlocks.Find(x => x.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
-                hasCantrips = featureDefinitionCastSpell?.KnownCantrips[level] > 0;
+                if (featureDefinitionCastSpell != null)
+                {
+                    hasCantrips = featureDefinitionCastSpell.HasCantrips(level);
+                }
             }
             if (!hasCantrips && SelectedSubclass != null)
             {
                 featureDefinitionCastSpell = (FeatureDefinitionCastSpell)SelectedSubclass.FeatureUnlocks.Find(x => x.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
-                hasCantrips = featureDefinitionCastSpell?.KnownCantrips[level] > 0;
+                if (featureDefinitionCastSpell != null)
+                {
+                    hasCantrips = featureDefinitionCastSpell.HasCantrips(level);
+                }
             }
             return hasCantrips;
         }

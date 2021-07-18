@@ -108,7 +108,7 @@ namespace SolastaMultiClass.Patches
                             if (spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass)
                                 continue;
 
-                            poolName = AttributeDefinitions.GetClassTag(Models.LevelUpContext.SelectedClass, Models.LevelUpContext.SelectedHeroLevel);
+                            poolName = AttributeDefinitions.GetClassTag(Models.LevelUpContext.SelectedClass, Models.LevelUpContext.SelectedHeroLevel); // SelectedClassLevel ???
                         }
                         else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass)
                         {
@@ -120,17 +120,11 @@ namespace SolastaMultiClass.Patches
                             if (spellRepertoire.SpellCastingSubclass != Models.LevelUpContext.SelectedSubclass)
                                 continue;
 
-                            poolName = AttributeDefinitions.GetSubclassTag(Models.LevelUpContext.SelectedClass, Models.LevelUpContext.SelectedHeroLevel, Models.LevelUpContext.SelectedSubclass);
+                            poolName = AttributeDefinitions.GetSubclassTag(Models.LevelUpContext.SelectedClass, Models.LevelUpContext.SelectedHeroLevel, Models.LevelUpContext.SelectedSubclass); // SelectedClassLevel ???
                         }
                         else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Race)
                         {
                             poolName = "02Race";
-                        }
-
-                        // don't set pool if selected class doesn't have cantrips
-                        if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(poolName))
-                        {
-                            maxPoints = __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[poolName].MaxPoints;
                         }
 
                         var characterBuildingManagerType = typeof(CharacterBuildingManager);
@@ -142,6 +136,16 @@ namespace SolastaMultiClass.Patches
                         ___tempUnlearnedSpellsNumber = 0;
 
                         applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature });
+
+                        // don't set pool if selected class doesn't have cantrips
+                        if (!Models.LevelUpContext.HasCantrips())
+                        {
+                            ___tempAcquiredCantripsNumber = 0;
+                        } 
+                        else if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(poolName))
+                        {
+                            maxPoints = __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[poolName].MaxPoints;
+                        }
 
                         setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, ___tempAcquiredCantripsNumber + maxPoints });
                         setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, ___tempAcquiredSpellsNumber });
