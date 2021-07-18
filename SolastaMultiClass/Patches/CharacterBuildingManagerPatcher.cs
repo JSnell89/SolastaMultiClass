@@ -26,11 +26,8 @@ namespace SolastaMultiClass.Patches
                     ___matchingFeatures.Clear();
                     foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
                     {
-                        // short circuit here to only consider the actual class leveling up
-                        if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class &&
-                            spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass ||
-                            spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass &&
-                            spellRepertoire.SpellCastingSubclass != Models.LevelUpContext.SelectedSubclass)
+                        // PATCH: short circuit here to only consider the actual class leveling up
+                        if (!Models.LevelUpContext.IsRepertoireFromSelectedClass(spellRepertoire))
                             continue;
 
                         foreach (SpellDefinition knownCantrip in spellRepertoire.KnownCantrips)
@@ -80,7 +77,6 @@ namespace SolastaMultiClass.Patches
                     }
                     __result = spellDefinitionList;
                 }
-
                 return !Models.LevelUpContext.LevelingUp;
             }
         }
@@ -104,7 +100,7 @@ namespace SolastaMultiClass.Patches
 
                         if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class)
                         {
-                            // short circuit if the feature is for another class (change from native code)
+                            // PATCH: short circuit if the feature is for another class (change from native code)
                             if (spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass)
                                 continue;
 
@@ -112,11 +108,11 @@ namespace SolastaMultiClass.Patches
                         }
                         else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass)
                         {
-                            // short circuit if class doesn't contain a subclass yet
+                            // PATCH: short circuit if class doesn't contain a subclass yet
                             if (!__instance.HeroCharacter.ClassesAndSubclasses.ContainsKey(Models.LevelUpContext.SelectedClass))
                                 continue;
 
-                            // short circuit if the feature is for another subclass (change from native code)
+                            // PATCH: short circuit if the feature is for another subclass (change from native code)
                             if (spellRepertoire.SpellCastingSubclass != Models.LevelUpContext.SelectedSubclass)
                                 continue;
 
@@ -137,7 +133,7 @@ namespace SolastaMultiClass.Patches
 
                         applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature });
 
-                        // don't set pool if selected class doesn't have cantrips
+                        // PATCH: don't set pool if selected class doesn't have cantrips
                         if (!Models.LevelUpContext.HasCantrips())
                         {
                             ___tempAcquiredCantripsNumber = 0;

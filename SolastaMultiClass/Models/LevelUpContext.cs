@@ -200,6 +200,15 @@ namespace SolastaMultiClass.Models
             return hasCantrips;
         }
 
+        public static bool IsRepertoireFromSelectedClass(RulesetSpellRepertoire rulesetSpellRepertoire)
+        {
+            return
+                rulesetSpellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class &&
+                rulesetSpellRepertoire.SpellCastingClass == Models.LevelUpContext.SelectedClass ||
+                rulesetSpellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass &&
+                rulesetSpellRepertoire.SpellCastingSubclass == Models.LevelUpContext.SelectedSubclass;
+        }
+
         public static void GrantSpellbookIfRequired()
         {
             if (requiresSpellbook && !hasSpellbookGranted)
