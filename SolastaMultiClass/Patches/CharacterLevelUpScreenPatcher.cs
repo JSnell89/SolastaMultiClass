@@ -14,29 +14,25 @@ namespace SolastaMultiClass.Patches
             {
                 var screen = Gui.GuiService.GetScreen<CharacterCreationScreen>();
                 var stagePanelPrefabs = (GameObject[])AccessTools.Field(screen.GetType(), "stagePanelPrefabs").GetValue(screen);
-                var classSelectionStagePanelPrefab = stagePanelPrefabs[1];
-                var deitySelectionStagePanelPrefab = stagePanelPrefabs[2];
-                var classSelectionPanel = Gui.GetPrefabFromPool(classSelectionStagePanelPrefab, __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
-                var deitySelectionPanel = Gui.GetPrefabFromPool(deitySelectionStagePanelPrefab, __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
+                var classSelectionPanel = Gui.GetPrefabFromPool(stagePanelPrefabs[1], __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
+                var deitySelectionPanel = Gui.GetPrefabFromPool(stagePanelPrefabs[2], __instance.StagesPanelContainer).GetComponent<CharacterStagePanel>();
 
                 Dictionary<string, CharacterStagePanel> stagePanelsByName = new Dictionary<string, CharacterStagePanel>
                 {
-                    { "ClassSelection", classSelectionPanel }
+                    { "ClassSelection", classSelectionPanel },
+                    { "LevelGains", ___stagePanelsByName["LevelGains"] },
+                    { "DeitySelection", deitySelectionPanel },
+                    { "SubclassSelection", ___stagePanelsByName["SubclassSelection"] },
+                    { "AbilityScores", ___stagePanelsByName["AbilityScores"] },
+                    { "FightingStyleSelection", ___stagePanelsByName["FightingStyleSelection"] },
+                    { "ProficiencySelection", ___stagePanelsByName["ProficiencySelection"] },
+                    { "", ___stagePanelsByName[""] }
                 };
-                var idx = 0;
-                foreach (var stagePanelName in ___stagePanelsByName)
-                {
-                    stagePanelsByName.Add(stagePanelName.Key, stagePanelName.Value);
-                    if (++idx == 1)
-                    {
-                        stagePanelsByName.Add("DeitySelection", deitySelectionPanel);
-                    }
-                }
                 ___stagePanelsByName = stagePanelsByName;
             }
         }
 
-        // bind the hero
+        // binds the hero
         [HarmonyPatch(typeof(CharacterLevelUpScreen), "OnBeginShow")]
         internal static class CharacterLevelUpScreen_OnBeginShow_Patch
         {
@@ -46,11 +42,11 @@ namespace SolastaMultiClass.Patches
             }     
         }
 
-        // unbind the hero
+        // unbinds the hero
         [HarmonyPatch(typeof(CharacterLevelUpScreen), "OnBeginHide")]
         internal static class CharacterLevelUpScreen_OnBeginHide_Patch
         {
-            internal static void Postfix()
+            internal static void Postfix(CharacterLevelUpScreen __instance)
             {
                 Models.LevelUpContext.SelectedHero = null;
             }
