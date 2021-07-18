@@ -3,6 +3,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using HarmonyLib;
 using UnityEngine.UI;
+using System.Reflection;
 
 namespace SolastaMultiClass.Patches
 {
@@ -178,6 +179,75 @@ namespace SolastaMultiClass.Patches
                         yield return instruction;
                     }
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(CharacterStageLevelGainsPanel), "RefreshSpellcastingFeatures")]
+        internal static class CharacterStageLevelGainsPanel_RefreshSpellcastingFeatures_Patch
+        {
+            internal static bool Prefix(
+                CharacterStageLevelGainsPanel __instance,
+                CharacterClassDefinition ___lastGainedClassDefinition,
+                int ___lastGainedClassLevel,
+                CharacterStageLevelGainsPanel.SpellcastingGainsInfo ___classSpellcastingGains,
+                CharacterStageLevelGainsPanel.SpellcastingGainsInfo ___raceSpellcastingGains,
+                RulesetCharacterHero hero,
+                bool proficiencyIncreased,
+                int characterLevel)
+            {
+                if (Models.LevelUpContext.LevelingUp)
+                {
+                    bool enableClassGains = false;
+                    bool enableRaceGains = false;
+
+                    foreach (RulesetSpellRepertoire spellRepertoire in hero.SpellRepertoires)
+                    {
+                        // PATCH
+                        if (!Models.LevelUpContext.IsRepertoireFromSelectedClass(spellRepertoire)) 
+                            continue;
+
+                        string tag = string.Empty;
+
+                        if (spellRepertoire.SpellCastingClass != null)
+                        {
+                            tag = AttributeDefinitions.GetClassTag(spellRepertoire.SpellCastingClass, ___lastGainedClassLevel);
+                        }
+                        else if (spellRepertoire.SpellCastingSubclass != null)
+                        {
+                            tag = AttributeDefinitions.GetSubclassTag(___lastGainedClassDefinition, ___lastGainedClassLevel, spellRepertoire.SpellCastingSubclass);
+                        }
+                        else if (spellRepertoire.SpellCastingRace != null)
+                        {
+                            tag = "02Race";
+                        }
+                        if (!string.IsNullOrEmpty(tag))
+                        {
+                            var fillSpellcastingGainsMethod = typeof(CharacterStageLevelGainsPanel).GetMethod("FillSpellcastingGains", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                            __instance.CharacterBuildingService.GetPoolPointsOfTypeAndTag(HeroDefinitions.PointsPoolType.Cantrip, tag, out int remainingPoints1, out int maxPoints1);
+                            __instance.CharacterBuildingService.GetPoolPointsOfTypeAndTag(HeroDefinitions.PointsPoolType.Spell, tag, out int remainingPoints2, out int maxPoints2);
+
+                            if (spellRepertoire.SpellCastingClass != null)
+                            {
+                                enableClassGains = true;
+                                fillSpellcastingGainsMethod.Invoke(__instance, new object[] { spellRepertoire, ___classSpellcastingGains, proficiencyIncreased, remainingPoints1, remainingPoints2, ___lastGainedClassLevel });
+                            }
+                            else if (spellRepertoire.SpellCastingSubclass != null)
+                            {
+                                enableClassGains = true;
+                                fillSpellcastingGainsMethod.Invoke(__instance, new object[] { spellRepertoire, ___classSpellcastingGains, proficiencyIncreased, remainingPoints1, remainingPoints2, ___lastGainedClassLevel });
+                            }
+                            else if (spellRepertoire.SpellCastingRace != null) // this should never execute but leaving here as reference to original game code
+                            {
+                                enableRaceGains = true;
+                                fillSpellcastingGainsMethod.Invoke(__instance, new object[] { spellRepertoire, ___raceSpellcastingGains, proficiencyIncreased, remainingPoints1, remainingPoints2, characterLevel });
+                            }
+                        }
+                    }
+                    ___classSpellcastingGains.featuresGroup.gameObject.SetActive(enableClassGains);
+                    ___raceSpellcastingGains.featuresGroup.gameObject.SetActive(enableRaceGains);
+                }
+                return !Models.LevelUpContext.LevelingUp;
             }
         }
 
