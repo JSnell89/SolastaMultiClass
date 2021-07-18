@@ -19,64 +19,69 @@ namespace SolastaMultiClass.Patches
                 Dictionary<string, List<SpellDefinition>> ___acquiredSpells,
                 ref List<SpellDefinition> __result)
             {
-                ___matchingFeatures.Clear();
-                List<SpellDefinition> spellDefinitionList = new List<SpellDefinition>();
-                foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
+                if (Models.LevelUpContext.LevelingUp)
                 {
-                    // short circuit here to only consider the actual class leveling up
-                    if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class &&
-                        spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass ||
-                        spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass &&
-                        spellRepertoire.SpellCastingSubclass != Models.LevelUpContext.SelectedSubclass)
-                        continue;
+                    List<SpellDefinition> spellDefinitionList = new List<SpellDefinition>();
 
-                    foreach (SpellDefinition knownCantrip in spellRepertoire.KnownCantrips)
+                    ___matchingFeatures.Clear();
+                    foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
                     {
-                        if (!spellDefinitionList.Contains(knownCantrip))
-                            spellDefinitionList.Add(knownCantrip);
-                    }
-                    foreach (SpellDefinition knownSpell in spellRepertoire.KnownSpells)
-                    {
-                        if (!spellDefinitionList.Contains(knownSpell))
-                            spellDefinitionList.Add(knownSpell);
-                    }
-                    spellDefinitionList.AddRange((IEnumerable<SpellDefinition>)spellRepertoire.EnumerateAvailableScribedSpells());
-                }
-                foreach (KeyValuePair<string, List<SpellDefinition>> bonusCantrip in ___bonusCantrips)
-                {
-                    if (bonusCantrip.Key != tagToIgnore)
-                    {
-                        foreach (SpellDefinition spellDefinition in bonusCantrip.Value)
+                        // short circuit here to only consider the actual class leveling up
+                        if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class &&
+                            spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass ||
+                            spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass &&
+                            spellRepertoire.SpellCastingSubclass != Models.LevelUpContext.SelectedSubclass)
+                            continue;
+
+                        foreach (SpellDefinition knownCantrip in spellRepertoire.KnownCantrips)
                         {
-                            if (!spellDefinitionList.Contains(spellDefinition))
-                                spellDefinitionList.Add(spellDefinition);
+                            if (!spellDefinitionList.Contains(knownCantrip))
+                                spellDefinitionList.Add(knownCantrip);
+                        }
+                        foreach (SpellDefinition knownSpell in spellRepertoire.KnownSpells)
+                        {
+                            if (!spellDefinitionList.Contains(knownSpell))
+                                spellDefinitionList.Add(knownSpell);
+                        }
+                        spellDefinitionList.AddRange((IEnumerable<SpellDefinition>)spellRepertoire.EnumerateAvailableScribedSpells());
+                    }
+                    foreach (KeyValuePair<string, List<SpellDefinition>> bonusCantrip in ___bonusCantrips)
+                    {
+                        if (bonusCantrip.Key != tagToIgnore)
+                        {
+                            foreach (SpellDefinition spellDefinition in bonusCantrip.Value)
+                            {
+                                if (!spellDefinitionList.Contains(spellDefinition))
+                                    spellDefinitionList.Add(spellDefinition);
+                            }
                         }
                     }
-                }
-                foreach (KeyValuePair<string, List<SpellDefinition>> acquiredCantrip in ___acquiredCantrips)
-                {
-                    if (acquiredCantrip.Key != tagToIgnore)
+                    foreach (KeyValuePair<string, List<SpellDefinition>> acquiredCantrip in ___acquiredCantrips)
                     {
-                        foreach (SpellDefinition spellDefinition in acquiredCantrip.Value)
+                        if (acquiredCantrip.Key != tagToIgnore)
                         {
-                            if (!spellDefinitionList.Contains(spellDefinition))
-                                spellDefinitionList.Add(spellDefinition);
+                            foreach (SpellDefinition spellDefinition in acquiredCantrip.Value)
+                            {
+                                if (!spellDefinitionList.Contains(spellDefinition))
+                                    spellDefinitionList.Add(spellDefinition);
+                            }
                         }
                     }
-                }
-                foreach (KeyValuePair<string, List<SpellDefinition>> acquiredSpell in ___acquiredSpells)
-                {
-                    if (acquiredSpell.Key != tagToIgnore)
+                    foreach (KeyValuePair<string, List<SpellDefinition>> acquiredSpell in ___acquiredSpells)
                     {
-                        foreach (SpellDefinition spellDefinition in acquiredSpell.Value)
+                        if (acquiredSpell.Key != tagToIgnore)
                         {
-                            if (!spellDefinitionList.Contains(spellDefinition))
-                                spellDefinitionList.Add(spellDefinition);
+                            foreach (SpellDefinition spellDefinition in acquiredSpell.Value)
+                            {
+                                if (!spellDefinitionList.Contains(spellDefinition))
+                                    spellDefinitionList.Add(spellDefinition);
+                            }
                         }
                     }
+                    __result = spellDefinitionList;
                 }
-                __result = spellDefinitionList;
-                return false;
+
+                return !Models.LevelUpContext.LevelingUp;
             }
         }
 
@@ -90,63 +95,60 @@ namespace SolastaMultiClass.Patches
                 ref int ___tempAcquiredSpellsNumber,
                 ref int ___tempUnlearnedSpellsNumber)
             {
-                foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
+                if (Models.LevelUpContext.LevelingUp)
                 {
-                    string poolName = string.Empty;
-                    CharacterClassDefinition characterClassDefinition;
-                    int classLevel;
-
-                    if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class)
+                    foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
                     {
-                        __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out classLevel);
+                        string poolName = string.Empty;
+                        int maxPoints = 0;
 
-                        // short circuit if the feature is for another class (change from native code)
-                        if (spellRepertoire.SpellCastingClass != characterClassDefinition)
-                            continue;
+                        if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class)
+                        {
+                            // short circuit if the feature is for another class (change from native code)
+                            if (spellRepertoire.SpellCastingClass != Models.LevelUpContext.SelectedClass)
+                                continue;
 
-                        poolName = AttributeDefinitions.GetClassTag(characterClassDefinition, classLevel);
+                            poolName = AttributeDefinitions.GetClassTag(Models.LevelUpContext.SelectedClass, Models.LevelUpContext.SelectedHeroLevel);
+                        }
+                        else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass)
+                        {
+                            // short circuit if class doesn't contain a subclass yet
+                            if (!__instance.HeroCharacter.ClassesAndSubclasses.ContainsKey(Models.LevelUpContext.SelectedClass))
+                                continue;
+
+                            // short circuit if the feature is for another subclass (change from native code)
+                            if (spellRepertoire.SpellCastingSubclass != Models.LevelUpContext.SelectedSubclass)
+                                continue;
+
+                            poolName = AttributeDefinitions.GetSubclassTag(Models.LevelUpContext.SelectedClass, Models.LevelUpContext.SelectedHeroLevel, Models.LevelUpContext.SelectedSubclass);
+                        }
+                        else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Race)
+                        {
+                            poolName = "02Race";
+                        }
+
+                        // don't set pool if selected class doesn't have cantrips
+                        if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(poolName))
+                        {
+                            maxPoints = __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[poolName].MaxPoints;
+                        }
+
+                        var characterBuildingManagerType = typeof(CharacterBuildingManager);
+                        var applyFeatureCastSpellMethod = characterBuildingManagerType.GetMethod("ApplyFeatureCastSpell", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var setPointPoolMethod = characterBuildingManagerType.GetMethod("SetPointPool", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        ___tempAcquiredCantripsNumber = 0;
+                        ___tempAcquiredSpellsNumber = 0;
+                        ___tempUnlearnedSpellsNumber = 0;
+
+                        applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature });
+
+                        setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, ___tempAcquiredCantripsNumber + maxPoints });
+                        setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, ___tempAcquiredSpellsNumber });
+                        setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.SpellUnlearn, poolName, ___tempUnlearnedSpellsNumber });
                     }
-                    else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass)
-                    {
-                        __instance.GetLastAssignedClassAndLevel(out characterClassDefinition, out classLevel);
-
-                        if (!__instance.HeroCharacter.ClassesAndSubclasses.ContainsKey(characterClassDefinition))
-                            continue;
-
-                        CharacterSubclassDefinition characterSubclassDefinition = __instance.HeroCharacter.ClassesAndSubclasses[characterClassDefinition];
-                        
-                        // short circuit if the feature is for another subclass (change from native code)
-                        if (spellRepertoire.SpellCastingSubclass != characterSubclassDefinition)
-                            continue;
-
-                        poolName = AttributeDefinitions.GetSubclassTag(characterClassDefinition, classLevel, characterSubclassDefinition);
-                    }
-                    else if (spellRepertoire.SpellCastingFeature.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Race)
-                    {
-                        poolName = "02Race";
-                    }
-
-                    int maxPoints = 0;
-
-                    if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(poolName))
-                    {
-                        maxPoints = __instance.PointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[poolName].MaxPoints;
-                    }
-
-                    var characterBuildingManagerType = typeof(CharacterBuildingManager);
-                    var applyFeatureCastSpellMethod = characterBuildingManagerType.GetMethod("ApplyFeatureCastSpell", BindingFlags.NonPublic | BindingFlags.Instance);
-                    var setPointPoolMethod = characterBuildingManagerType.GetMethod("SetPointPool", BindingFlags.NonPublic | BindingFlags.Instance);
-                    
-                    ___tempAcquiredCantripsNumber = 0;
-                    ___tempAcquiredSpellsNumber = 0;
-                    ___tempUnlearnedSpellsNumber = 0;
-
-                    applyFeatureCastSpellMethod.Invoke(__instance, new object[] { spellRepertoire.SpellCastingFeature });
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Cantrip, poolName, ___tempAcquiredCantripsNumber + maxPoints });
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.Spell, poolName, ___tempAcquiredSpellsNumber });
-                    setPointPoolMethod.Invoke(__instance, new object[] { HeroDefinitions.PointsPoolType.SpellUnlearn, poolName, ___tempUnlearnedSpellsNumber });
                 }
-                return false;
+                return !Models.LevelUpContext.LevelingUp;
             }
         }
 
@@ -174,7 +176,9 @@ namespace SolastaMultiClass.Patches
                             foreach (FeatureDefinition featureDefinition in activeFeature.Value)
                             {
                                 if (featureDefinition is FeatureDefinitionCastSpell)
+                                {
                                     __result = featureDefinition as FeatureDefinitionCastSpell;
+                                }
                             }
                         }
                     }
@@ -187,7 +191,7 @@ namespace SolastaMultiClass.Patches
         [HarmonyPatch(typeof(CharacterBuildingManager), "AssignClassLevel")]
         internal static class CharacterBuildingManager_AssignClassLevel_Patch
         {
-            internal static bool Prefix(CharacterBuildingManager __instance, CharacterClassDefinition classDefinition)
+            internal static bool Prefix(CharacterClassDefinition classDefinition)
             {
                 if (Models.LevelUpContext.LevelingUp && Models.LevelUpContext.DisplayingClassPanel)
                 {

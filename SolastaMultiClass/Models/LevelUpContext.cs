@@ -130,6 +130,34 @@ namespace SolastaMultiClass.Models
             }
         }
 
+        public static int SelectedHeroLevel
+        {
+            get
+            {
+                var heroLevel = 0;
+
+                if (SelectedHero != null)
+                {
+                    heroLevel = SelectedHero.ClassesHistory.Count;
+                }
+                return heroLevel;
+            }
+        }
+
+        public static int SelectedClassLevel
+        {
+            get
+            {
+                var classLevel = 0;
+
+                if (SelectedHero != null && SelectedClass != null)
+                {
+                    classLevel = SelectedHero.ClassesAndLevels[SelectedClass];
+                }
+                return classLevel;
+            }
+        }
+
         public static CharacterSubclassDefinition SelectedSubclass => selectedSubclass;
 
         public static List<FeatureUnlockByLevel> SelectedClassFeaturesUnlock => selectedClassFeaturesUnlock;
@@ -146,6 +174,25 @@ namespace SolastaMultiClass.Models
         public static bool LevelingUp => levelingUp;
 
         public static bool RequiresDeity => requiresDeity;
+
+        public static bool HasCantrips()
+        {
+            FeatureDefinitionCastSpell featureDefinitionCastSpell;
+            bool hasCantrips = false;
+            int level = SelectedHero.ClassesHistory.Count + 1;
+
+            if (SelectedClass != null)
+            {
+                featureDefinitionCastSpell = (FeatureDefinitionCastSpell)SelectedClass.FeatureUnlocks.Find(x => x.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
+                hasCantrips = featureDefinitionCastSpell?.KnownCantrips[level] > 0;
+            }
+            if (!hasCantrips && SelectedSubclass != null)
+            {
+                featureDefinitionCastSpell = (FeatureDefinitionCastSpell)SelectedSubclass.FeatureUnlocks.Find(x => x.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
+                hasCantrips = featureDefinitionCastSpell?.KnownCantrips[level] > 0;
+            }
+            return hasCantrips;
+        }
 
         public static void GrantSpellbookIfRequired()
         {
