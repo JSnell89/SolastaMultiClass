@@ -136,6 +136,11 @@ namespace SolastaMultiClass.Models
             return context.GetCasterLevel();
         }
 
+        internal static int GeSharedSpellLevel(RulesetCharacterHero rulesetCharacterHero)
+        {
+            return (int)Math.Floor((GetSharedCasterLevel(rulesetCharacterHero) + 1) / 2.0);
+        }
+
         internal static int GetCasterLevel(RulesetCharacterHero rulesetCharacterHero)
         {
             return Math.Max(GetWarlockCasterLevel(rulesetCharacterHero), GetSharedCasterLevel(rulesetCharacterHero));
@@ -146,24 +151,34 @@ namespace SolastaMultiClass.Models
             CharacterClassDefinition filterCharacterClassDefinition,
             CharacterSubclassDefinition filterCharacterSublassDefinition = null)
         {
-            var context = new CasterLevelContext();
+            int classCasterLevel;
 
-            if (rulesetCharacterHero?.ClassesAndLevels != null)
+            if (filterCharacterClassDefinition?.Name == "WarlockClass")
             {
-                foreach (var classAndLevel in rulesetCharacterHero.ClassesAndLevels)
+                classCasterLevel = GetWarlockCasterLevel(rulesetCharacterHero);
+            }
+            else
+            {
+                var context = new CasterLevelContext();
+
+                if (rulesetCharacterHero?.ClassesAndLevels != null)
                 {
-                    var currentCharacterClassDefinition = classAndLevel.Key;
-
-                    rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition currentCharacterSubclassDefinition);
-
-                    if (filterCharacterClassDefinition == currentCharacterClassDefinition || filterCharacterSublassDefinition != null && filterCharacterSublassDefinition == currentCharacterSubclassDefinition)
+                    foreach (var classAndLevel in rulesetCharacterHero.ClassesAndLevels)
                     {
-                        CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, currentCharacterSubclassDefinition);
-                        context.IncrementCasterLevel(casterType, classAndLevel.Value);
+                        var currentCharacterClassDefinition = classAndLevel.Key;
+
+                        rulesetCharacterHero.ClassesAndSubclasses.TryGetValue(currentCharacterClassDefinition, out CharacterSubclassDefinition currentCharacterSubclassDefinition);
+
+                        if (filterCharacterClassDefinition == currentCharacterClassDefinition || filterCharacterSublassDefinition != null && filterCharacterSublassDefinition == currentCharacterSubclassDefinition)
+                        {
+                            CasterType casterType = GetCasterTypeForClassOrSubclass(currentCharacterClassDefinition, currentCharacterSubclassDefinition);
+                            context.IncrementCasterLevel(casterType, classAndLevel.Value);
+                        }
                     }
                 }
+                classCasterLevel = context.GetCasterLevel();
             }
-            return context.GetCasterLevel();
+            return classCasterLevel;
         }
 
         private static CasterType GetCasterTypeForClassOrSubclass(CharacterClassDefinition characterClassDefinition, CharacterSubclassDefinition characterSubclassDefinition)
@@ -182,6 +197,7 @@ namespace SolastaMultiClass.Models
         // add 10th level slots that are always 0 since game engine seems to rely on IndexOf(List.Count) for certain things
         internal static readonly List<SlotsByLevelDuplet> FullCastingSlots = new List<SlotsByLevelDuplet>()
         {
+            new SlotsByLevelDuplet() { Slots = new List<int> {0,0,0,0,0,0,0,0,0,0}, Level = 0 },
             new SlotsByLevelDuplet() { Slots = new List<int> {2,0,0,0,0,0,0,0,0,0}, Level = 1 },
             new SlotsByLevelDuplet() { Slots = new List<int> {3,0,0,0,0,0,0,0,0,0}, Level = 2 },
             new SlotsByLevelDuplet() { Slots = new List<int> {4,2,0,0,0,0,0,0,0,0}, Level = 3 },

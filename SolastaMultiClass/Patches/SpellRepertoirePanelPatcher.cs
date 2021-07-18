@@ -14,7 +14,12 @@ namespace SolastaMultiClass.Patches
             RectTransform ___sorceryPointsBox, 
             GuiLabel ___sorceryPointsLabel, 
             RectTransform ___spellsByLevelTable, 
-            RectTransform ___levelButtonsTable)
+            RectTransform ___levelButtonsTable,
+            RulesetCharacter caster,
+            RulesetSpellRepertoire spellRepertoire,
+            SpellRepertoirePanel.SpellRepertoireChangedHandler spellRepertoireChangedForParent,
+            SpellBox.BindMode bindMode,
+            ActionDefinitions.InventoryManagementMode inventoryMode)
         {
             // determine the display context
             var rulesetCharacterHero = __instance.GuiCharacter.RulesetCharacterHero;
@@ -28,7 +33,7 @@ namespace SolastaMultiClass.Patches
             {
                 Transform child = ___levelButtonsTable.GetChild(i);
 
-                child.gameObject.SetActive(i <= (maxLevelOfSpellCastingForClass + accountForCantrips) - 1);
+                child.gameObject.SetActive(i < maxLevelOfSpellCastingForClass + accountForCantrips);
             }
 
             // patches the panel to display higher level spell slots from shared slots table but hide the spell panels if class level not there yet
@@ -42,9 +47,12 @@ namespace SolastaMultiClass.Patches
                     
                     if (!grandChild.TryGetComponent(typeof(SlotStatusTable), out Component _))  // don't hide the spell slot status so people can see how many slots they have
                     {
-                        grandChild.gameObject.SetActive(i <= (maxLevelOfSpellCastingForClass + accountForCantrips) - 1);
+                        grandChild.gameObject.SetActive(i < maxLevelOfSpellCastingForClass + accountForCantrips);
                     }
+                    //SpellsByLevelGroup component2 = child.GetComponent<SpellsByLevelGroup>();
+                    //component2.BindInspectionOrPreparation(rulesetCharacterHero, spellRepertoire, spellRepertoire.SpellCastingFeature, i, bindMode, null);
                 }
+
             }
             LayoutRebuilder.ForceRebuildLayoutImmediate(___spellsByLevelTable);
 

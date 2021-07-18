@@ -20,7 +20,7 @@ namespace SolastaMultiClass.Patches
                     return;
 
                 int casterLevel = Models.SharedSpellsRules.GetCasterLevel(heroWithSpellRepertoire);
-                FeatureDefinitionCastSpell.SlotsByLevelDuplet item = Models.SharedSpellsRules.FullCastingSlots[casterLevel - 1];
+                FeatureDefinitionCastSpell.SlotsByLevelDuplet item = Models.SharedSpellsRules.FullCastingSlots[casterLevel];
 
                 int num = item.Slots.IndexOf(0);
 
@@ -59,10 +59,10 @@ namespace SolastaMultiClass.Patches
 
                 // get the spell level
                 int warlockLevel = Models.SharedSpellsRules.GetWarlockLevel(heroWithSpellRepertoire);
-                int warlockSpellLevel = Models.SharedSpellsRules.GetWarlockSpellLevel(heroWithSpellRepertoire);
-
                 int sharedCasterLevel = Models.SharedSpellsRules.GetSharedCasterLevel(heroWithSpellRepertoire);
-                int sharedSpellLevel = (int)Math.Floor((sharedCasterLevel + 1) / 2.0);
+
+                int warlockSpellLevel = Models.SharedSpellsRules.GetWarlockSpellLevel(heroWithSpellRepertoire);
+                int sharedSpellLevel = Models.SharedSpellsRules.GeSharedSpellLevel(heroWithSpellRepertoire);
 
                 int spellLevel = Math.Max(warlockSpellLevel, sharedSpellLevel);
 
@@ -71,7 +71,7 @@ namespace SolastaMultiClass.Patches
                 for (int i = 1; i < spellLevel + 1; i++)
                 {
                     // add the shared slots
-                    ___spellsSlotCapacities[i] = Models.SharedSpellsRules.FullCastingSlots[sharedCasterLevel - 1].Slots[i - 1]; 
+                    ___spellsSlotCapacities[i] = Models.SharedSpellsRules.FullCastingSlots[sharedCasterLevel].Slots[i - 1]; 
 
                     // add the warlock slots
                     if (warlockSpellLevel == i)
